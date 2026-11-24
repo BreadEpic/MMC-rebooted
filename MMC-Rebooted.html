@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-accent="cyber">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MMC:Rebooted</title>
+<link rel="stylesheet" href="mmc/fonts.css">
+<link rel="stylesheet" href="mmc/style.css">
+<script src="mmc/common.js"></script>
+<script>
+  /* Apply theme before first paint so there is no flash */
+  (function () {
+    var s = MMC.getSettings(), r = document.documentElement;
+    r.setAttribute("data-theme", s.dark ? "dark" : "light");
+    r.setAttribute("data-accent", s.accent);
+    r.setAttribute("data-fx", s.fx ? "on" : "off");
+  })();
+</script>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><div class="stars"></div><div class="floor"></div></div>
+
+<header class="top" id="top">
+  <div class="brand">
+    <h1 class="logo" data-text="MMC:REBOOTED">MMC<span class="logo-colon">:</span>REBOOTED</h1>
+    <p class="tagline">Games, Unblocked, Forever.</p>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" id="tabbtn-home" data-tab="home" aria-controls="tab-home"></button>
+    <button class="tab" role="tab" id="tabbtn-minecraft" data-tab="minecraft" aria-controls="tab-minecraft"></button>
+    <button class="tab" role="tab" id="tabbtn-settings" data-tab="settings" aria-controls="tab-settings"></button>
+  </nav>
+</header>
+
+<main>
+  <!-- ================= HOME ================= -->
+  <section class="view" id="tab-home" role="tabpanel" aria-labelledby="tabbtn-home">
+
+    <div class="stat-row" id="statRow"></div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Most Played</h2><span class="panel-meta" id="pieMeta"></span></div>
+      <div class="pie-wrap">
+        <svg class="pie" id="pie" viewBox="0 0 100 100" role="img" aria-label="Playtime split by game"></svg>
+        <ol class="top-list" id="topList"></ol>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Pinned</h2><span class="panel-meta" id="pinCount"></span></div>
+      <div class="tiles" id="pinned"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h2>Jump Back In</h2></div>
+      <div class="recent" id="recent"></div>
+    </div>
+
+    <div class="panel" id="library">
+      <div class="panel-head">
+        <h2>All Games</h2><span class="panel-meta" id="gameCount"></span>
+      </div>
+      <div class="lib-tools">
+        <label class="search">
+          <span class="search-icon" id="searchIcon"></span>
+          <input type="search" id="search" placeholder="Search games..." autocomplete="off" spellcheck="false" aria-label="Search games">
+          <kbd>/</kbd>
+        </label>
+        <div class="chips" id="chips" role="group" aria-label="Filter by type"></div>
+      </div>
+      <div id="libGrid"></div>
+    </div>
+  </section>
+
+  <!-- ================= MINECRAFT ================= -->
+  <section class="view" id="tab-minecraft" role="tabpanel" aria-labelledby="tabbtn-minecraft" hidden>
+    <div class="mc-frame">
+      <iframe id="mcFrame" title="Ampler Launcher" allow="autoplay; fullscreen; gamepad"></iframe>
+    </div>
+  </section>
+
+  <!-- ================= SETTINGS ================= -->
+  <section class="view" id="tab-settings" role="tabpanel" aria-labelledby="tabbtn-settings" hidden>
+    <div class="grid-2 settings">
+      <div class="panel">
+        <div class="panel-head"><h2>Display</h2></div>
+        <div class="set-row">
+          <span class="set-label">Dark Mode</span>
+          <label class="switch"><input type="checkbox" id="setDark"><span class="knob"></span></label>
+        </div>
+        <div class="set-row">
+          <span class="set-label">Neon</span>
+          <div class="swatches" id="swatches" role="radiogroup" aria-label="Neon color"></div>
+        </div>
+        <div class="set-row">
+          <span class="set-label">Effects</span>
+          <label class="switch"><input type="checkbox" id="setFx"><span class="knob"></span></label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Games</h2></div>
+        <div class="set-row">
+          <label class="set-label" for="setMode">Open Games</label>
+          <select class="px-select" id="setMode">
+            <option value="embed">On this page</option>
+            <option value="tab">In a new tab</option>
+            <option value="blank">In an about:blank tab</option>
+            <option value="replace">Replace this tab</option>
+            <option value="raw">Raw link in new tab</option>
+          </select>
+        </div>
+        <div class="set-row">
+          <label class="set-label" for="setBar">Popout Bar</label>
+          <select class="px-select" id="setBar">
+            <option value="top">Top</option>
+            <option value="bottom">Bottom</option>
+            <option value="left">Left</option>
+            <option value="right">Right</option>
+          </select>
+        </div>
+        <p class="hint">Popout bar shows in new tab and about:blank modes.</p>
+      </div>
+
+      <div class="panel span-2">
+        <div class="panel-head"><h2>Disguise</h2><span class="panel-meta" id="disguiseState"></span></div>
+        <div class="set-row">
+          <label class="set-label" for="tabName">Tab Name</label>
+          <div class="inline">
+            <input class="px-input" id="tabName" type="text" placeholder="Classes" autocomplete="off">
+            <button class="btn" id="applyTitle">Apply</button>
+          </div>
+        </div>
+        <div class="set-row">
+          <span class="set-label">Tab Icon</span>
+          <div class="inline">
+            <label class="btn ghost file-btn">Choose<input id="tabIcon" type="file" accept="image/*"></label>
+            <span class="file-name" id="tabIconName">No file</span>
+            <button class="btn" id="applyIcon">Apply</button>
+          </div>
+        </div>
+        <div class="set-row">
+          <span class="set-label">Presets</span>
+          <div class="presets" id="presets"></div>
+        </div>
+        <div class="set-row">
+          <span class="set-label"></span>
+          <button class="btn danger" id="removeDisguise">Stop Disguise</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Data</h2></div>
+        <div class="set-row">
+          <span class="set-label">Playtime</span>
+          <button class="btn danger" id="resetStats">Reset</button>
+        </div>
+        <div class="set-row">
+          <span class="set-label">Pins</span>
+          <button class="btn danger" id="clearPins">Unpin All</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Credits</h2></div>
+        <ul class="credits">
+          <li><b>Games</b> Gams by mountain658</li>
+          <li><b>Minecraft</b> Ampler Launcher by irv77, Eaglercraft by lax1dude</li>
+          <li><b>Flash</b> Ruffle</li>
+          <li><b>Fonts</b> Press Start 2P, VT323 (OFL)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ================= PLAYER (On this page mode) ================= -->
+<div class="player" id="player" hidden>
+  <div class="player-bar">
+    <img class="player-thumb" id="playerThumb" alt="">
+    <span class="player-name" id="playerName"></span>
+    <span class="player-clock" id="playerClock" title="This session">00:00:00</span>
+    <div class="player-actions">
+      <button class="icon-btn" id="pPin" title="Pin"></button>
+      <button class="icon-btn" id="pReload" title="Reload"></button>
+      <button class="icon-btn" id="pFull" title="Fullscreen"></button>
+      <button class="icon-btn" id="pOut" title="Open in new tab"></button>
+      <button class="icon-btn close" id="pClose" title="Close"></button>
+    </div>
+  </div>
+  <div class="player-stage">
+    <iframe id="playerFrame" title="Game" allow="autoplay; fullscreen; gamepad; clipboard-write"></iframe>
+    <div class="loading" id="playerLoading"><div class="loading-blocks"><i></i><i></i><i></i><i></i></div><p>Loading</p></div>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip" role="status" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="mmc/games.js"></script>
+<script src="mmc/presets.js"></script>
+<script src="mmc/app.js"></script>
+</body>
+</html>

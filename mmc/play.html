@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-accent="cyber">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MMC:Rebooted</title>
+<link rel="stylesheet" href="fonts.css">
+<style>
+  :root { --a1: #00f0ff; --a2: #ff2bd6; --bg: #0e0820; --panel: #170e30; --ink: #f5f1ff; --ink-2: #cbc1e8; --line: #3b2a6b; --danger: #ff3b6b; }
+  html[data-accent="toxic"]  { --a1: #39ff14; --a2: #00f0ff; }
+  html[data-accent="sunset"] { --a1: #ff8a1f; --a2: #ff2bd6; }
+  html[data-accent="violet"] { --a1: #c04bff; --a2: #00f0ff; }
+  html[data-accent="gold"]   { --a1: #ffe600; --a2: #ff2bd6; }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
+  #frame { position: fixed; inset: 0; width: 100vw; height: 100vh; border: 0; background: #000; }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  .px-icon { width: 1em; height: 1em; display: block; }
+
+  /* popout bar: peeks out from one edge, slides in on hover */
+  .bar {
+    position: fixed; z-index: 10; display: flex; align-items: center; gap: 12px;
+    padding: 7px 10px; background: var(--bg); color: var(--ink);
+    font-family: "VT323", monospace; font-size: 18px;
+    box-shadow: -2px 0 0 0 var(--a1), 2px 0 0 0 var(--a1), 0 -2px 0 0 var(--a1), 0 2px 0 0 var(--a1), 0 0 14px color-mix(in srgb, var(--a1) 45%, transparent);
+    transition: transform .3s cubic-bezier(.2, .8, .2, 1);
+  }
+  .bar img { width: 24px; height: 24px; object-fit: cover; background: var(--panel); }
+  .bar .name { font-family: "Press Start 2P", monospace; font-size: 8px; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar .btn { width: 28px; height: 28px; display: grid; place-items: center; font-size: 12px; color: var(--ink-2); background: var(--panel);
+    box-shadow: -2px 0 0 0 var(--line), 2px 0 0 0 var(--line), 0 -2px 0 0 var(--line), 0 2px 0 0 var(--line); margin: 2px; }
+  .bar .btn:hover { color: var(--ink); box-shadow: -2px 0 0 0 var(--a1), 2px 0 0 0 var(--a1), 0 -2px 0 0 var(--a1), 0 2px 0 0 var(--a1); }
+  .bar .grip { position: absolute; background: var(--a1); }
+
+  .bar.top    { top: 0; left: 50%; transform: translate(-50%, calc(-100% + 8px)); }
+  .bar.bottom { bottom: 0; left: 50%; transform: translate(-50%, calc(100% - 8px)); }
+  .bar.left   { left: 0; top: 50%; flex-direction: column; transform: translate(calc(-100% + 8px), -50%); }
+  .bar.right  { right: 0; top: 50%; flex-direction: column; transform: translate(calc(100% - 8px), -50%); }
+  .bar.left .name, .bar.right .name { display: none; }
+  .bar.top:hover, .bar.top:focus-within { transform: translate(-50%, 0); }
+  .bar.bottom:hover, .bar.bottom:focus-within { transform: translate(-50%, 0); }
+  .bar.left:hover, .bar.left:focus-within { transform: translate(0, -50%); }
+  .bar.right:hover, .bar.right:focus-within { transform: translate(0, -50%); }
+
+  .msg { position: fixed; inset: 0; display: grid; place-content: center; gap: 16px; text-align: center; color: var(--ink); background: var(--bg);
+    font-family: "Press Start 2P", monospace; font-size: 12px; line-height: 1.8; }
+  .msg a { color: var(--a1); }
+  @media (prefers-reduced-motion: reduce) { .bar { transition: none; } }
+</style>
+<script src="common.js"></script>
+<script src="games.js"></script>
+</head>
+<body>
+<iframe id="frame" title="Game" allow="autoplay; fullscreen; gamepad; clipboard-write"></iframe>
+<div class="bar" id="bar">
+  <img id="thumb" alt="">
+  <span class="name" id="name"></span>
+  <a class="btn" id="home" href="../MMC-Rebooted.html" title="Back to MMC:Rebooted" hidden></a>
+  <button class="btn" id="reload" title="Reload"></button>
+  <button class="btn" id="full" title="Fullscreen"></button>
+</div>
+<script>
+(function () {
+  "use strict";
+  var q = new URLSearchParams(location.search);
+  var g = MMC_GAMES.byId[q.get("id") || ""];
+  var s = MMC.getSettings();
+  var inBlank = q.get("in") === "blank";
+  document.documentElement.setAttribute("data-accent", s.accent);
+
+  if (!g) {
+    document.body.innerHTML = '<div class="msg"><p>Game not found.</p><a href="../MMC-Rebooted.html">Back to MMC:Rebooted</a></div>';
+    return;
+  }
+
+  var src = "../" + g.href;
+  var frame = document.getElementById("frame");
+  var bar = document.getElementById("bar");
+  bar.className = "bar " + (["top", "bottom", "left", "right"].indexOf(s.bar) !== -1 ? s.bar : "top");
+  document.getElementById("thumb").src = "../" + g.img;
+  document.getElementById("name").textContent = g.name;
+  document.getElementById("reload").innerHTML = MMC.icon("reload");
+  document.getElementById("full").innerHTML = MMC.icon("full");
+
+  // "Replace this tab" mode counts its own playtime and offers a way back
+  if (q.get("track") === "1") {
+    var home = document.getElementById("home");
+    home.innerHTML = MMC.icon("back");
+    home.hidden = false;
+    var tracker = new MMC.Tracker(g.id, function () { return document.visibilityState === "visible"; });
+    window.addEventListener("pagehide", function () { tracker.stop(); });
+  }
+
+  frame.src = src;
+  frame.addEventListener("load", function () { try { frame.focus(); } catch (e) {} });
+  document.getElementById("reload").addEventListener("click", function () { frame.src = src; });
+  document.getElementById("full").addEventListener("click", function () {
+    var f = frame.requestFullscreen || frame.webkitRequestFullscreen;
+    if (f) f.call(frame);
+  });
+
+  // Tab name + icon: the game name, or the disguise when one is set.
+  // Inside an about:blank tab the outer page owns the title, so skip it there.
+  if (!inBlank) {
+    var apply = function () {
+      var st = MMC.getSettings();
+      document.title = st.title || g.name;
+      var links = document.querySelectorAll('link[rel*="icon"]');
+      for (var i = 0; i < links.length; i++) links[i].parentNode.removeChild(links[i]);
+      var link = document.createElement("link");
+      link.rel = "icon";
+      link.href = st.icon || ("../" + g.img);
+      document.head.appendChild(link);
+    };
+    apply();
+    window.addEventListener("storage", function (e) { if (e.key === MMC.KEYS.settings) apply(); });
+  }
+})();
+</script>
+</body>
+</html>
