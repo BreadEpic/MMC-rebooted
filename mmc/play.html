@@ -1,16 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark" data-accent="cyber">
+<html lang="en" data-theme="neon">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MMC:Rebooted</title>
 <link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="themes.css">
 <style>
-  :root { --a1: #00f0ff; --a2: #ff2bd6; --bg: #0e0820; --panel: #170e30; --ink: #f5f1ff; --ink-2: #cbc1e8; --line: #3b2a6b; --danger: #ff3b6b; }
-  html[data-accent="toxic"]  { --a1: #39ff14; --a2: #00f0ff; }
-  html[data-accent="sunset"] { --a1: #ff8a1f; --a2: #ff2bd6; }
-  html[data-accent="violet"] { --a1: #c04bff; --a2: #00f0ff; }
-  html[data-accent="gold"]   { --a1: #ffe600; --a2: #ff2bd6; }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
@@ -26,9 +22,9 @@
     box-shadow: -2px 0 0 0 var(--a1), 2px 0 0 0 var(--a1), 0 -2px 0 0 var(--a1), 0 2px 0 0 var(--a1), 0 0 14px color-mix(in srgb, var(--a1) 45%, transparent);
     transition: transform .3s cubic-bezier(.2, .8, .2, 1);
   }
-  .bar img { width: 24px; height: 24px; object-fit: cover; background: var(--panel); }
+  .bar img { width: 24px; height: 24px; object-fit: cover; background: var(--panel-2); }
   .bar .name { font-family: "Press Start 2P", monospace; font-size: 8px; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .bar .btn { width: 28px; height: 28px; display: grid; place-items: center; font-size: 12px; color: var(--ink-2); background: var(--panel);
+  .bar .btn { width: 28px; height: 28px; display: grid; place-items: center; font-size: 12px; color: var(--ink-2); background: var(--panel-2);
     box-shadow: -2px 0 0 0 var(--line), 2px 0 0 0 var(--line), 0 -2px 0 0 var(--line), 0 2px 0 0 var(--line); margin: 2px; }
   .bar .btn:hover { color: var(--ink); box-shadow: -2px 0 0 0 var(--a1), 2px 0 0 0 var(--a1), 0 -2px 0 0 var(--a1), 0 2px 0 0 var(--a1); }
   .bar .grip { position: absolute; background: var(--a1); }
@@ -67,7 +63,7 @@
   var g = MMC_GAMES.byId[q.get("id") || ""];
   var s = MMC.getSettings();
   var inBlank = q.get("in") === "blank";
-  document.documentElement.setAttribute("data-accent", s.accent);
+  document.documentElement.setAttribute("data-theme", MMC.themeById(s.theme).id);
 
   if (!g) {
     document.body.innerHTML = '<div class="msg"><p>Game not found.</p><a href="../MMC-Rebooted.html">Back to MMC:Rebooted</a></div>';

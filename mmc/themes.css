@@ -1,0 +1,248 @@
+/* =========================================================
+   MMC:Rebooted themes
+   Each theme is a set of variables on [data-theme]. The <html> element carries the
+   active one, and the theme picker cards carry their own so they preview live.
+   Everything is local: no web fonts, no images, no internet.
+   ========================================================= */
+
+/* ---------- defaults = Neon ---------- */
+:root, [data-theme] {
+  --f-pixel: "Press Start 2P", "Courier New", monospace;
+  --f-body: "VT323", "Courier New", monospace;
+
+  --bg: #07040f;
+  --bg-2: #0e0820;
+  --panel: rgba(17, 10, 36, 0.88);
+  --panel-2: #170e30;
+  --surface: #120b26;
+  --line: #3b2a6b;
+  --grid: rgba(255, 43, 214, 0.55);
+  --ink: #f5f1ff;
+  --ink-2: #cbc1e8;
+  --muted: #9488bb;
+  --on-accent: #07040f;
+  --danger: #ff3b6b;
+  --glow: 1;
+  --a1: #00f0ff;
+  --a2: #ff2bd6;
+
+  --bg-art:
+    radial-gradient(ellipse 70% 45% at 50% 62%, rgba(255, 43, 214, 0.2), transparent 70%),
+    linear-gradient(to bottom, #07040f 0%, #0e0820 60%, #07040f 100%);
+  --floor-o: 0.45;
+  --stars-o: 0.5;
+  --sun-o: 0;
+  --fx-o: 0.6;
+  --scan-o: 0.8;
+  --scan-img: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px);
+  --logo-ink: #f5f1ff;
+  --logo-shadow: 3px 3px 0 #ff2bd6, 0 0 8px #00f0ff, 0 0 22px #00f0ff;
+  --tag: #ff2bd6;
+
+  /* pie slices: palette validated for dark surfaces */
+  --pie0: #139cb6; --pie1: #ad057e; --pie2: #af930d; --pie3: #8e58f2; --pie4: #bf4306;
+  --pie-o: #4d4570; --pie-empty: #2a1f4d;
+}
+
+/* pie slices on light themes: palette validated for light surfaces */
+[data-theme="white"], [data-theme="sakura"], [data-theme="candy"], [data-theme="frost"], [data-theme="handheld"] {
+  --pie0: #18b1cd; --pie1: #b70385; --pie2: #a58a07; --pie3: #8851eb; --pie4: #923002;
+  --pie-o: #b6aed0; --pie-empty: #e4ddf7;
+}
+
+/* ---------- Hacker: green phosphor terminal + matrix rain ---------- */
+[data-theme="hacker"] {
+  --bg: #000000; --bg-2: #020a02; --panel: rgba(0, 10, 2, 0.84); --panel-2: #031203; --surface: #020c03;
+  --line: #0f4d1a; --grid: rgba(0, 255, 65, 0.35);
+  --ink: #b6ffc4; --ink-2: #6ee787; --muted: #3fa556; --on-accent: #001a05; --danger: #ff3b3b;
+  --a1: #00ff41; --a2: #a6ff00; --glow: 1;
+  --bg-art: radial-gradient(ellipse at 50% 40%, #021a08 0%, #000 70%);
+  --floor-o: 0; --stars-o: 0; --fx-o: 0.42; --scan-o: 1;
+  --logo-ink: #00ff41;
+  --logo-shadow: 3px 3px 0 #003b10, 0 0 6px #00ff41, 0 0 18px #00ff41;
+  --tag: #6ee787;
+}
+
+/* ---------- White: clean, crisp, no glow ---------- */
+[data-theme="white"] {
+  --bg: #ffffff; --bg-2: #f4f4f4; --panel: rgba(255, 255, 255, 0.96); --panel-2: #ffffff; --surface: #ffffff;
+  --line: #d6d6d6; --grid: transparent;
+  --ink: #111111; --ink-2: #3a3a3a; --muted: #707070; --on-accent: #ffffff; --danger: #e5383b;
+  --a1: #111111; --a2: #ff3b30; --glow: 0;
+  --bg-art: radial-gradient(#e4e4e4 1px, transparent 1.6px) 0 0 / 22px 22px, #ffffff;
+  --floor-o: 0; --stars-o: 0; --fx-o: 0; --scan-o: 0;
+  --logo-ink: #111111;
+  --logo-shadow: 3px 3px 0 #ff3b30;
+  --tag: #111111;
+}
+
+/* ---------- Vaporwave: sunset, striped sun, pink grid ---------- */
+[data-theme="vapor"] {
+  --bg: #1a0933; --bg-2: #2d0f4f; --panel: rgba(36, 12, 60, 0.84); --panel-2: #2e1150; --surface: #26103f;
+  --line: #6b2f8f; --grid: rgba(255, 113, 206, 0.75);
+  --ink: #fff5fd; --ink-2: #f3c7ee; --muted: #c08ad0; --on-accent: #1a0933;
+  --a1: #ff71ce; --a2: #01cdfe; --glow: 1;
+  --bg-art: linear-gradient(to bottom, #120626 0%, #3b0f5c 34%, #b02a73 52%, #ff9e7a 58%, #1a0933 58.2%, #120626 100%);
+  --floor-o: 0.7; --stars-o: 0.45; --sun-o: 1; --fx-o: 0; --scan-o: 0.6;
+  --logo-ink: #ffffff;
+  --logo-shadow: 3px 3px 0 #01cdfe, -2px -2px 0 #ff71ce, 0 0 18px #b967ff;
+  --tag: #01cdfe;
+}
+
+/* ---------- Amber CRT: monochrome amber monitor ---------- */
+[data-theme="amber"] {
+  --bg: #0a0600; --bg-2: #140c00; --panel: rgba(22, 13, 0, 0.86); --panel-2: #1a1000; --surface: #160d00;
+  --line: #5a3b00; --grid: rgba(255, 176, 0, 0.3);
+  --ink: #ffcc66; --ink-2: #e6a733; --muted: #a57414; --on-accent: #1a0f00; --danger: #ff5533;
+  --a1: #ffb000; --a2: #ff7a00; --glow: 1;
+  --bg-art: radial-gradient(ellipse at center, #1c1100 0%, #0a0600 60%, #000 100%);
+  --floor-o: 0; --stars-o: 0; --fx-o: 0; --scan-o: 1;
+  --scan-img:
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.32) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.6) 100%);
+  --logo-ink: #ffb000;
+  --logo-shadow: 0 0 6px #ffb000, 0 0 20px #ff7a00;
+  --tag: #ffb000;
+}
+
+/* ---------- Deep Sea: light rays and rising bubbles ---------- */
+[data-theme="ocean"] {
+  --bg: #00101c; --bg-2: #002338; --panel: rgba(0, 26, 44, 0.82); --panel-2: #002a45; --surface: #001f33;
+  --line: #0e4f6e; --grid: rgba(0, 229, 255, 0.3);
+  --ink: #e3fbff; --ink-2: #9fdcec; --muted: #5f9fb5; --on-accent: #00101c;
+  --a1: #00e5ff; --a2: #36ffb5; --glow: 1;
+  --bg-art:
+    linear-gradient(165deg, transparent 0 20%, rgba(120, 230, 255, 0.08) 20% 26%, transparent 26% 34%, rgba(120, 230, 255, 0.05) 34% 38%, transparent 38%),
+    linear-gradient(to bottom, #003049 0%, #00101c 70%, #000a12 100%);
+  --floor-o: 0; --stars-o: 0; --fx-o: 0.75; --scan-o: 0.4;
+  --logo-ink: #e3fbff;
+  --logo-shadow: 3px 3px 0 #005f73, 0 0 10px #00e5ff, 0 0 26px #36ffb5;
+  --tag: #36ffb5;
+}
+
+/* ---------- Inferno: glowing embers ---------- */
+[data-theme="inferno"] {
+  --bg: #0c0202; --bg-2: #1f0505; --panel: rgba(30, 6, 4, 0.84); --panel-2: #260806; --surface: #1d0604;
+  --line: #6b1d0c; --grid: rgba(255, 106, 0, 0.4);
+  --ink: #fff1e8; --ink-2: #ffbe9c; --muted: #c2765a; --on-accent: #1a0400; --danger: #ff2e4d;
+  --a1: #ff6a00; --a2: #ffd000; --glow: 1;
+  --bg-art:
+    radial-gradient(ellipse 80% 50% at 50% 110%, rgba(255, 80, 0, 0.45), transparent 70%),
+    linear-gradient(to bottom, #050000, #1f0505 70%, #3a0a02);
+  --floor-o: 0; --stars-o: 0; --fx-o: 0.85; --scan-o: 0.5;
+  --logo-ink: #fff3e0;
+  --logo-shadow: 3px 3px 0 #b30000, 0 0 10px #ff6a00, 0 0 28px #ff3d00;
+  --tag: #ffd000;
+}
+
+/* ---------- Sakura: soft pink, falling petals ---------- */
+[data-theme="sakura"] {
+  --bg: #fff1f5; --bg-2: #ffe3ec; --panel: rgba(255, 255, 255, 0.88); --panel-2: #ffffff; --surface: #ffffff;
+  --line: #f5c2d3; --grid: transparent;
+  --ink: #3d1b2b; --ink-2: #6b3a50; --muted: #9a6b80; --on-accent: #ffffff; --danger: #c2255c;
+  --a1: #d6336c; --a2: #2f9e44; --glow: 0.25;
+  --bg-art:
+    radial-gradient(ellipse at 15% 10%, #ffd6e4, transparent 50%),
+    radial-gradient(ellipse at 90% 85%, #ffe8f0, transparent 50%),
+    #fff1f5;
+  --floor-o: 0; --stars-o: 0; --fx-o: 0.9; --scan-o: 0;
+  --logo-ink: #3d1b2b;
+  --logo-shadow: 3px 3px 0 #ff8fb1;
+  --tag: #d6336c;
+}
+
+/* ---------- Handheld: four shades of green, dot-matrix screen ---------- */
+[data-theme="handheld"] {
+  --bg: #9bbc0f; --bg-2: #8bac0f; --panel: rgba(139, 172, 15, 0.92); --panel-2: #8bac0f; --surface: #8bac0f;
+  --line: #306230; --grid: transparent;
+  --ink: #0f380f; --ink-2: #0f380f; --muted: #306230; --on-accent: #9bbc0f; --danger: #0f380f;
+  --a1: #0f380f; --a2: #306230; --glow: 0;
+  --bg-art: #9bbc0f;
+  --floor-o: 0; --stars-o: 0; --fx-o: 0; --scan-o: 1;
+  --scan-img: radial-gradient(rgba(15, 56, 15, 0.13) 1px, transparent 1.6px) 0 0 / 4px 4px;
+  --logo-ink: #0f380f;
+  --logo-shadow: 3px 3px 0 #306230;
+  --tag: #0f380f;
+}
+
+/* ---------- Galaxy: nebula and twinkling stars ---------- */
+[data-theme="galaxy"] {
+  --bg: #05010f; --bg-2: #0d0524; --panel: rgba(14, 6, 34, 0.8); --panel-2: #150a33; --surface: #110829;
+  --line: #3d2a7a; --grid: rgba(179, 136, 255, 0.35);
+  --ink: #f3eeff; --ink-2: #c9bdf2; --muted: #8c7fc0; --on-accent: #0d0524;
+  --a1: #b388ff; --a2: #64ffda; --glow: 1;
+  --bg-art:
+    radial-gradient(ellipse 50% 40% at 20% 30%, rgba(106, 13, 173, 0.45), transparent 70%),
+    radial-gradient(ellipse 45% 35% at 80% 60%, rgba(30, 58, 138, 0.5), transparent 70%),
+    radial-gradient(ellipse 40% 30% at 55% 88%, rgba(236, 72, 153, 0.25), transparent 70%),
+    #05010f;
+  --floor-o: 0; --stars-o: 0; --fx-o: 1; --scan-o: 0.45;
+  --logo-ink: #f3eeff;
+  --logo-shadow: 3px 3px 0 #6a0dad, 0 0 10px #b388ff, 0 0 26px #64ffda;
+  --tag: #64ffda;
+}
+
+/* ---------- Bubblegum: pastel polka dots ---------- */
+[data-theme="candy"] {
+  --bg: #fff4fb; --bg-2: #ffe6f5; --panel: rgba(255, 255, 255, 0.9); --panel-2: #ffffff; --surface: #ffffff;
+  --line: #ffc1e3; --grid: transparent;
+  --ink: #3a1450; --ink-2: #5e2d78; --muted: #9466a8; --on-accent: #ffffff; --danger: #e0115f;
+  --a1: #e0287f; --a2: #1a9fe0; --glow: 0.35;
+  --bg-art:
+    radial-gradient(#ffd1ec 3px, transparent 3.5px) 0 0 / 34px 34px,
+    radial-gradient(#cdeeff 3px, transparent 3.5px) 17px 17px / 34px 34px,
+    #fff4fb;
+  --floor-o: 0; --stars-o: 0; --fx-o: 0.7; --scan-o: 0;
+  --logo-ink: #ff4fa3;
+  --logo-shadow: 3px 3px 0 #2fb5ff;
+  --tag: #e0287f;
+}
+
+/* ---------- Frost: icy blue, falling snow ---------- */
+[data-theme="frost"] {
+  --bg: #eef7ff; --bg-2: #dceeff; --panel: rgba(255, 255, 255, 0.84); --panel-2: #f7fbff; --surface: #fbfdff;
+  --line: #b5d6f0; --grid: rgba(0, 119, 204, 0.2);
+  --ink: #0b2540; --ink-2: #2c4d6e; --muted: #5f7f9e; --on-accent: #ffffff; --danger: #d6336c;
+  --a1: #0077cc; --a2: #0096b4; --glow: 0.3;
+  --bg-art: linear-gradient(to bottom, #f7fcff, #d6ebff);
+  --floor-o: 0.35; --stars-o: 0; --fx-o: 0.9; --scan-o: 0;
+  --logo-ink: #0b2540;
+  --logo-shadow: 3px 3px 0 #9fd3ff, 0 0 12px rgba(0, 119, 204, 0.35);
+  --tag: #0077cc;
+}
+
+/* ---------- Cyber: black and yellow, hazard stripes ---------- */
+[data-theme="cyber"] {
+  --bg: #0a0a0a; --bg-2: #141400; --panel: rgba(16, 16, 10, 0.9); --panel-2: #16160c; --surface: #121209;
+  --line: #4a4700; --grid: rgba(252, 238, 10, 0.3);
+  --ink: #fffbe0; --ink-2: #e8e2a8; --muted: #9c9660; --on-accent: #0a0a0a; --danger: #ff003c;
+  --a1: #fcee0a; --a2: #00f0ff; --glow: 0.8;
+  --bg-art:
+    repeating-linear-gradient(-45deg, rgba(252, 238, 10, 0.035) 0 14px, transparent 14px 28px),
+    radial-gradient(ellipse at 50% 120%, rgba(0, 240, 255, 0.18), transparent 60%),
+    #0a0a0a;
+  --floor-o: 0.3; --stars-o: 0; --fx-o: 0; --scan-o: 0.7;
+  --logo-ink: #fcee0a;
+  --logo-shadow: 3px 3px 0 #ff003c, -2px 0 0 #00f0ff, 0 0 16px rgba(252, 238, 10, 0.5);
+  --tag: #00f0ff;
+}
+
+/* ---------- signature touches ---------- */
+html[data-theme="hacker"] .panel-head h2::before { content: ">"; width: auto; height: auto; background: none; box-shadow: none; color: var(--a2); }
+html[data-theme="hacker"] .tagline::before { content: "$ "; color: var(--a1); }
+
+html[data-theme="amber"][data-fx="on"] body::after { animation: crt-flicker 4s steps(1) infinite; }
+@keyframes crt-flicker { 0%, 100% { opacity: 1; } 47% { opacity: 0.85; } 48% { opacity: 1; } 73% { opacity: 0.9; } }
+
+html[data-theme="handheld"] .tile-img,
+html[data-theme="handheld"] .top-thumb,
+html[data-theme="handheld"] .recent-card img,
+html[data-theme="handheld"] .player-thumb { filter: grayscale(1) sepia(1) hue-rotate(38deg) saturate(2.6) brightness(0.8) contrast(1.1); }
+
+html[data-theme="cyber"] .panel-head h2::before { width: 16px; background: repeating-linear-gradient(45deg, var(--a1) 0 3px, #000 3px 6px); box-shadow: none; }
+html[data-theme="cyber"] .panel {
+  clip-path: polygon(-3px -3px, calc(100% - 14px) -3px, calc(100% + 3px) 14px, calc(100% + 3px) calc(100% + 3px), -3px calc(100% + 3px));
+}
+
+html[data-theme="white"] .tab[aria-selected="true"],
+html[data-theme="white"] .btn:hover { box-shadow: calc(var(--bw) * -1) 0 0 0 var(--bd), var(--bw) 0 0 0 var(--bd), 0 calc(var(--bw) * -1) 0 0 var(--bd), 0 var(--bw) 0 0 var(--bd), 5px 5px 0 0 var(--a2); }

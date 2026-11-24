@@ -1,24 +1,24 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark" data-accent="cyber">
+<html lang="en" data-theme="neon" data-fx="on">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MMC:Rebooted</title>
 <link rel="stylesheet" href="mmc/fonts.css">
+<link rel="stylesheet" href="mmc/themes.css">
 <link rel="stylesheet" href="mmc/style.css">
 <script src="mmc/common.js"></script>
 <script>
   /* Apply theme before first paint so there is no flash */
   (function () {
     var s = MMC.getSettings(), r = document.documentElement;
-    r.setAttribute("data-theme", s.dark ? "dark" : "light");
-    r.setAttribute("data-accent", s.accent);
+    r.setAttribute("data-theme", s.theme);
     r.setAttribute("data-fx", s.fx ? "on" : "off");
   })();
 </script>
 </head>
 <body>
-<div class="bg" aria-hidden="true"><div class="stars"></div><div class="floor"></div></div>
+<div class="bg" aria-hidden="true"><div class="stars"></div><div class="sun"></div><div class="floor"></div></div>
 
 <header class="top" id="top">
   <div class="brand">
@@ -82,16 +82,9 @@
   <!-- ================= SETTINGS ================= -->
   <section class="view" id="tab-settings" role="tabpanel" aria-labelledby="tabbtn-settings" hidden>
     <div class="grid-2 settings">
-      <div class="panel">
-        <div class="panel-head"><h2>Display</h2></div>
-        <div class="set-row">
-          <span class="set-label">Dark Mode</span>
-          <label class="switch"><input type="checkbox" id="setDark"><span class="knob"></span></label>
-        </div>
-        <div class="set-row">
-          <span class="set-label">Neon</span>
-          <div class="swatches" id="swatches" role="radiogroup" aria-label="Neon color"></div>
-        </div>
+      <div class="panel span-2">
+        <div class="panel-head"><h2>Theme</h2><span class="panel-meta" id="themeName"></span></div>
+        <div class="themes" id="themes" role="radiogroup" aria-label="Theme"></div>
         <div class="set-row">
           <span class="set-label">Effects</span>
           <label class="switch"><input type="checkbox" id="setFx"><span class="knob"></span></label>
@@ -122,6 +115,18 @@
         <p class="hint">Popout bar shows in new tab and about:blank modes.</p>
       </div>
 
+      <div class="panel">
+        <div class="panel-head"><h2>Data</h2></div>
+        <div class="set-row">
+          <span class="set-label">Playtime</span>
+          <button class="btn danger" id="resetStats">Reset</button>
+        </div>
+        <div class="set-row">
+          <span class="set-label">Pins</span>
+          <button class="btn danger" id="clearPins">Unpin All</button>
+        </div>
+      </div>
+
       <div class="panel span-2">
         <div class="panel-head"><h2>Disguise</h2><span class="panel-meta" id="disguiseState"></span></div>
         <div class="set-row">
@@ -149,19 +154,7 @@
         </div>
       </div>
 
-      <div class="panel">
-        <div class="panel-head"><h2>Data</h2></div>
-        <div class="set-row">
-          <span class="set-label">Playtime</span>
-          <button class="btn danger" id="resetStats">Reset</button>
-        </div>
-        <div class="set-row">
-          <span class="set-label">Pins</span>
-          <button class="btn danger" id="clearPins">Unpin All</button>
-        </div>
-      </div>
-
-      <div class="panel">
+      <div class="panel span-2">
         <div class="panel-head"><h2>Credits</h2></div>
         <ul class="credits">
           <li><b>Games</b> Gams by mountain658</li>
@@ -199,6 +192,7 @@
 
 <script src="mmc/games.js"></script>
 <script src="mmc/presets.js"></script>
+<script src="mmc/fx.js"></script>
 <script src="mmc/app.js"></script>
 </body>
 </html>

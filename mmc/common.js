@@ -9,8 +9,7 @@
   var KEY_PINS = "mmc-pins";
 
   var DEFAULT_SETTINGS = {
-    dark: true,
-    accent: "cyber",
+    theme: "neon",
     fx: true,
     mode: "embed",   // embed | tab | blank | replace | raw
     bar: "top",      // popout bar side in the new tab player: top | bottom | left | right
@@ -39,10 +38,35 @@
   }
 
   /* ---------- settings ---------- */
+  // id, name, animated background
+  var THEMES = [
+    { id: "neon", name: "Neon", fx: null },
+    { id: "hacker", name: "Hacker", fx: "matrix" },
+    { id: "white", name: "White", fx: null },
+    { id: "vapor", name: "Vaporwave", fx: null },
+    { id: "amber", name: "Amber CRT", fx: null },
+    { id: "ocean", name: "Deep Sea", fx: "bubbles" },
+    { id: "inferno", name: "Inferno", fx: "embers" },
+    { id: "sakura", name: "Sakura", fx: "petals" },
+    { id: "handheld", name: "Handheld", fx: null },
+    { id: "galaxy", name: "Galaxy", fx: "stars" },
+    { id: "candy", name: "Bubblegum", fx: "bubbles" },
+    { id: "frost", name: "Frost", fx: "snow" },
+    { id: "cyber", name: "Cyber", fx: null }
+  ];
+
+  function themeById(id) {
+    for (var i = 0; i < THEMES.length; i++) if (THEMES[i].id === id) return THEMES[i];
+    return THEMES[0];
+  }
+
   function getSettings() {
-    var s = read(KEY_SETTINGS, {});
+    var s = read(KEY_SETTINGS, {}) || {};
     var out = {};
-    for (var k in DEFAULT_SETTINGS) out[k] = (s && s.hasOwnProperty(k)) ? s[k] : DEFAULT_SETTINGS[k];
+    for (var k in DEFAULT_SETTINGS) out[k] = s.hasOwnProperty(k) ? s[k] : DEFAULT_SETTINGS[k];
+    // older versions had a dark mode switch instead of themes
+    if (!s.hasOwnProperty("theme") && s.dark === false) out.theme = "white";
+    out.theme = themeById(out.theme).id;
     return out;
   }
 
@@ -266,6 +290,8 @@
 
   window.MMC = {
     getSettings: getSettings,
+    THEMES: THEMES,
+    themeById: themeById,
     setSetting: setSetting,
     getPins: getPins,
     isPinned: isPinned,

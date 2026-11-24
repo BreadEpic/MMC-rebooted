@@ -1,0 +1,59 @@
+# Builds the offline release zip and publishes it as a GitHub release.
+# Zip layout:  Run Me.html  +  files/  (everything the dashboard needs)
+# Runs when a tag like reboot-1 is pushed, or by hand from the Actions tab.
+name: Release zip
+
+on:
+  push:
+    tags:
+      - "reboot-*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (for example reboot-1)"
+        required: true
+        default: "reboot-1"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Work out the release name
+        id: meta
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          NUM="${TAG#reboot-}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "title=Reboot $NUM" >> "$GITHUB_OUTPUT"
+          echo "zip=Reboot-$NUM.zip" >> "$GITHUB_OUTPUT"
+
+      - name: Build the zip
+        run: |
+          mkdir -p out/files
+          git archive HEAD | tar -x -C out/files
+          rm -rf out/files/.github out/files/release
+          cp "release/Run Me.html" "out/Run Me.html"
+          cd out
+          zip -q -r "../${{ steps.meta.outputs.zip }}" "Run Me.html" files
+          cd ..
+          ls -lh "${{ steps.meta.outputs.zip }}"
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.meta.outputs.tag }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${{ steps.meta.outputs.zip }}" --clobber
+          else
+            gh release create "$TAG" "${{ steps.meta.outputs.zip }}" \
+              --title "${{ steps.meta.outputs.title }}" \
+              --notes-file release/notes.md \
+              --target "$GITHUB_SHA"
+          fi

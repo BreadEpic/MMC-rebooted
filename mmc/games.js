@@ -92,6 +92,7 @@
   ];
 
   var MC = [
+    { id: "mc-precision", name: "Precision Client", img: "m-logo11.png", href: "mc/precision/index.html", pixel: true },
     { id: "mc-188", name: "Minecraft 1.8.8", img: "m-logo1.png", href: "mc/1.8.8/EaglercraftX_1.8_Offline_en_US.html" },
     { id: "mc-152", name: "Minecraft 1.5.2", img: "m-logo2.png", href: "mc/1.5.2/Eaglercraft_1.5_Offline_Download.html" },
     { id: "mc-shadow", name: "Shadow Client", img: "m-logo3.png", href: "mc/shadowclient/Shadow_Client_en_US.html" },
@@ -128,7 +129,8 @@
       section: "Minecraft",
       img: "minecraft/images/" + m.img,
       href: "minecraft/" + m.href,
-      mc: true
+      mc: true,
+      pixel: !!m.pixel
     };
     list.push(game);
     byId[game.id] = game;

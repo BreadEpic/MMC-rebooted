@@ -12,14 +12,6 @@
     { id: "settings", label: "Settings", icon: "gear" }
   ];
 
-  var ACCENTS = [
-    { id: "cyber", name: "Cyber", c1: "#00f0ff", c2: "#ff2bd6" },
-    { id: "toxic", name: "Toxic", c1: "#39ff14", c2: "#00f0ff" },
-    { id: "sunset", name: "Sunset", c1: "#ff8a1f", c2: "#ff2bd6" },
-    { id: "violet", name: "Violet", c1: "#c04bff", c2: "#00f0ff" },
-    { id: "gold", name: "Gold", c1: "#ffe600", c2: "#ff2bd6" }
-  ];
-
   var BLANK_ICON = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABRklEQVR42mKgOqjq75ds7510YNL0uV9nAGqniqwKYiCIHIIjcAK22BGQLRdgBWvc3fnWk/FJhrkPO1xPgGvqPfLfJMHhT1yqurvS48bPaJhjD2efgidnVwa2yv59xecvEvi0UWCXq9t0ItfP2MMZ7nwIpkA8F1n8uLxZHM6yrBH7FIl2gFXDHYsErkn2hyKLHtcKrFntk58uVQJ+kSdQnmjhID4cwLLa8+K0BXsfNWCqBOsFdo2Yldv43DBrkxd30cjnNyYBhK0SQGkI9pG4Mu40D5b374DRCAyhHqXVfTmOwivivMkJxBz5wnHCtBfGgNFC+ChWKWRf3hsQIlyEoIv4IYEo5wkgtBLRekY9DE4Uin4Keae6hydGnljPmE8kRcCine6827AMsJ1IuW9ibnlQpXLBCR/WC875m2BP+VSu3c/0m+8V08OBngc0pxcAAAAASUVORK5CYII="; // about:blank style icon from Gams
 
   var state = { tab: "home", filter: "All", query: "" };
@@ -77,6 +69,7 @@
       $("tab-" + t.id).hidden = t.id !== id;
       $("tabbtn-" + t.id).setAttribute("aria-selected", t.id === id ? "true" : "false");
     });
+    if (window.MMCFX) MMCFX.hold("minecraft", id === "minecraft");
     if (id === "minecraft") {
       var f = $("mcFrame");
       if (!f.getAttribute("src")) f.setAttribute("src", "minecraft/index.html");
@@ -215,6 +208,7 @@
     $("playerClock").textContent = "00:00:00";
     $("player").hidden = false;
     document.body.classList.add("no-scroll");
+    if (window.MMCFX) MMCFX.hold("player", true);
     current = {
       game: g,
       tracker: new MMC.Tracker(g.id, function () { return document.visibilityState === "visible"; })
@@ -236,6 +230,7 @@
     frame.setAttribute("src", "about:blank");
     $("player").hidden = true;
     document.body.classList.remove("no-scroll");
+    if (window.MMCFX) MMCFX.hold("player", false);
     if (document.fullscreenElement) document.exitFullscreen().catch(function () {});
     renderHome();
   }
@@ -295,7 +290,7 @@
      ===================================================== */
   function tile(g) {
     var pinned = MMC.isPinned(g.id);
-    var t = el("div", "tile" + (g.mc ? " mc" : "") + (pinned ? " pinned" : ""));
+    var t = el("div", "tile" + (g.mc ? " mc" : "") + (g.pixel ? " px" : "") + (pinned ? " pinned" : ""));
     t.setAttribute("data-id", g.id);
     var play = el("button", "tile-play");
     play.setAttribute("data-play", g.id);
@@ -640,10 +635,16 @@
      Settings
      ===================================================== */
   function applyLook() {
-    var s = MMC.getSettings(), r = document.documentElement;
-    r.setAttribute("data-theme", s.dark ? "dark" : "light");
-    r.setAttribute("data-accent", s.accent);
+    var s = MMC.getSettings(), r = document.documentElement, t = MMC.themeById(s.theme);
+    r.setAttribute("data-theme", t.id);
     r.setAttribute("data-fx", s.fx ? "on" : "off");
+    if (window.MMCFX) MMCFX.set(t.fx, s.fx);
+    var tn = $("themeName");
+    if (tn) tn.textContent = t.name;
+    var cards = document.querySelectorAll(".theme-card");
+    for (var i = 0; i < cards.length; i++) cards[i].setAttribute("aria-checked", cards[i].getAttribute("data-theme") === t.id ? "true" : "false");
+    pieSig = ""; // slice gap color follows the theme
+    if (state.tab === "home") renderHome();
   }
 
   function renderDisguiseState() {
@@ -659,34 +660,25 @@
   function setupSettings() {
     var s = MMC.getSettings();
 
-    $("setDark").checked = !!s.dark;
-    $("setDark").addEventListener("change", function () {
-      MMC.setSetting("dark", this.checked);
-      applyLook();
+    var themes = $("themes");
+    MMC.THEMES.forEach(function (t) {
+      var b = el("button", "theme-card");
+      b.setAttribute("data-theme", t.id);
+      b.setAttribute("role", "radio");
+      b.setAttribute("aria-label", t.name + " theme");
+      b.innerHTML = '<span class="tc-art"><i></i><i></i><b></b></span><span class="tc-name"><span></span>' + icon("star") + "</span>";
+      b.querySelector(".tc-name span").textContent = t.name;
+      b.addEventListener("click", function () {
+        MMC.setSetting("theme", t.id);
+        applyLook();
+      });
+      themes.appendChild(b);
     });
 
     $("setFx").checked = !!s.fx;
     $("setFx").addEventListener("change", function () {
       MMC.setSetting("fx", this.checked);
       applyLook();
-    });
-
-    var sw = $("swatches");
-    ACCENTS.forEach(function (a) {
-      var b = el("button", "swatch");
-      b.setAttribute("role", "radio");
-      b.setAttribute("aria-label", a.name);
-      b.title = a.name;
-      b.style.setProperty("--sw1", a.c1);
-      b.style.setProperty("--sw2", a.c2);
-      b.setAttribute("aria-checked", s.accent === a.id ? "true" : "false");
-      b.addEventListener("click", function () {
-        MMC.setSetting("accent", a.id);
-        applyLook();
-        var all = sw.querySelectorAll(".swatch");
-        for (var i = 0; i < all.length; i++) all[i].setAttribute("aria-checked", all[i] === b ? "true" : "false");
-      });
-      sw.appendChild(b);
     });
 
     $("setMode").value = s.mode;
@@ -794,6 +786,7 @@
      ===================================================== */
   MMC.applyDisguise();
   setupSettings();
+  applyLook();
   renderChips();
   renderLibrary();
   showTab(location.hash.slice(1) || "home");
