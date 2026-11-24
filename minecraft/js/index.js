@@ -33,7 +33,8 @@ function webedition(){
     document.getElementById('dropdown8').style.display = 'none';
     document.getElementById('dropdown9').style.display = 'none';
     document.getElementById('dropdown10').style.display = 'none';
-    latestrelease()
+    document.getElementById('dropdown11').style.display = 'flex';
+    precisionclient()
 }
 function moddededition(){
     resetSelected();
@@ -58,6 +59,7 @@ function moddededition(){
     document.getElementById('dropdown8').style.display = 'none';
     document.getElementById('dropdown9').style.display = 'none';
     document.getElementById('dropdown10').style.display = 'none';
+    document.getElementById('dropdown11').style.display = 'none';
     eaglerforge()
 }
 function eaglercontrols(){
@@ -83,6 +85,7 @@ function eaglercontrols(){
     document.getElementById('dropdown8').style.display = 'flex';
     document.getElementById('dropdown9').style.display = 'flex';
     document.getElementById('dropdown10').style.display = 'flex';
+    document.getElementById('dropdown11').style.display = 'none';
     dogomobile()
 }
 function eaglerservers(){
@@ -166,6 +169,13 @@ function shadowclient() {
     document.getElementById('gameversion').innerHTML = '1.8.8';
     document.getElementById('gameicon').src = './images/m-logo3.png';
     setPlay('mc-shadow', 'mc/shadowclient/Shadow_Client_en_US.html');
+}
+
+function precisionclient() {
+    document.getElementById('gametitle').innerHTML = 'Precision Client';
+    document.getElementById('gameversion').innerHTML = '1.8.8 Multiplayer';
+    document.getElementById('gameicon').src = './images/m-logo11.png';
+    setPlay('mc-precision', 'mc/precision/index.html');
 }
 
 function latestrelease() {

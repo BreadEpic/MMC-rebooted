@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<!--
+This standalone Precision Client v1.1.0 application was generated on 09/13/2026.
+Precision Client runs Minecraft 1.8.8 in a modern browser; use an up-to-date browser for the best experience.
+-->
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="description" content="A Minecraft 1.8.8 web client based on Eaglercraft 1.8.8 u53, packed with QoL tweaks, bug fixes, and a full suite of PvP features." />
+		<title>Precision Client v1.1.0</title>
+		<meta property="og:locale" content="en_US" />
+		<meta property="og:type" content="website" />
+		<meta property="og:title" content="Precision Client v1.1.0" />
+		<meta property="og:description" content="A Minecraft 1.8.8 web client based on Eaglercraft 1.8.8 u53, packed with QoL tweaks, bug fixes, and a full suite of PvP features." />
+		<meta property="og:image" content="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAHiSURBVEhLvZavjxpBFIBREAgECHT5GSAkhASBwGAwGBSKNkHhMRgMBkObnMJgEBgEAkHCn9K0d//ItXeirejXvA1LdgfKLAe3XzJhd3bmfcvse7vjA3y2lgQegEfgF29H5n4DPh9iHh122UfgWZ15B34cYjuE0vFXHXlHJLYpFdmHw128N+IwRCjr7BUPIpSH6xWPIrwlG6/ltwg9xZXQZ+aWk2q1SqfTYTQasVgs2O/35q+cX+I00hlE6Pf7zeN0Ok2xWKTRaNDv95lOp6zXazabDbPZjMFgQLPZVEMccSUUQqEQyWSSXC5HpVKh3W4zHA6Zz+fsdjuWyyXj8Zhut6tOdeBaGI1GzX9XKBSo1+vq5SOtVkvtcuBKGAwGSSQSZLNZyuXyxaCXbkZwJYxEIqRSKfL5vHkuyybLpyLLrEMrDAQCxONxMpmMo18SRBLFjiSSDq0wHA5jGIaZLCpWKVhIqejQCmOx2LEUzmGVglAqldTLJ2iF9lL4H/JMa7Wa2n0WrfAepWBHKzxXCtvtltVqxWQyodfrOcbr0AqlFGS5rFKQN8otuPo8XXo3XsmLCL38AH8XoedbDMPrTZQ0T7eJVvsE/FRH3gGJebIRtpq11X8C/qgzr+AV+Ap8Ubf6/wCRIEg2kTCCCAAAAABJRU5ErkJggg==" />
+		<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAHiSURBVEhLvZavjxpBFIBREAgECHT5GSAkhASBwGAwGBSKNkHhMRgMBkObnMJgEBgEAkHCn9K0d//ItXeirejXvA1LdgfKLAe3XzJhd3bmfcvse7vjA3y2lgQegEfgF29H5n4DPh9iHh122UfgWZ15B34cYjuE0vFXHXlHJLYpFdmHw128N+IwRCjr7BUPIpSH6xWPIrwlG6/ltwg9xZXQZ+aWk2q1SqfTYTQasVgs2O/35q+cX+I00hlE6Pf7zeN0Ok2xWKTRaNDv95lOp6zXazabDbPZjMFgQLPZVEMccSUUQqEQyWSSXC5HpVKh3W4zHA6Zz+fsdjuWyyXj8Zhut6tOdeBaGI1GzX9XKBSo1+vq5SOtVkvtcuBKGAwGSSQSZLNZyuXyxaCXbkZwJYxEIqRSKfL5vHkuyybLpyLLrEMrDAQCxONxMpmMo18SRBLFjiSSDq0wHA5jGIaZLCpWKVhIqejQCmOx2LEUzmGVglAqldTLJ2iF9lL4H/JMa7Wa2n0WrfAepWBHKzxXCtvtltVqxWQyodfrOcbr0AqlFGS5rFKQN8otuPo8XXo3XsmLCL38AH8XoedbDMPrTZQ0T7eJVvsE/FRH3gGJebIRtpq11X8C/qgzr+AV+Ap8Ubf6/wCRIEg2kTCCCAAAAABJRU5ErkJggg==" />
+		<link rel="icon" type="image/png" media="(prefers-color-scheme: light)" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAAACXBIWXMAAC4jAAAuIwF4pT92AAACBklEQVRIicWWO2sqURDH/+sNWIgvSNJZqZWFrY2NRTqrpLDwM1inNnA7a3u/gHAlrY3NViEPBF1EFAWLLXzEx/rac5nDmmyiGw/ZuPnD7LIwzO/MOTOzB/iocwB/ATwD0ACwb5oG4BFA3oh5UNcARjYgVjY2Yu/B9BPAmGG6GXphrOJUMGbK9PIPgFsAVzi93AA2MA6XOWTPklFRRHdCK8kgO6YzESfGGCSJ1vauRqOBbreLZrOJVquFXq+HUCiESCSCXC5nGcslurLlcsnfg8EAnU4Hs9kMw+EQ4/EYk8kEHo8HgUCAmyzL9oCU3Wazgaqq2G63WK1WHETA0WiE6XQKr9cLv9+PYDCIRCJhb0tJ6/WaQwm4WCyQSqUO+tVqtS/jCGU4n885TNd1/qYttJLP57MPJMgOGA6H+TYWCoU9v2q1ing8bg+oadobjKqQlE6n+Rlms9kPvnSGx+QSOTsyApqVz+d5pZpbgCrVNtB8dp9VLpd5G5RKJf7tdosNrC/nn6qqrN/vM0VRLH0qlQqr1+tC89QlkuGuFaxEWcZiMaHszo45HGqFTCbDG50qNhqNIplMQlTSseFNM5Jg7XYbiqLwuVksFmFH2rF9l2X5p/6Hr07/gJ+oaP7BOd3T49LJSxR+45oIQzcAqPZ/GkYx92A77a76L3ThsQGZAngAcPf5qv8fCI/46dNWO+EAAAAASUVORK5CYII=" />
+		<style>
+			html,
+			body {
+				width: 100%;
+				height: 100%;
+				margin: 0;
+				overflow: hidden;
+				background: #000;
+			}
+		</style>
+		<script>
+			"use strict";
+			const relayId = Math.floor(Math.random() * 3);
+
+			window.eaglercraftXOpts = {
+				container: "game_frame",
+				worldsDB: "worlds",
+				relays: [
+					{ addr: "wss://relay.deev.is/", comment: "lax1dude relay #1", primary: relayId === 0 },
+					{ addr: "wss://relay.lax1dude.net/", comment: "lax1dude relay #2", primary: relayId === 1 },
+					{ addr: "wss://relay.shhnowisnottheti.me/", comment: "ayunami relay #1", primary: relayId === 2 }
+				],
+				directICEServers: [
+					"stun:stun.cloudflare.com:3478",
+					"stun:stun.l.google.com:19302"
+				]
+			};
+		</script>
+		<script>
+			"use strict";
+			if (typeof window !== "undefined") {
+				window.eaglercraftXClientScriptElement = document.currentScript;
+			}
+var precisionClientBuildMode = "release";
+var loadingScreenDataURI = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAYAAAD0eNT6AAAACXBIWXMAAC4jAAAuIwF4pT92AAALIklEQVR4nO3YP25UZx+G4TOfLBoUcIoUUWIl4o8iuUxDzRboKFgCDRtgDWmygWyBnobGDb0thECkSBEJGMDGeOyTXXy/4r6uDTzvnDkzuvVu1nVdAICW/00fAAD4/xMAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIL2pg/Asg7vb4b3GXR8fDz6/r19+3b684/uv3r1anT/3bt3o/sHBwej+3fu3Bndf/z48ej/rxsAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACC9qYPwKxv376tk/vXrl3bTO7/888/o5///Px8cn758uXL6P779+9H9z9+/Di6v91uR/evX78+ur+/v5/ePzo6Gv3/cQMAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAEDQ3vQBWDaT47vdbp3c3263o/uXl5eT88u3b99G9z9+/Di6//79+9H9Dx8+jO5//vx5dP+HH34Y3b958+bo/vfffz+6f+/evdH/fzcAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAE7U0fgFkXFxej+7vdbnT/8vJydP/s7Gx0//79+5vh/cl54l68eLEuYW4AACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAI2ps+QN3Z2dk6ub/b7Sbnl6urq6X8+bfb7eg+lN24cWMpcwMAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAEDQZl3X6TOkffr0afQLOD09nZxfLi4uRvd//vnnzeT+s2fPRr//k5OTyfnlyZMno8+fWc+fPx99/+/fv59+/9wAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQtFnXdSk7Pz8ffQCnp6eT88vXr19H93/88cfN6AHinj59Ovr+v379enJ++euvv7x/g16+fDn6/v3+++/p798NAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQQIAAIIEAAAECQAACBIAABAkAAAgSAAAQJAAAIAgAQAAQZt1XZeyz58/jz6A09PTyfnl4uJidP+nn37ajB6AUQ8ePBj9/R0cHEzOL3/88Uf6/T8+Ph79/n/77bf083cDAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABA0GZd16Xsw4cPow/g69evk/PL+fn56P4vv/yyGT0AaU+fPh39/d+5c2dyfnn06NHo7+/Nmzejz//XX39N//+4AQCAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIGizrutS9u+//44+gPPz88n55fT0dHT/7t27m9EDwKBnz56N/v/cunVrcn45PDz0+x/kBgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgKC9JW63243uX15eju6fnZ2N7kPZ/v7+6P7h4eFm9ACMcgMAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAECQAACAIAEAAEECAACCBAAABAkAAAgSAAAQJAAAIEgAAEDQ3hJ3dXU1ur/b7Ub3t9vt6H7dw4cP18n97777bnJ+uX379uj+3bt3R/cfPHiwGT0AaW4AACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAI2qzrupT9/fffow9gu91Ozi+vX78e3T85ORndf/Xq1ej+n3/+uRk9AJDlBgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgKDNuq7TZ0g7Ojoa/QLu3bu3mdwHYIYbAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAggQAAAQJAAAIEgAAECQAACBIAABAkAAAgCABAABBAgAAlp7/AAbvB6t5AnlsAAAAAElFTkSuQmCC";
+
+/*
+ * Copyright (c) 2024 lax1dude. All Rights Reserved.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * 
+ */
+
+/*
+ * precision-client fork: one shared full-screen fatal-error card.
+ *
+ * This lives in the bootstrap bundle because it must be available before the
+ * EPW validates and before the loader/runtime execute. It is pure DOM with no
+ * dependency on WebGL, AudioContext, decoded assets, clipboard permission, or
+ * any runtime global, so bootstrap validation, the EPW loader, and the main
+ * runtime all render the exact same screen.
+ *
+ * The visual contract (pc-crash-* class names, spacing, typography, logo slot,
+ * button tiers) is identical to the original runtime crash screen so existing
+ * screens do not change appearance.
+ */
+(function() {
+	"use strict";
+
+	/** @const {string} */
+	var PRECISION_FATAL_DEFAULT_PRIVACY_WARNING =
+		"Review the report before sharing. Minecraft diagnostics may include usernames, world/server names, coordinates, or other context.";
+
+	/** @type {boolean} */
+	var stylesInstalled = false;
+
+	/**
+	 * @param {HTMLElement} parentEl
+	 */
+	function installStyles(parentEl) {
+		if (stylesInstalled) return;
+		stylesInstalled = true;
+		var style = document.createElement("style");
+		style.className = "_precision_crash_styles";
+		style.textContent = "\n" +
+			".pc-crash-root{position:absolute;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:24px;overflow:auto;background:#0B0B0C;color:#F3F3F2;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;isolation:isolate;}" +
+			".pc-crash-root *{box-sizing:border-box;}" +
+			".pc-crash-root .pc-crash-card{width:min(740px,100%);max-height:calc(100% - 16px);display:flex;flex-direction:column;gap:18px;padding:28px;border:1px solid rgba(255,255,255,.18);border-radius:12px;background:#151516;box-shadow:0 8px 24px rgba(0,0,0,.22);overflow:auto;}" +
+			".pc-crash-root .pc-crash-header{display:flex;align-items:center;gap:12px;}" +
+			".pc-crash-root .pc-crash-logo{width:24px;height:24px;flex:0 0 24px;object-fit:contain;}" +
+			".pc-crash-root h1{margin:0;font-size:24px;line-height:1.2;font-weight:650;letter-spacing:-.01em;}" +
+			".pc-crash-root .pc-crash-summary,.pc-crash-root .pc-crash-guidance p{width:100%;max-width:none;margin:0;}" +
+			".pc-crash-root .pc-crash-summary{color:#D0D0CE;font-size:14px;line-height:1.55;}" +
+			".pc-crash-root .pc-crash-body{display:flex;min-height:0;flex-direction:column;gap:12px;}" +
+			".pc-crash-root .pc-crash-guidance{margin:0;color:#D9D9D6;font-size:13px;line-height:1.5;}" +
+			".pc-crash-root .pc-crash-privacy-warning{margin:0;color:#A8A8A4;font-size:12px;line-height:1.45;}" +
+			".pc-crash-root details{min-height:0;border-top:1px solid rgba(255,255,255,.12);overflow:hidden;}" +
+			".pc-crash-root details summary{cursor:pointer;padding:12px 0;color:#DADAD7;font-size:13px;font-weight:600;outline:none;}" +
+			".pc-crash-root details summary:focus-visible{outline:2px solid #DADAD7;outline-offset:3px;}" +
+			".pc-crash-root .pc-crash-report{max-height:300px;margin:0;padding:12px;background:#0E0E0F;border:1px solid rgba(255,255,255,.12);border-radius:6px;overflow:auto;color:#C4C4C0;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,\"Liberation Mono\",monospace;}" +
+			".pc-crash-root .pc-crash-footer{display:flex;flex-direction:column;align-items:stretch;gap:10px;padding-top:2px;}" +
+			".pc-crash-root .pc-crash-action-main,.pc-crash-root .pc-crash-action-utilities{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}" +
+			".pc-crash-root .pc-crash-action-utilities{padding-top:10px;border-top:1px solid rgba(255,255,255,.10);gap:4px 16px;}" +
+			".pc-crash-root .pc-crash-status{flex:1 1 160px;min-width:120px;max-width:240px;margin-left:auto;color:#A8A8A4;font-size:12px;line-height:18px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;visibility:visible;}" +
+			".pc-crash-root .pc-crash-status:empty{visibility:hidden;}" +
+			".pc-crash-root button{appearance:none;min-height:36px;border:1px solid rgba(255,255,255,.22);border-radius:7px;padding:8px 13px;background:transparent;color:#F0F0ED;font:600 12px Inter,ui-sans-serif,system-ui,sans-serif;cursor:pointer;}" +
+			".pc-crash-root button:hover{background:rgba(255,255,255,.08);}" +
+			".pc-crash-root button:focus-visible{outline:2px solid #E0E0DD;outline-offset:2px;}" +
+			".pc-crash-root button.pc-crash-primary{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.40);}" +
+			".pc-crash-root button.pc-crash-secondary{background:rgba(255,255,255,.04);}" +
+			".pc-crash-root button.pc-crash-utility{min-height:32px;padding:6px 4px;border-color:transparent;color:#B4B4B0;font-weight:500;}" +
+			".pc-crash-root button.pc-crash-utility:hover{background:transparent;color:#F0F0ED;text-decoration:underline;text-underline-offset:3px;}" +
+			".pc-crash-root button.pc-crash-danger{color:#E58B98;}" +
+			".pc-crash-root.pc-crash-integrated-report{display:block;inset:auto;padding:14px;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:#0E0E0F;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,\"Liberation Mono\",monospace;}" +
+			"@media (max-width:700px){.pc-crash-root{padding:12px;align-items:flex-start;}.pc-crash-root .pc-crash-card{max-height:none;padding:20px;}.pc-crash-root h1{font-size:21px;}.pc-crash-root .pc-crash-action-main button{flex:1 1 140px;}}" +
+			"@media (prefers-reduced-motion:reduce){.pc-crash-root *{scroll-behavior:auto!important;transition:none!important;animation:none!important;}}";
+		parentEl.appendChild(style);
+	}
+
+	/**
+	 * @param {string} tag
+	 * @param {string|null} className
+	 * @param {string|null} text
+	 * @return {HTMLElement}
+	 */
+	function element(tag, className, text) {
+		var el = /** @type {HTMLElement} */ (document.createElement(tag));
+		if (className) el.className = className;
+		if (text != null) el.textContent = text;
+		return el;
+	}
+
+	/**
+	 * @param {HTMLElement} statusEl
+	 * @param {string} text
+	 */
+	function setStatus(statusEl, text) {
+		statusEl.textContent = text;
+	}
+
+	/**
+	 * Build the shared fatal-error card.
+	 *
+	 * @param {HTMLElement} parentEl
+	 * @param {Object} options
+	 * @param {string} options.legacyClass
+	 * @param {string} options.title
+	 * @param {string} options.summary
+	 * @param {Array<string>=} options.guidance
+	 * @param {string|null=} options.privacyWarning omit for the default warning, null to hide it
+	 * @param {string=} options.details
+	 * @param {string=} options.detailsLabel
+	 * @param {boolean=} options.detailsOpen
+	 * @param {string|null=} options.logoUrl
+	 * @param {boolean=} options.alertDialog
+	 * @param {Array<Object>=} options.actions
+	 * @return {HTMLElement}
+	 */
+	function build(parentEl, options) {
+		installStyles(parentEl);
+		var root = element("div", "pc-crash-root " + options.legacyClass);
+		root.setAttribute("role", options.alertDialog === false ? "document" : "alertdialog");
+		root.setAttribute("aria-labelledby", "pc-crash-title");
+		var card = element("main", "pc-crash-card");
+		var header = element("header", "pc-crash-header");
+		if (options.logoUrl) {
+			var logo = /** @type {HTMLImageElement} */ (document.createElement("img"));
+			logo.className = "pc-crash-logo";
+			logo.alt = "Precision Client";
+			logo.src = options.logoUrl;
+			// The mark is decorative: never selectable, draggable, or clickable.
+			// The card, summary, guidance, and report text stay selectable so
+			// diagnostics can still be copied by hand on file: URLs.
+			logo.draggable = false;
+			logo.setAttribute("draggable", "false");
+			logo.style.userSelect = "none";
+			logo.style["WebkitUserSelect"] = "none";
+			logo.style.pointerEvents = "none";
+			logo.onerror = function() { logo.remove(); };
+			header.appendChild(logo);
+		}
+		var title = element("h1", null, options.title);
+		title.id = "pc-crash-title";
+		header.appendChild(title);
+		card.appendChild(header);
+		card.appendChild(element("p", "pc-crash-summary", options.summary));
+		var body = element("section", "pc-crash-body");
+		var guidance = element("div", "pc-crash-guidance");
+		(options.guidance || []).forEach(function(text) {
+			guidance.appendChild(element("p", null, text));
+		});
+		body.appendChild(guidance);
+		if (options.privacyWarning !== null) {
+			body.appendChild(element("p", "pc-crash-privacy-warning",
+				options.privacyWarning || PRECISION_FATAL_DEFAULT_PRIVACY_WARNING));
+		}
+		var details = document.createElement("details");
+		if (options.detailsOpen) details.open = true;
+		var summary = element("summary", null, options.detailsLabel || "Technical details");
+		var report = element("pre", "pc-crash-report", options.details || "");
+		details.appendChild(summary);
+		details.appendChild(report);
+		body.appendChild(details);
+		card.appendChild(body);
+		var footer = element("footer", "pc-crash-footer");
+		var mainActions = element("div", "pc-crash-action-main");
+		var utilityActions = element("div", "pc-crash-action-utilities");
+		var status = element("span", "pc-crash-status");
+		status.setAttribute("aria-live", "polite");
+		(options.actions || []).forEach(function(action) {
+			var button = /** @type {HTMLButtonElement} */ (document.createElement("button"));
+			button.type = "button";
+			button.textContent = action.label;
+			button.className = action.className || "pc-crash-utility";
+			button.addEventListener("click", function() { action.run(status, report.textContent); });
+			if (action.tier === "utility") {
+				utilityActions.appendChild(button);
+			} else {
+				mainActions.appendChild(button);
+			}
+		});
+		footer.appendChild(mainActions);
+		if (utilityActions.childNodes.length > 0) {
+			utilityActions.appendChild(status);
+			footer.appendChild(utilityActions);
+		}
+		card.appendChild(footer);
+		root.appendChild(card);
+		parentEl.appendChild(root);
+		return root;
+	}
+
+	window.__precisionFatalUI = {
+		"installStyles": installStyles,
+		"element": element,
+		"setStatus": setStatus,
+		"build": build
+	};
+})();
+
+/*
+ * Copyright (c) 2024 lax1dude. All Rights Reserved.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ * 
+ */
+
+function bootstrapLog(level, msg) {
+	if(typeof precisionClientBuildMode === "string" && precisionClientBuildMode === "release" && level < 2) {
+		return;
+	}
+	const levelName = ["DEBUG", "INFO", "WARN", "ERROR"][level] || "UNKNOWN";
+	const line = "[Precision Client][" + new Date().toISOString() + "][bootstrap/" + levelName + "] " + msg;
+	if(level >= 3) {
+		console.error(line);
+	}else if(level === 2) {
+		console.warn(line);
+	}else if(level === 1) {
+		console.info(line);
+	}else {
+		console.debug(line);
+	}
+}
+
+/**
+ * @param {*} msg
+ */
+function logInfo(msg) {
+	bootstrapLog(1, msg);
+}
+
+/**
+ * @param {*} msg
+ */
+function logWarn(msg) {
+	bootstrapLog(2, msg);
+}
+
+/**
+ * @param {*} msg
+ */
+function logError(msg) {
+	bootstrapLog(3, msg);
+}
+
+/** @type {function(string,number):ArrayBuffer|null} */
+var decodeBase64Impl = null;
+
+/**
+ * @return {function(string,number):ArrayBuffer}
+ */
+function createBase64Decoder() {
+	const revLookup = [];
+	const code = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	for (var i = 0, len = code.length; i < len; ++i) {
+		revLookup[code.charCodeAt(i)] = i;
+	}
+
+	revLookup["-".charCodeAt(0)] = 62;
+	revLookup["_".charCodeAt(0)] = 63;
+
+	/**
+	 * @param {string} b64
+	 * @param {number} start
+	 * @return {!Array<number>}
+	 */
+	function getLens(b64, start) {
+		const len = b64.length - start;
+		if (len % 4 > 0) {
+			throw new Error("Invalid string. Length must be a multiple of 4");
+		}
+		var validLen = b64.indexOf("=", start);
+		if (validLen === -1) {
+			validLen = len;
+		}else {
+			validLen -= start;
+		}
+		const placeHoldersLen = validLen === len ? 0 : 4 - (validLen % 4);
+		return [validLen, placeHoldersLen];
+	}
+	
+	/**
+	 * @param {string} b64
+	 * @param {number} start
+	 * @return {ArrayBuffer}
+	 */
+	function decodeImpl(b64, start) {
+		var tmp;
+		const lens = getLens(b64, start);
+		const validLen = lens[0];
+		const placeHoldersLen = lens[1];
+		const arr = new Uint8Array(((validLen + placeHoldersLen) * 3 / 4) - placeHoldersLen);
+		var curByte = 0;
+		const len = (placeHoldersLen > 0 ? validLen - 4 : validLen) + start;
+		var i;
+		for (i = start; i < len; i += 4) {
+			tmp = (revLookup[b64.charCodeAt(i)] << 18) |
+				(revLookup[b64.charCodeAt(i + 1)] << 12) |
+				(revLookup[b64.charCodeAt(i + 2)] << 6) |
+				revLookup[b64.charCodeAt(i + 3)]
+			arr[curByte++] = (tmp >> 16) & 0xFF
+			arr[curByte++] = (tmp >> 8) & 0xFF
+			arr[curByte++] = tmp & 0xFF
+		}
+		if (placeHoldersLen === 2) {
+			tmp = (revLookup[b64.charCodeAt(i)] << 2) |
+				(revLookup[b64.charCodeAt(i + 1)] >> 4)
+			arr[curByte++] = tmp & 0xFF
+		}else if (placeHoldersLen === 1) {
+			tmp = (revLookup[b64.charCodeAt(i)] << 10) |
+				(revLookup[b64.charCodeAt(i + 1)] << 4) |
+				(revLookup[b64.charCodeAt(i + 2)] >> 2)
+			arr[curByte++] = (tmp >> 8) & 0xFF
+			arr[curByte++] = tmp & 0xFF
+		}
+		return arr.buffer;
+	}
+	
+	return decodeImpl;
+}
+
+/**
+ * @param {string} url
+ * @param {number} start
+ * @return {ArrayBuffer}
+ */
+function decodeBase64(url, start) {
+	if(!decodeBase64Impl) {
+		decodeBase64Impl = createBase64Decoder();
+	}
+	return decodeBase64Impl(url, start);
+}
+
+/**
+ * @param {number} ms
+ * @return {!Promise}
+ */
+function asyncSleep(ms) {
+	return new Promise(function(resolve) {
+		setTimeout(resolve, ms);
+	});
+}
+
+/**
+ * @param {string} url
+ * @param {number} ms
+ * @return {!Promise}
+ */
+function preloadImage(url, ms) {
+	return new Promise(function(resolve) {
+		const imgObj = new Image();
+		imgObj.addEventListener("load", resolve);
+		imgObj.addEventListener("error", function() {
+			logWarn("Failed to preload image: " + url);
+			resolve();
+		});
+		imgObj.src = url;
+		setTimeout(resolve, ms);
+	});
+}
+
+/**
+ * @param {string} url
+ * @return {!Promise<ArrayBuffer>}
+ */
+function downloadURL(url) {
+	return new Promise(function(resolve) {
+		fetch(url, { "cache": "force-cache" })
+			.then(function(res) {
+				return res.arrayBuffer();
+			})
+			.then(resolve)
+			.catch(function(ex) {
+				logError("Failed to fetch URL! " + ex);
+				resolve(null);
+			});
+	});
+}
+
+/**
+ * precision-client fork: fetch with streaming progress (used for the EPW
+ * download so the logo indicator reflects actual network progress). Falls back
+ * to a plain arrayBuffer fetch if Content-Length / streams are unavailable.
+ * @param {string} url
+ * @param {function(number, number)} onProgress called with (receivedBytes, totalBytes)
+ * @return {!Promise<ArrayBuffer>}
+ */
+function downloadURLWithProgress(url, onProgress) {
+	return new Promise(function(resolve) {
+		fetch(url, { "cache": "force-cache", "mode": "cors" })
+			.then(function(res) {
+				var total = parseInt(/** @type {string} */ (res.headers.get("Content-Length") || "0"), 10);
+				if(res.body && total > 0) {
+					var reader = res.body.getReader();
+					var received = 0;
+					var chunks = [];
+					(function pump() {
+						reader.read().then(function(result) {
+							if(result.done) {
+								var arr = new Uint8Array(received);
+								var off = 0;
+								for(var i = 0; i < chunks.length; ++i) {
+									arr.set(chunks[i], off);
+									off += chunks[i].length;
+								}
+								resolve(arr.buffer);
+								return;
+							}
+							chunks.push(result.value);
+							received += result.value.length;
+							onProgress(received, total);
+							pump();
+						}).catch(function(ex) {
+							logError("Failed to fetch URL! " + ex);
+							resolve(null);
+						});
+					})();
+				}else {
+					res.arrayBuffer().then(resolve).catch(function(ex) {
+						logError("Failed to fetch URL! " + ex);
+						resolve(null);
+					});
+				}
+			})
+			.catch(function(ex) {
+				logError("Failed to fetch URL! " + ex);
+				resolve(null);
+			});
+	});
+}
+
+/**
+ * @param {string} url
+ * @return {!Promise<ArrayBuffer>}
+ */
+function downloadDataURL(url) {
+	if(!url.startsWith("data:application/octet-stream;base64,")) {
+		return downloadURL(url);
+	}else {
+		return new Promise(function(resolve) {
+			downloadURL(url).then(function(res) {
+				if(res) {
+					resolve(res);
+				}else {
+					logWarn("Failed to decode base64 via fetch, doing it the slow way instead...");
+					try {
+						resolve(decodeBase64(url, 37));
+					}catch(ex) {
+						logError("Failed to decode base64! " + ex);
+						resolve(null);
+					}
+				}
+			});
+		});
+	}
+}
+
+/**
+ * Shared fatal startup screen. Falls back to a plain text panel only if the
+ * shared renderer is somehow unavailable.
+ * @param {HTMLElement} rootElement_
+ * @param {string} msg
+ * @param {Array<string>=} guidance
+ */
+function displayStartupFailure(rootElement_, msg, guidance) {
+	// The shared card is absolutely positioned, so anchor it to the container.
+	rootElement_.style.position = "relative";
+	rootElement_.style.backgroundColor = "#0B0B0C";
+	const fatalUI = window["__precisionFatalUI"];
+	if(fatalUI) {
+		fatalUI.build(rootElement_, {
+			"legacyClass": "_eaglercraftX_startup_failed_element",
+			"title": "Precision Client couldn\u2019t start",
+			"summary": "The client could not be opened. No files were changed on this device.",
+			"guidance": guidance || ["Retry once. If this repeats, download a fresh copy of the client."],
+			"privacyWarning": null,
+			"details": msg,
+			"detailsLabel": "Technical details",
+			"logoUrl": typeof loadingScreenDataURI === "string" ? loadingScreenDataURI : null,
+			"actions": [
+				{ "label": "Retry", "className": "pc-crash-primary", "run": function() {
+					if(window.location && typeof window.location.reload === "function") window.location.reload();
+				} }
+			]
+		});
+		return;
+	}
+	rootElement_.style.backgroundColor = "#050505";
+	rootElement_.style.color = "#FFFFFF";
+	rootElement_.style.font = "500 13px system-ui, sans-serif";
+	rootElement_.style.padding = "24px";
+	rootElement_.textContent = msg;
+}
+
+/**
+ * @param {HTMLElement} rootElement
+ * @param {string} msg
+ */
+function displayInvalidEPW(rootElement, msg) {
+	displayStartupFailure(rootElement, msg);
+	logWarn("Startup failed: " + msg);
+}
+
+const PRECISION_LOADING_IMAGE_CELLS = 16;
+const PRECISION_LOADING_CELL_PERCENT = 100.0 / PRECISION_LOADING_IMAGE_CELLS;
+const PRECISION_LOADING_CONTENT_ORIGIN = 2;
+const PRECISION_LOADING_CONTENT_CELLS = 14;
+const PRECISION_LOADING_SLOT_COUNT = PRECISION_LOADING_CONTENT_CELLS * PRECISION_LOADING_CONTENT_CELLS;
+
+/**
+ * Convert an accepted percentage to a native logo-cell count.
+ * The source image is a 16x16 grid; its opaque mark occupies cells 2..15.
+ * @param {number} pct
+ * @return {number}
+ */
+function precisionLoadingSlotForProgress(pct) {
+	if(!Number.isFinite(pct)) return 0;
+	pct = Math.max(0.0, Math.min(100.0, pct));
+	return pct >= 100.0 ? PRECISION_LOADING_SLOT_COUNT
+			: Math.floor(pct * PRECISION_LOADING_SLOT_COUNT / 100.0);
+}
+
+/**
+ * Return an orthogonal clip for the completed bottom-up row-major cells.
+ * @param {number} slotCount
+ * @return {string}
+ */
+function precisionLoadingCompletedClip(slotCount) {
+	slotCount = Math.max(0, Math.min(PRECISION_LOADING_SLOT_COUNT, Math.floor(slotCount)));
+	if(slotCount <= 0) return "polygon(0% 100%, 0% 100%, 100% 100%, 100% 100%)";
+	if(slotCount >= PRECISION_LOADING_SLOT_COUNT) return "polygon(0% 12.5%, 100% 12.5%, 100% 100%, 0% 100%)";
+	const completeRows = Math.floor(slotCount / PRECISION_LOADING_CONTENT_CELLS);
+	const activeCells = slotCount % PRECISION_LOADING_CONTENT_CELLS;
+	const bottom = 100.0 - completeRows * PRECISION_LOADING_CELL_PERCENT;
+	if(activeCells <= 0) {
+		return "polygon(0% " + bottom + "%, 100% " + bottom + "%, 100% 100%, 0% 100%)";
+	}
+	const top = bottom - PRECISION_LOADING_CELL_PERCENT;
+	const activeRight = (PRECISION_LOADING_CONTENT_ORIGIN + activeCells) * PRECISION_LOADING_CELL_PERCENT;
+	return "polygon(0% " + top + "%, " + activeRight + "% " + top + "%, " + activeRight + "% "
+			+ bottom + "%, 100% " + bottom + "%, 100% 100%, 0% 100%)";
+}
+
+/**
+ * Return the exact next native cell, or a hidden clip after completion.
+ * @param {number} slotCount
+ * @return {string}
+ */
+function precisionLoadingFrontierClip(slotCount) {
+	slotCount = Math.max(0, Math.min(PRECISION_LOADING_SLOT_COUNT, Math.floor(slotCount)));
+	if(slotCount >= PRECISION_LOADING_SLOT_COUNT) return "polygon(0% 100%, 0% 100%, 0% 100%, 0% 100%)";
+	const row = Math.floor(slotCount / PRECISION_LOADING_CONTENT_CELLS);
+	const column = slotCount % PRECISION_LOADING_CONTENT_CELLS;
+	const left = (PRECISION_LOADING_CONTENT_ORIGIN + column) * PRECISION_LOADING_CELL_PERCENT;
+	const right = left + PRECISION_LOADING_CELL_PERCENT;
+	const bottom = 100.0 - row * PRECISION_LOADING_CELL_PERCENT;
+	const top = bottom - PRECISION_LOADING_CELL_PERCENT;
+	return "polygon(" + left + "% " + top + "%, " + right + "% " + top + "%, "
+			+ right + "% " + bottom + "%, " + left + "% " + bottom + "%)";
+}
+
+/**
+ * Keep the streamed EPW within its assigned 0-15 progress phase.
+ * @param {number} received
+ * @param {number} total
+ * @return {number}
+ */
+function precisionLoadingDownloadProgress(received, total) {
+	if(!Number.isFinite(received) || !Number.isFinite(total) || total <= 0.0) return 0.0;
+	return Math.min(15.0, Math.max(0.0, received / total * 15.0));
+}
+
+/**
+ * Keep progress targets and their visible native-cell state monotonic.
+ * @param {function(number,number):void} onAccepted
+ * @return {{set:function(number):number,get:function():number}}
+ */
+function createPrecisionLoadingProgressController(onAccepted) {
+	var accepted = 0.0;
+	return {
+		set: function(pct) {
+			if(!Number.isFinite(pct)) return accepted;
+			pct = Math.max(0.0, Math.min(100.0, pct));
+			if(pct <= accepted) return accepted;
+			accepted = pct;
+			if(onAccepted) onAccepted(accepted, precisionLoadingSlotForProgress(accepted));
+			return accepted;
+		},
+		get: function() {
+			return accepted;
+		}
+	};
+}
+
+window.main = async function() {
+	if(typeof window.eaglercraftXOpts === "undefined") {
+		const msg = "window.eaglercraftXOpts is not defined!";
+		logError(msg);
+		alert(msg);
+		return;
+	}
+	
+	const containerId = window.eaglercraftXOpts.container;
+	if(typeof containerId !== "string") {
+		const msg = "window.eaglercraftXOpts.container is not a string!";
+		logError(msg);
+		alert(msg);
+		return;
+	}
+	
+	var assetsURI = window.eaglercraftXOpts.assetsURI;
+	if(typeof assetsURI !== "string") {
+		if((typeof assetsURI === "object") && (typeof assetsURI[0] === "object") && (typeof assetsURI[0]["url"] === "string")) {
+			assetsURI = assetsURI[0]["url"];
+		}else {
+			const msg = "window.eaglercraftXOpts.assetsURI is not a string!";
+			logError(msg);
+			alert(msg);
+			return;
+		}
+	}
+	
+	if(assetsURI.startsWith("data:")) {
+		delete window.eaglercraftXOpts.assetsURI;
+	}
+	
+	const rootElement = /** @type {HTMLElement} */ (document.getElementById(containerId));
+
+	if(!rootElement) {
+		const msg = "window.eaglercraftXOpts.container \"" + containerId + "\" is not a known element id!";
+		logError(msg);
+		alert(msg);
+		return;
+	}
+
+	// precision-client fork: the root stays black behind the transparent splash
+	// until the live canvas is ready beneath it.
+	rootElement.style.backgroundColor = "black";
+	
+	var node;
+	while(node = rootElement.lastChild) {
+		rootElement.removeChild(node);
+	}
+	
+	const splashElement = /** @type {HTMLElement} */ (document.createElement("div"));
+	splashElement.style.position = "relative";
+	splashElement.style.width = "100%";
+	splashElement.style.height = "100%";
+	// precision-client fork: the splash is decorative brand chrome, so it must
+	// never be selectable or draggable (browsers let users drag a PNG out by
+	// default). Diagnostic text elsewhere stays selectable.
+	var suppressDecorativeSelection = function(el) {
+		el.style.userSelect = "none";
+		el.style["WebkitUserSelect"] = "none";
+		el.style["MozUserSelect"] = "none";
+		el.style.pointerEvents = "none";
+		el.setAttribute("draggable", "false");
+	};
+	suppressDecorativeSelection(splashElement);
+	// precision-client fork: the logo is both the brand mark and the progress
+	// indicator. Keep one stable frame and reveal hard source-grid cells through
+	// layered copies; there is no separate bar, text, or smooth liquid edge.
+	var loadingLogoFrame = /** @type {HTMLElement} */ (document.createElement("div"));
+	loadingLogoFrame.style.position = "absolute";
+	loadingLogoFrame.style.backfaceVisibility = "hidden";
+	loadingLogoFrame.style.imageRendering = "pixelated";
+	loadingLogoFrame.style.zIndex = "2";
+	loadingLogoFrame.setAttribute("role", "progressbar");
+	loadingLogoFrame.setAttribute("aria-label", "Loading Precision Client");
+	loadingLogoFrame.setAttribute("aria-valuemin", "0");
+	loadingLogoFrame.setAttribute("aria-valuemax", "100");
+	loadingLogoFrame.setAttribute("aria-valuenow", "0");
+	var reduceLoadingMotion = typeof window.matchMedia === "function"
+			&& window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+	var loadingLogoFill = null;
+	var loadingLogoFrontier = null;
+	var loadingLogoFrontierAnimation = null;
+	var createLoadingLogoLayer = function(opacity) {
+		var image = /** @type {HTMLImageElement} */ (document.createElement("img"));
+		image.src = loadingScreenDataURI;
+		image.alt = "";
+		image.draggable = false;
+		image.setAttribute("draggable", "false");
+		image.style.position = "absolute";
+		image.style.left = "0px";
+		image.style.top = "0px";
+		image.style.width = "100%";
+		image.style.height = "100%";
+		image.style.opacity = String(opacity);
+		image.style.pointerEvents = "none";
+		image.style.userSelect = "none";
+		image.style["WebkitUserSelect"] = "none";
+		image.style["MozUserSelect"] = "none";
+		image.style.backfaceVisibility = "hidden";
+		image.style.imageRendering = "pixelated";
+		return image;
+	};
+	if(typeof loadingScreenDataURI === "string") {
+		var loadingLogoSilhouette = createLoadingLogoLayer(0.18);
+		loadingLogoFrame.appendChild(loadingLogoSilhouette);
+		loadingLogoFill = createLoadingLogoLayer(1.0);
+		loadingLogoFill.style.clipPath = precisionLoadingCompletedClip(0);
+		loadingLogoFill.style.willChange = "clip-path";
+		loadingLogoFrame.appendChild(loadingLogoFill);
+		loadingLogoFrontier = createLoadingLogoLayer(0.52);
+		loadingLogoFrontier.style.clipPath = precisionLoadingFrontierClip(0);
+		loadingLogoFrontier.style.willChange = "opacity";
+		loadingLogoFrame.appendChild(loadingLogoFrontier);
+	}
+	suppressDecorativeSelection(loadingLogoFrame);
+	splashElement.appendChild(loadingLogoFrame);
+	rootElement.appendChild(splashElement);
+	if(loadingLogoFrontier && !reduceLoadingMotion && typeof loadingLogoFrontier.animate === "function") {
+		loadingLogoFrontierAnimation = loadingLogoFrontier.animate([
+			{ opacity: "0.38" },
+			{ opacity: "0.68" }
+		], {
+			duration: 720,
+			direction: "alternate",
+			easing: "steps(1, end)",
+			iterations: Infinity
+		});
+	}
+
+	// The shared 512px logo has a 448px opaque bbox. Keep its dimensions tied to
+	// the modern UI's fixed 1280x720 / 1.7736 reference instead of the viewport,
+	// so the loading handoff has the same physical scale at every resolution.
+	const loadingUiDesignHeight = 720.0;
+	const loadingUiScale = 1.7736;
+	const loadingLogoPx = (112.0 / 1080.0) * loadingUiDesignHeight * loadingUiScale;
+	const loadingLogoImagePx = (128.0 / 1080.0) * loadingUiDesignHeight * loadingUiScale;
+	var layoutLoadingScreen = function() {
+		var w = splashElement.clientWidth;
+		var h = splashElement.clientHeight;
+		if(w <= 0 || h <= 0) {
+			return;
+		}
+		// precision-client fork: use backing/CSS ratios, never assume live DPR
+		// describes an existing canvas. Before canvas creation DPR is provisional.
+		var splashRect = splashElement.getBoundingClientRect();
+		var canvas = rootElement.querySelector("._eaglercraftX_canvas_element");
+		var canvasRect = canvas ? canvas.getBoundingClientRect() : splashRect;
+		var dpr = window.devicePixelRatio || 1;
+		var physicalW = canvas && canvas.width > 0 ? canvas.width : Math.floor(canvasRect.width * dpr);
+		var physicalH = canvas && canvas.height > 0 ? canvas.height : Math.floor(canvasRect.height * dpr);
+		if(canvasRect.width <= 0 || canvasRect.height <= 0 || physicalW <= 0 || physicalH <= 0) return;
+		var ratioX = physicalW / canvasRect.width;
+		var ratioY = physicalH / canvasRect.height;
+		loadingLogoFrame.style.transform = "none";
+		loadingLogoFrame.style.left = (canvasRect.left - splashRect.left
+				+ Math.floor(physicalW * 0.5 - loadingLogoImagePx * 0.5625 + 0.5) / ratioX) + "px";
+		loadingLogoFrame.style.top = (canvasRect.top - splashRect.top
+				+ Math.floor(physicalH * 0.5 - loadingLogoImagePx * 0.5625 + 0.5) / ratioY) + "px";
+		loadingLogoFrame.style.width = loadingLogoImagePx / ratioX + "px";
+		loadingLogoFrame.style.height = loadingLogoImagePx / ratioY + "px";
+	};
+	layoutLoadingScreen();
+	window.addEventListener("resize", layoutLoadingScreen);
+
+	/**
+	 * Global setter used by every phase of the client loading pipeline.
+	 * Progress changes are accepted only forward and snap to native logo cells.
+	 * @param {number} pct absolute 0-100 percentage of client load
+	 */
+	var progressController = createPrecisionLoadingProgressController(function(accepted, slotCount) {
+		layoutLoadingScreen();
+		loadingLogoFrame.setAttribute("aria-valuenow", String(accepted));
+		if(loadingLogoFill) {
+			loadingLogoFill.style.clipPath = precisionLoadingCompletedClip(slotCount);
+		}
+		if(loadingLogoFrontier) {
+			loadingLogoFrontier.style.clipPath = precisionLoadingFrontierClip(slotCount);
+			if(slotCount >= PRECISION_LOADING_SLOT_COUNT) {
+				if(loadingLogoFrontierAnimation) {
+					loadingLogoFrontierAnimation.cancel();
+					loadingLogoFrontierAnimation = null;
+				}
+				loadingLogoFrontier.style.opacity = "0";
+			}
+		}
+	});
+	var setLoadingProgress = function(pct) {
+		return progressController.set(pct);
+	};
+	window["__eaglercraftXSetLoadingProgress"] = setLoadingProgress;
+
+	// Keep cleanup with the splash so normal and error teardown release the
+	// resize listener, frontier animation, and global progress bridge.
+	var loadingScreenDisposed = false;
+	var disposeLoadingScreen = function() {
+		if(loadingScreenDisposed) return;
+		loadingScreenDisposed = true;
+		window.removeEventListener("resize", layoutLoadingScreen);
+		if(loadingLogoFrontierAnimation) {
+			loadingLogoFrontierAnimation.cancel();
+			loadingLogoFrontierAnimation = null;
+		}
+		if(window["__eaglercraftXSetLoadingProgress"] === setLoadingProgress) {
+			delete window["__eaglercraftXSetLoadingProgress"];
+		}
+	};
+	splashElement._pcDisposeLoadingScreen = disposeLoadingScreen;
+	loadingLogoFrame._pcDisposeLoadingScreen = disposeLoadingScreen;
+
+	// allow the screen to update
+	await asyncSleep(20);
+	
+	/** @type {ArrayBuffer} */
+	var theEPWFileBuffer;
+	if(assetsURI.startsWith("data:")) {
+		logInfo("Downloading EPW file \"<data: " + assetsURI.length + " chars>\"...");
+		theEPWFileBuffer = await downloadDataURL(assetsURI);
+	}else {
+		logInfo("Downloading EPW file \"" + assetsURI + "\"...");
+		theEPWFileBuffer = await downloadURLWithProgress(assetsURI, function(received, total) {
+			// EPW download maps only to 0-15%. A decoded stream can exceed the
+			// advertised Content-Length, so never leak into later phases.
+			window["__eaglercraftXSetLoadingProgress"](precisionLoadingDownloadProgress(received, total));
+		});
+	}
+	window["__eaglercraftXSetLoadingProgress"](15);
+	
+	var isInvalid = false;
+	if(!theEPWFileBuffer) {
+		isInvalid = true;
+	}else if(theEPWFileBuffer.byteLength < 384) {
+		logError("The EPW file is too short");
+		isInvalid = true;
+	}
+	
+	if(isInvalid) {
+		disposeLoadingScreen();
+		rootElement.removeChild(splashElement);
+		const msg = "Failed to download EPW file!";
+		displayInvalidEPW(rootElement, msg);
+		logError(msg);
+		return;
+	}
+	
+	const dataView = new DataView(theEPWFileBuffer);
+	
+	if(dataView.getUint32(0, true) !== 608649541 || dataView.getUint32(4, true) !== 1297301847) {
+		logError("The file is not an EPW file");
+		isInvalid = true;
+	}
+	
+	const phileLength = theEPWFileBuffer.byteLength;
+	if(dataView.getUint32(8, true) !== phileLength) {
+		logError("The EPW file is the wrong length");
+		isInvalid = true;
+	}
+
+	if(isInvalid) {
+		disposeLoadingScreen();
+		rootElement.removeChild(splashElement);
+		const msg = "EPW file is invalid!";
+		displayInvalidEPW(rootElement, msg);
+		logError(msg);
+		return;
+	}
+
+	// precision-client fork: the EPW splash image slot has been removed entirely
+	// (the loading screen is the bootstrap overlay); the loader
+	// offsets below are validated against the trimmed EPW header layout.
+
+	// allow the screen to update
+	await asyncSleep(20);
+
+	const loaderJSOffset = dataView.getUint32(132, true);
+	const loaderJSLength = dataView.getUint32(136, true);
+	const loaderWASMOffset = dataView.getUint32(148, true);
+	const loaderWASMLength = dataView.getUint32(152, true);
+	
+	if(loaderJSOffset < 0 || loaderJSOffset + loaderJSLength > phileLength
+			|| loaderWASMOffset < 0 || loaderWASMOffset + loaderWASMLength > phileLength) {
+		logError("The EPW file contains an invalid offset (component: loader)");
+		isInvalid = true;
+	}
+
+	if(isInvalid) {
+		disposeLoadingScreen();
+		rootElement.removeChild(splashElement);
+		const msg = "EPW file is invalid!";
+		displayInvalidEPW(rootElement, msg);
+		logError(msg);
+		return;
+	}
+
+	const loaderJSSlice = new Uint8Array(theEPWFileBuffer, loaderJSOffset, loaderJSLength);
+	const loaderJSURL = URL.createObjectURL(new Blob([ loaderJSSlice ], { "type": "text/javascript;charset=utf-8" }));
+	logInfo("Loaded loader.js: " + loaderJSURL);
+	const loaderWASMSlice = new Uint8Array(theEPWFileBuffer, loaderWASMOffset, loaderWASMLength);
+	const loaderWASMURL = URL.createObjectURL(new Blob([ loaderWASMSlice ], { "type": "application/wasm" }));
+	logInfo("Loaded loader.wasm: " + loaderWASMURL);
+
+	const optsObj = {};
+	for(const [key, value] of Object.entries(window.eaglercraftXOpts)) {
+		if(key !== "container" && key !== "assetsURI") {
+			optsObj[key] = value;
+		}
+	}
+
+	window.__eaglercraftXLoaderContextPre = {
+		"rootElement": rootElement,
+		"eaglercraftXOpts": optsObj,
+		"theEPWFileBuffer": theEPWFileBuffer,
+		"loaderWASMURL": loaderWASMURL
+	};
+
+	logInfo("Appending loader.js to document...");
+
+	const scriptElement = /** @type {HTMLScriptElement} */ (document.createElement("script"));
+	scriptElement.type = "text/javascript";
+	scriptElement.src = loaderJSURL;
+	document.head.appendChild(scriptElement);
+
+};
+
+
+		</script>
+				<script src="assets-1.js"></script>
+		<script src="assets-2.js"></script>
+		<script src="assets-3.js"></script>
+		<script src="assets-4.js"></script>
+		<script>
+			"use strict";
+			/* MMC: the original file kept this data inline (151MB). It now comes from the assets-*.js
+			   parts above, joined back together here, so the game still runs offline from file://. */
+			window.addEventListener("load", () => {
+				var parts = window.__mmcPrecision || [];
+				if (parts.length !== 4) {
+					document.body.innerHTML = '<p style="color:#fff;font:16px sans-serif;padding:20px">Precision Client files are missing. Keep every assets-*.js file next to index.html.</p>';
+					return;
+				}
+				window.eaglercraftXOpts.assetsURI = "data:application/octet-stream;base64," + parts.join("");
+				window.__mmcPrecision = null;
+				main();
+			});
+		</script>
+	</head>
+	<body id="game_frame"></body>
+</html>

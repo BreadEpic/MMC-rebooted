@@ -14,7 +14,10 @@
     <style>
         /* MMC: BetterEagler is not in the source repo, so its slot is removed and Astra moves down */
         .dropdown7 {bottom: 14rem;}
-        @media screen and (max-width: 1100px), screen and (max-height: 550px) { .dropdown7 {bottom: 10rem;} }
+        /* MMC: Precision Client (multiplayer) sits on top of the Web Edition list and is the default */
+        .dropdown11 {bottom: 10rem;}
+        #gameicon, .dropdown11 img {image-rendering: pixelated;}
+        @media screen and (max-width: 1100px), screen and (max-height: 550px) { .dropdown7 {bottom: 10rem;} .dropdown11 {bottom: 7rem;} }
     </style>
     <!--Discord-->
     <meta content="Ampler Launcher" property="og:title">
@@ -111,11 +114,11 @@
                 <div id="drop" class="dropdownSelector" onclick="dropdowntoggle()">
                     <div style="display: flex; gap: 0.75rem;">
                         <div class="centeredIcon">
-                            <img id="gameicon" src="./images/m-logo1.png" width="30px" />
+                            <img id="gameicon" src="./images/m-logo11.png" width="30px" />
                         </div>
                         <div class="versionText">
-                            <p id="gametitle" class="bolded">Latest release</p>
-                            <p id="gameversion">1.8.8-u35</p>
+                            <p id="gametitle" class="bolded">Precision Client</p>
+                            <p id="gameversion">1.8.8 Multiplayer</p>
                         </div>
                         <div class="centeredIcon">
                             <span id="dropdownuparrow"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
@@ -206,6 +209,17 @@
                         </div>
                     </div>
                 </div>
+                <div id="dropdown11" class="dropdownOptions dropdown11" onclick="precisionclient(); dropdowntoggle();">
+                    <div class="dropdownOption">
+                        <div class="centeredIcon">
+                            <img src="./images/m-logo11.png" width="30px" />
+                        </div>
+                        <div class="dropdownOptionText">
+                            <p class="bolded">Precision Client</p>
+                            <p>1.8.8 Multiplayer</p>
+                        </div>
+                    </div>
+                </div>
                 <div id="dropdown2" class="dropdownOptions dropdown2" onclick="latestrelease(); dropdowntoggle();">
                     <div class="dropdownOption">
                         <div class="centeredIcon">
@@ -229,7 +243,7 @@
                     </div>
                 </div>
             </div>
-            <a id="playbutton" href="mc/1.8.8/EaglercraftX_1.8_Offline_en_US.html" data-mmc="mc-188"><div id="mainbutton" class="playButton"></div></a>
+            <a id="playbutton" href="mc/precision/index.html" data-mmc="mc-precision"><div id="mainbutton" class="playButton"></div></a>
             <div class="username centeredIcon bolded">
                 <p class="usernameText">Generic User</p>
             </div>
