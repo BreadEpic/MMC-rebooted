@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Brotato</title>
+<link rel="icon" href="thumb.png">
+<style>
+html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
+#canvas { display: block; position: fixed; inset: 0; width: 100vw; height: 100vh; outline: none; }
+#status { position: fixed; inset: 0; display: grid; place-content: center; justify-items: center; gap: 14px;
+  background: #07040f; color: #f5f1ff; font: 16px "Courier New", monospace; text-align: center; z-index: 5; }
+#status img { width: 96px; height: 96px; image-rendering: auto; }
+#bar { width: 260px; height: 10px; border: 2px solid #3b2a6b; }
+#bar i { display: block; height: 100%; width: 0; background: #00f0ff; transition: width .2s; }
+</style>
+</head>
+<body>
+<canvas id="canvas" tabindex="-1"></canvas>
+<div id="status"><img src="thumb.png" alt=""><div id="msg">Loading Brotato...</div><div id="bar"><i></i></div></div>
+<!-- MMC offline build: game files load from the script parts below, no server or internet needed -->
+<script src="../mmcpack.js"></script>
+<script>MMCPACK.hookFetch({"Brotato.wasm": "application/wasm"}); MMCPACK.hookWorklets();</script>
+<script src="worklet.js"></script>
+<script src="pck.1.js"></script>
+<script src="pck.2.js"></script>
+<script src="pck.3.js"></script>
+<script src="pck.4.js"></script>
+<script src="pck.5.js"></script>
+<script src="pck.6.js"></script>
+<script src="wasm.1.js"></script>
+<script src="Brotato.js"></script>
+<script>
+(function () {
+  var bar = document.querySelector("#bar i"), msg = document.getElementById("msg"), status = document.getElementById("status");
+  var engine = new Engine({"args": [], "canvasResizePolicy": 2, "executable": "Brotato", "experimentalVK": false, "fileSizes": {"Brotato.pck": 147972096, "Brotato.wasm": 19796835}, "focusCanvas": true, "gdnativeLibs": []});
+  engine.startGame({
+    onProgress: function (current, total) { if (total > 0) bar.style.width = Math.min(100, current / total * 100) + "%"; }
+  }).then(function () {
+    status.style.display = "none";
+    window.dispatchEvent(new Event("resize"));
+  }, function (err) {
+    msg.textContent = "Could not start: " + (err && err.message ? err.message : err);
+  });
+})();
+</script>
+</body>
+</html>
