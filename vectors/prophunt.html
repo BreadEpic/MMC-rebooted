@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prop Hunt 2.0</title>
+    <link rel="stylesheet" href="v2/fonts.css">
+    <style>
+        body { margin: 0; overflow: hidden; background: #050505; font-family: Inter, 'Segoe UI', sans-serif; user-select: none; }
+        h1 { font-family: Orbitron, Inter, sans-serif !important; font-weight: 900 !important; background: linear-gradient(180deg, #fff, #00ffaa); -webkit-background-clip: text; background-clip: text; color: transparent !important; filter: drop-shadow(0 0 18px rgba(0,255,170,.5)); }
+        .panel { background: linear-gradient(170deg, rgba(20,28,32,.94), rgba(8,10,14,.94)) !important; border: 1px solid rgba(0,255,170,.3) !important; border-radius: 18px !important; backdrop-filter: blur(8px); box-shadow: 0 30px 90px rgba(0,0,0,.8), 0 0 50px rgba(0,255,170,.1) !important; }
+        #hud-top { font-family: Orbitron, Inter, sans-serif; backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.12); }
+        #divider { background: linear-gradient(180deg, #00d2ff, #fff, #ff4444) !important; box-shadow: 0 0 20px rgba(255,255,255,.6); }
+        canvas { display: block; margin: 0 auto; background: #000; }
+        
+        /* GUI Overlay */
+        #ui {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: flex; flex-direction: column;
+            align-items: center; color: white;
+        }
+        
+        /* HUD */
+        #hud-top { 
+            margin-top: 20px; display: flex; gap: 80px; 
+            text-shadow: 2px 2px 0 #000; font-weight: bold; font-size: 24px;
+            background: rgba(0,0,0,0.5); padding: 10px 30px; border-radius: 50px;
+            pointer-events: auto;
+        }
+        
+        .p1-hud { color: #00d2ff; }
+        .p2-hud { color: #ff4444; }
+        .timer { font-size: 40px; color: #fff; min-width: 80px; text-align: center;}
+
+        .prompt { 
+            font-size: 20px; color: #ffeb3b; background: rgba(0,0,0,0.8); 
+            padding: 8px 16px; border-radius: 8px; border: 2px solid #ffeb3b;
+            display: none; margin-top: 15px; text-transform: uppercase;
+        }
+
+        /* Menu System */
+        .panel {
+            margin-top: 60px;
+            background: #1a1a1a; padding: 40px; border: 2px solid #444;
+            pointer-events: auto; max-width: 900px; border-radius: 12px;
+            box-shadow: 0 0 100px rgba(0,0,0,1); text-align: center;
+        }
+        h1 { margin: 0 0 10px 0; color: #00ffaa; font-size: 48px; text-transform: uppercase; letter-spacing: 4px; }
+        
+        .map-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px;}
+        button {
+            background: #222; color: white; border: 1px solid #444; padding: 20px;
+            font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;
+            border-radius: 4px; text-transform: uppercase;
+        }
+        button:hover { background: #00ffaa; color: #000; border-color: #fff; transform: scale(1.05); }
+
+        .hidden { display: none !important; }
+
+        /* EDITOR UI */
+        #editor-ui {
+            position: absolute; inset: 0; pointer-events: none; display: none;
+        }
+        .editor-panel {
+            pointer-events: auto; background: rgba(20,20,20,0.95); border: 1px solid #444; padding: 10px;
+            position: absolute; display: flex; flex-direction: column; gap: 10px;
+        }
+        #editor-sidebar {
+            left: 0; top: 0; bottom: 0; width: 220px; overflow-y: auto; border-right: 2px solid #00ffaa;
+        }
+        #editor-top {
+            left: 220px; right: 0; top: 0; height: 60px; flex-direction: row; align-items: center; padding: 0 20px; justify-content: space-between; border-bottom: 1px solid #444;
+        }
+        #editor-bottom {
+            left: 220px; right: 0; bottom: 0; height: 40px; flex-direction: row; align-items: center; padding: 0 20px; border-top: 1px solid #444; color: #aaa; font-size: 14px;
+        }
+        
+        .tool-btn {
+            background: #333; border: 1px solid #555; color: #fff; padding: 8px; cursor: pointer; text-align: left; font-size: 14px;
+        }
+        .tool-btn:hover { background: #555; }
+        .tool-btn.active { background: #00ffaa; color: #000; font-weight: bold; }
+        
+        .cat-title { color: #00ffaa; font-size: 12px; margin-top: 10px; text-transform: uppercase; border-bottom: 1px solid #444; }
+        
+        .prop-desc {
+            position: absolute; right: 230px; bottom: 20px; background: rgba(0,0,0,0.9);
+            border: 1px solid #fff; padding: 10px; color: #fff; max-width: 200px; display: none;
+        }
+
+        input[type="text"], input[type="number"], select {
+            background: #111; border: 1px solid #444; color: #fff; padding: 5px;
+        }
+
+        /* Icons */
+        .editor-btn { background: #444; width: 60px; font-size: 24px; padding: 10px 0; }
+        .chk-row { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #ddd;}
+
+        /* Popups */
+        .popup-text {
+            position: absolute; font-weight: bold; font-size: 20px; 
+            animation: floatUp 1s forwards; pointer-events: none; z-index: 20;
+            text-shadow: 1px 1px 0 #000;
+        }
+        @keyframes floatUp { 0% { opacity:1; transform:translate(-50%, 0); } 100% { opacity:0; transform:translate(-50%, -50px); } }
+
+        #divider {
+            position: absolute; left: 50%; top: 0; bottom: 0; width: 4px;
+            background: #fff; transform: translateX(-50%); display: none; z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="divider"></div>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="ui">
+        <div id="hud-top" class="hidden">
+            <div class="p1-hud" id="p1-ammo">P1: 3 (Press E)</div>
+            <div class="timer" id="timer-display">60</div>
+            <div class="p2-hud" id="p2-ammo">P2: 3 (Press M)</div>
+        </div>
+        
+        <div class="prompt" id="morph-prompt">PRESS 'E' TO MORPH</div>
+        <div class="prompt" id="wait-prompt" style="color:#fff; border-color:#fff;">
+            WAITING FOR HIDER...<br><span style="font-size:14px; color:#aaa">(Press Space to Skip)</span>
+        </div>
+
+        <div id="menu" class="panel">
+            <h1>Prop Hunt: Zones</h1>
+            <p style="color:#aaa; margin-bottom: 30px;">
+                <strong>HIDER:</strong> WASD to move. Press <strong>E</strong> on items to Morph. <strong>SPACE</strong> to Lock.<br>
+                <strong>HUNTERS:</strong> P1 (WASD + E) | P2 (Arrows + M).<br>
+                <span style="color:#ff4444">Warning: Hunters loose ammo if they guess wrong!</span>
+            </p>
+            <div class="map-grid">
+                <button onclick="startGame('cinema')">Grand Cinema</button>
+                <button onclick="startGame('office')">Tech Office</button>
+                <button onclick="startGame('warehouse')">Port Warehouse</button>
+            </div>
+            <div style="margin-top: 20px; border-top: 1px solid #444; padding-top: 20px;">
+                <button class="editor-btn" onclick="openEditor()" title="Map Editor">&#128296;</button>
+            </div>
+        </div>
+
+        <div id="editor-ui">
+            <div id="editor-sidebar" class="editor-panel">
+                <h3 style="color:#fff; text-align:center;">TOOLBOX</h3>
+                <div class="cat-title">Basics</div>
+                <button class="tool-btn active" onclick="setTool('wall')">Build Wall</button>
+                <button class="tool-btn" onclick="setTool('eraser')">Eraser</button>
+                <button class="tool-btn" onclick="setTool('start')">Set Spawns</button>
+                <div class="cat-title">Props</div>
+                <div id="prop-list"></div>
+            </div>
+
+            <div id="editor-top" class="editor-panel">
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <input type="text" id="map-name" placeholder="Map Name" value="Custom Map">
+                    <select id="map-size" onchange="resizeMap()">
+                        <option value="s">Small</option>
+                        <option value="m">Medium</option>
+                        <option value="l" selected>Large (3000x2000)</option>
+                        <option value="xl">Massive</option>
+                    </select>
+                    <input type="color" id="floor-col" value="#333333">
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="tool-btn" onclick="saveToCache()">Save</button>
+                    <button class="tool-btn" onclick="loadFromCache()">Load</button>
+                    <button class="tool-btn" onclick="exportJSON()">Export</button>
+                    <button class="tool-btn" onclick="importJSON()">Import</button>
+                    <button class="tool-btn" style="background:#00d2ff; color:#000;" onclick="playCustom()">PLAY</button>
+                    <button class="tool-btn" style="background:#f44;" onclick="exitEditor()">EXIT</button>
+                </div>
+            </div>
+
+            <div id="editor-bottom" class="editor-panel">
+                <div style="display:flex; gap: 20px; align-items:center; width:100%;">
+                    <span>WASD (Pan) | Scroll (Zoom) | Click (Place) | Right Click (Rotate)</span>
+                    <div style="flex-grow:1"></div>
+                    <div class="chk-row">
+                        <span>Floor:</span>
+                        <button class="tool-btn" id="btn-fl1" style="padding:2px 10px; background:#0f0; color:#000;" onclick="setFloor(1)">1</button>
+                        <button class="tool-btn" id="btn-fl2" style="padding:2px 10px;" onclick="setFloor(2)">2</button>
+                    </div>
+                    <div class="chk-row">
+                        <input type="checkbox" id="chk-rotate"> <label>Rotate (R)</label>
+                        <input type="checkbox" id="chk-morph" checked> <label>Morphable?</label>
+                    </div>
+                    <span id="coord-display">0, 0</span>
+                </div>
+            </div>
+            <div id="prop-desc-box" class="prop-desc"></div>
+        </div>
+
+        <div id="intermission" class="panel hidden">
+            <h1 style="color:#ffeb3b">PROP LOCKED</h1>
+            <p>The Prop has chosen their form.</p>
+            <button onclick="startHunting()" style="width:100%; background:#ff4444; border:none; padding: 20px;">RELEASE HUNTERS</button>
+        </div>
+
+        <div id="gameover" class="panel hidden">
+            <h1 id="winner-text">WINNER</h1>
+            <h3 id="winner-sub">Reason</h3>
+            <button onclick="location.reload()">Return to Menu</button>
+        </div>
+    </div>
+
+<script src="v2/vfx.js"></script>
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    VFX.init({ canvas: canvas, bloom: 0.4, title: 'Prop Hunt' });
+
+    // --- CONFIGURATION ---
+    let WORLD_W = 3000;
+    let WORLD_H = 2000;
+    const MORPH_DIST = 60;
+    const CATCH_DIST = 70;
+    const TIME_LIMIT = 200;
+
+    // --- PROPS DEFINITION ---
+    const PROP_TYPES = [
+        { name: 'Crate', w: 80, h: 80, desc: 'Wooden shipping crate.' },
+        { name: 'Barrel', w: 50, h: 50, desc: 'Metal barrel.' },
+        { name: 'Pallet', w: 80, h: 60, desc: 'Wooden pallet.' },
+        { name: 'Desk', w: 120, h: 60, desc: 'Office desk.' },
+        { name: 'Seat', w: 60, h: 50, desc: 'Cinema seat.' },
+        { name: 'Popcorn', w: 20, h: 20, desc: 'Snack.' },
+        { name: 'Cinema Screen', w: 20, h: 1000, desc: 'Giant screen.' },
+        { name: 'Ticket Booth', w: 300, h: 100, desc: 'Ticket counter.' },
+        { name: 'Conf Table', w: 400, h: 200, desc: 'Big oval table.' },
+        { name: 'Laptop', w: 40, h: 30, desc: 'Computer.' },
+        { name: 'Printer', w: 50, h: 40, desc: 'Office printer.' },
+        { name: 'Plant', w: 60, h: 60, desc: 'Potted plant.' },
+        { name: 'Toilet', w: 40, h: 40, desc: 'Bathroom unit.' },
+        { name: 'Sink', w: 40, h: 40, desc: 'Wash basin.' },
+        { name: 'Vending', w: 60, h: 80, desc: 'Snack machine.' },
+        { name: 'Trash', w: 30, h: 30, desc: 'Bin.' },
+        { name: 'Stairs', w: 100, h: 100, desc: 'Teleport between floors.' }
+    ];
+
+    // --- STATE ---
+    let gameState = 'MENU';
+    let timer = TIME_LIMIT;
+    let interval;
+    let mapName = '';
+    let currentFloor = 1;
+    let mapFloorColor = '#333';
+    let animTime = 0;
+
+    // --- ENTITIES ---
+    const prop = { x: 300, y: 300, w: 30, h: 30, vx: 0, vy: 0, speed: 7, color: '#0f0', name: 'Player', rotation: 0, layer: 1 };
+    const p1 = { x: 0, y: 0, w: 30, h: 30, vx: 0, vy: 0, speed: 8, color: '#00d2ff', ammo: 3, lastAtk: 0, layer: 1 };
+    const p2 = { x: 0, y: 0, w: 30, h: 30, vx: 0, vy: 0, speed: 8, color: '#ff4444', ammo: 3, lastAtk: 0, layer: 1 };
+
+    let props = [];
+    let walls = [];
+    const keys = {};
+
+    // --- EDITOR STATE ---
+    let editorCam = { x: 0, y: 0 };
+    let editorZoom = 1.0;
+    let editorTool = 'wall';
+    let mouse = { x: 0, y: 0, worldX: 0, worldY: 0 };
+    let wallStart = null;
+
+    // --- INPUT ---
+    window.addEventListener('keydown', e => {
+        keys[e.key] = true;
+        
+        // Hiding Phase Controls
+        if(gameState === 'HIDING') {
+            if(e.key.toLowerCase() === 'e') tryMorph();
+            if(e.code === 'Space') endHiding(); // Instant skip
+        }
+
+        if(gameState === 'HUNTING') {
+            if(e.key.toLowerCase() === 'e') tryCatch(p1);
+            if(e.key.toLowerCase() === 'm') tryCatch(p2);
+        }
+
+        if(gameState === 'EDITOR' && e.key.toLowerCase() === 'r') document.getElementById('chk-rotate').checked = !document.getElementById('chk-rotate').checked;
+    });
+    window.addEventListener('keyup', e => keys[e.key] = false);
+    
+    // Zoom Handler
+    canvas.addEventListener('wheel', e => {
+        if(gameState === 'EDITOR') {
+            e.preventDefault();
+            const zoomSpeed = 0.001;
+            editorZoom += e.deltaY * -zoomSpeed;
+            editorZoom = Math.min(Math.max(0.1, editorZoom), 5.0);
+            updateMouseWorld(mouse.x, mouse.y); // Re-calculate based on new zoom
+        }
+    }, {passive: false});
+
+    canvas.addEventListener('mousemove', e => {
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = e.clientX - rect.left;
+        mouse.y = e.clientY - rect.top;
+        if(gameState === 'EDITOR') updateMouseWorld(mouse.x, mouse.y);
+    });
+
+    function updateMouseWorld(mx, my) {
+        // Inverse of the camera transform: (screen / zoom) + camPos
+        mouse.worldX = (mx / editorZoom) + editorCam.x;
+        mouse.worldY = (my / editorZoom) + editorCam.y;
+        document.getElementById('coord-display').innerText = `${Math.floor(mouse.worldX)}, ${Math.floor(mouse.worldY)}`;
+    }
+
+    canvas.addEventListener('mousedown', e => {
+        if(gameState !== 'EDITOR') return;
+        if(e.button === 0) { // Place
+            if(editorTool === 'wall') {
+                if(!wallStart) wallStart = { x: Math.floor(mouse.worldX/20)*20, y: Math.floor(mouse.worldY/20)*20 };
+                else {
+                    let wx = Math.floor(mouse.worldX/20)*20, wy = Math.floor(mouse.worldY/20)*20;
+                    let w = Math.abs(wx - wallStart.x) || 20, h = Math.abs(wy - wallStart.y) || 20;
+                    walls.push({ x: Math.min(wx, wallStart.x), y: Math.min(wy, wallStart.y), w, h, floor: currentFloor });
+                    wallStart = null;
+                }
+            } else if (editorTool === 'eraser') {
+                props = props.filter(p => p.floor !== currentFloor || !pointInRect(mouse.worldX, mouse.worldY, p));
+                walls = walls.filter(w => w.floor !== currentFloor || !pointInRect(mouse.worldX, mouse.worldY, w));
+            } else if (editorTool === 'start') {
+                prop.x = mouse.worldX; prop.y = mouse.worldY; spawnPopup(mouse.x, mouse.y, "Spawn Set", "#fff");
+            } else {
+                const pType = PROP_TYPES.find(p => p.name === editorTool);
+                if(pType) {
+                    let rot = document.getElementById('chk-rotate').checked ? Math.PI/2 : 0;
+                    let layer = (['Popcorn','Laptop','Plant','Barrel'].includes(pType.name)) ? 'top' : 'bottom';
+                    props.push({ name: pType.name, x: mouse.worldX - pType.w/2, y: mouse.worldY - pType.h/2, w: pType.w, h: pType.h, layer, rotation: rot, floor: currentFloor, morphable: document.getElementById('chk-morph').checked });
+                }
+            }
+        } else if (e.button === 2) { // Right Click
+            e.preventDefault(); wallStart = null;
+            let hit = props.find(p => p.floor === currentFloor && pointInRect(mouse.worldX, mouse.worldY, p));
+            if(hit) hit.rotation += Math.PI/4;
+        }
+    });
+
+    canvas.addEventListener('contextmenu', e => e.preventDefault());
+    window.addEventListener('resize', resize);
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    resize();
+
+    // --- GAME LOOP ---
+    function loop() {
+        animTime += 0.2; // Ticker for animations
+        for (let i = fxRings.length - 1; i >= 0; i--) if (++fxRings[i].t > 30) fxRings.splice(i, 1);
+        if(gameState === 'EDITOR') updateEditor();
+        else updateGame();
+        draw();
+        requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    function updateGame() {
+        if(gameState === 'MENU' || gameState === 'INTERMISSION' || gameState === 'GAMEOVER') return;
+        
+        // Hiding
+        if(gameState === 'HIDING') {
+            move(prop, 'w', 's', 'a', 'd');
+            checkStairs(prop);
+            const target = getNearestProp(prop);
+            const prompt = document.getElementById('morph-prompt');
+            if(target && getDist(prop, target) < MORPH_DIST && target.morphable) {
+                prompt.style.display = 'block'; prompt.innerText = `PRESS 'E' TO BECOME ${target.name.toUpperCase()}`;
+            } else prompt.style.display = 'none';
+        }
+
+        // Hunting
+        if(gameState === 'HUNTING') {
+            move(p1, 'w', 's', 'a', 'd'); checkStairs(p1);
+            move(p2, 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'); checkStairs(p2);
+        }
+    }
+
+    function updateEditor() {
+        const speed = 15 / editorZoom; // Pan speed adjusts with zoom
+        if(keys['w']) editorCam.y -= speed; if(keys['s']) editorCam.y += speed;
+        if(keys['a']) editorCam.x -= speed; if(keys['d']) editorCam.x += speed;
+        editorCam.x = Math.max(0, Math.min(editorCam.x, WORLD_W));
+        editorCam.y = Math.max(0, Math.min(editorCam.y, WORLD_H));
+    }
+
+    function move(p, up, down, left, right) {
+        p.vx = 0; p.vy = 0;
+        if(keys[up]) p.vy = -p.speed; if(keys[down]) p.vy = p.speed;
+        if(keys[left]) p.vx = -p.speed; if(keys[right]) p.vx = p.speed;
+        let nx = p.x + p.vx, ny = p.y + p.vy;
+        if(!checkWall(nx, p.y, p.w, p.h, p.layer)) p.x = nx;
+        if(!checkWall(p.x, ny, p.w, p.h, p.layer)) p.y = ny;
+        if(p.x < 0) p.x = 0; if(p.y < 0) p.y = 0;
+        if(p.x > WORLD_W - p.w) p.x = WORLD_W - p.w; if(p.y > WORLD_H - p.h) p.y = WORLD_H - p.h;
+    }
+
+    function checkStairs(p) {
+        let s = props.find(o => o.name === 'Stairs' && o.floor === p.layer && checkRectOverlap(p, o));
+        if(s) { p.layer = (p.layer === 1) ? 2 : 1; spawnPopup(p.x, p.y, "FLOOR " + p.layer, "#fff"); }
+    }
+
+    // --- DRAWING ---
+    function draw() {
+        ctx.fillStyle = "#000"; ctx.fillRect(0,0, canvas.width, canvas.height);
+        if(gameState === 'EDITOR') drawEditor();
+        else if(gameState === 'HIDING') drawView(0, 0, canvas.width, canvas.height, prop);
+        else if(gameState === 'HUNTING') {
+            let hw = canvas.width/2;
+            drawView(0, 0, hw, canvas.height, p1);
+            drawView(hw, 0, hw, canvas.height, p2);
+            ctx.fillStyle = "#fff"; ctx.fillRect(hw-2, 0, 4, canvas.height);
+        }
+    }
+
+    // ---- Vectors 2.0 art ----
+    const fxRings = [];
+    function fxRing(x, y, floor, color, r) { fxRings.push({ x, y, floor, color, r, t: 0 }); }
+    const floorCache = {};
+    function floorPattern(col) {
+        if (floorCache[col]) return floorCache[col];
+        const c = document.createElement('canvas'); c.width = 100; c.height = 100; const x = c.getContext('2d');
+        x.fillStyle = col; x.fillRect(0, 0, 100, 100);
+        for (let i = 0; i < 4; i++) { const tx = (i % 2) * 50, ty = Math.floor(i / 2) * 50; const g = x.createLinearGradient(tx, ty, tx + 50, ty + 50); g.addColorStop(0, 'rgba(255,255,255,0.05)'); g.addColorStop(1, 'rgba(0,0,0,0.08)'); x.fillStyle = g; x.fillRect(tx, ty, 50, 50); }
+        for (let i = 0; i < 260; i++) { x.fillStyle = Math.random() < 0.5 ? 'rgba(255,255,255,0.035)' : 'rgba(0,0,0,0.06)'; x.fillRect(Math.random() * 100, Math.random() * 100, 1.5, 1.5); }
+        x.strokeStyle = 'rgba(0,0,0,0.28)'; x.lineWidth = 2; x.strokeRect(0, 0, 50, 50); x.strokeRect(50, 0, 50, 50); x.strokeRect(0, 50, 50, 50); x.strokeRect(50, 50, 50, 50);
+        x.strokeStyle = 'rgba(255,255,255,0.05)'; x.lineWidth = 1; x.strokeRect(1.5, 1.5, 47, 47); x.strokeRect(51.5, 51.5, 47, 47); x.strokeRect(51.5, 1.5, 47, 47); x.strokeRect(1.5, 51.5, 47, 47);
+        return (floorCache[col] = ctx.createPattern(c, 'repeat'));
+    }
+    function drawWall(w) {
+        const H = 16;
+        ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(w.x + 6, w.y + 8, w.w, w.h + H);
+        const fg = ctx.createLinearGradient(0, w.y + w.h, 0, w.y + w.h + H); fg.addColorStop(0, '#2a3440'); fg.addColorStop(1, '#141a20');
+        ctx.fillStyle = fg; ctx.fillRect(w.x, w.y + w.h, w.w, H);
+        const tg = ctx.createLinearGradient(w.x, w.y, w.x, w.y + w.h); tg.addColorStop(0, '#46525f'); tg.addColorStop(1, '#36414d');
+        ctx.fillStyle = tg; ctx.fillRect(w.x, w.y, w.w, w.h);
+        ctx.fillStyle = 'rgba(255,255,255,0.18)'; ctx.fillRect(w.x, w.y, w.w, 2);
+        ctx.fillStyle = 'rgba(0,255,170,0.35)'; ctx.fillRect(w.x, w.y + w.h + H - 2, w.w, 2);
+    }
+    function drawView(vx, vy, vw, vh, cam) {
+        ctx.save();
+        ctx.beginPath(); ctx.rect(vx, vy, vw, vh); ctx.clip();
+        let cx = Math.max(0, Math.min(cam.x + cam.w/2 - vw/2, WORLD_W - vw));
+        let cy = Math.max(0, Math.min(cam.y + cam.h/2 - vh/2, WORLD_H - vh));
+        ctx.translate(vx - cx, vy - cy);
+
+        // Floor
+        ctx.fillStyle = floorPattern(mapFloorColor); ctx.fillRect(cx, cy, vw, vh);
+
+        let fWalls = walls.filter(w => w.floor === cam.layer);
+        let fProps = props.filter(p => p.floor === cam.layer);
+
+        // Walls
+        for(let w of fWalls) drawWall(w);
+
+        // Props
+        fProps.forEach(p => { if(p.layer === 'bottom') renderProp(p); });
+        fProps.forEach(p => { if(p.layer !== 'bottom') renderProp(p); });
+
+        // Players
+        if(prop.layer === cam.layer) {
+            renderProp(prop); // prop handles its own 'Player' rendering check inside
+            if(gameState === 'HIDING' && cam === prop) {
+                // Indicator for Self
+                const pulse = 0.5 + 0.5 * Math.sin(animTime * 0.6);
+                ctx.strokeStyle = 'rgba(0,255,170,' + (0.5 + pulse * 0.5) + ')'; ctx.lineWidth = 2; ctx.setLineDash([8, 6]); ctx.lineDashOffset = -animTime * 2;
+                ctx.strokeRect(prop.x - 6, prop.y - 6, prop.w + 12, prop.h + 12); ctx.setLineDash([]);
+                ctx.fillStyle = '#00ffaa'; ctx.font = "700 12px Orbitron, sans-serif"; ctx.textAlign = 'center'; ctx.fillText("YOU", prop.x + prop.w / 2, prop.y - 12); ctx.textAlign = 'left';
+            }
+        }
+        if(gameState === 'HUNTING') {
+            if(p1.layer === cam.layer) renderCharacter(p1);
+            if(p2.layer === cam.layer) renderCharacter(p2);
+        }
+        for (const r of fxRings) { if (r.floor !== cam.layer) continue; const k = r.t / 30; ctx.globalAlpha = 1 - k; ctx.strokeStyle = r.color; ctx.lineWidth = 4 * (1 - k) + 1; ctx.beginPath(); ctx.arc(r.x, r.y, r.r * k, 0, Math.PI * 2); ctx.stroke(); }
+        ctx.globalAlpha = 1;
+        ctx.restore();
+        // soft light around the viewer
+        ctx.save(); ctx.beginPath(); ctx.rect(vx, vy, vw, vh); ctx.clip();
+        const lx = vx + Math.min(vw / 2, cam.x + cam.w / 2 - cx), ly = vy + Math.min(vh / 2, cam.y + cam.h / 2 - cy);
+        const lg = ctx.createRadialGradient(vx + (cam.x + cam.w / 2 - cx), vy + (cam.y + cam.h / 2 - cy), 120, vx + (cam.x + cam.w / 2 - cx), vy + (cam.y + cam.h / 2 - cy), Math.max(vw, vh) * 0.75);
+        lg.addColorStop(0, 'rgba(0,0,0,0)'); lg.addColorStop(1, 'rgba(0,0,0,0.6)'); ctx.fillStyle = lg; ctx.fillRect(vx, vy, vw, vh);
+        void lx; void ly;
+        ctx.restore();
+    }
+
+    function drawEditor() {
+        ctx.save();
+        
+        // APPLY ZOOM
+        ctx.scale(editorZoom, editorZoom);
+        ctx.translate(-editorCam.x, -editorCam.y);
+
+        ctx.fillStyle = mapFloorColor; ctx.fillRect(0,0,WORLD_W, WORLD_H);
+        
+        // Grid
+        ctx.strokeStyle = "rgba(0, 255, 170, 0.2)"; ctx.lineWidth = 1; ctx.beginPath();
+        for(let x=0; x<WORLD_W; x+=100) { ctx.moveTo(x,0); ctx.lineTo(x,WORLD_H); }
+        for(let y=0; y<WORLD_H; y+=100) { ctx.moveTo(0,y); ctx.lineTo(WORLD_W,y); }
+        ctx.stroke();
+
+        // Objects
+        for(let w of walls) {
+            ctx.fillStyle = (w.floor === currentFloor) ? "#aaa" : "rgba(50,50,50,0.3)";
+            ctx.fillRect(w.x, w.y, w.w, w.h);
+            if(w.floor === currentFloor) { ctx.strokeStyle = "#fff"; ctx.strokeRect(w.x, w.y, w.w, w.h); }
+        }
+        for(let p of props) {
+            ctx.globalAlpha = (p.floor === currentFloor) ? 1.0 : 0.2;
+            renderProp(p);
+            if(p.floor === currentFloor && p.morphable && p.name!=='Stairs') { ctx.strokeStyle="#0f0"; ctx.lineWidth=1; ctx.strokeRect(p.x,p.y,p.w,p.h); }
+        }
+        ctx.globalAlpha = 1.0;
+
+        // Tool Ghost
+        if(editorTool === 'wall' && wallStart) {
+            ctx.fillStyle = "rgba(0, 255, 170, 0.5)";
+            let wx = Math.floor(mouse.worldX/20)*20, wy = Math.floor(mouse.worldY/20)*20;
+            ctx.fillRect(wallStart.x, wallStart.y, wx-wallStart.x, wy-wallStart.y);
+        } else if(!['wall','eraser','start'].includes(editorTool)) {
+            const p = PROP_TYPES.find(x=>x.name===editorTool);
+            if(p) { ctx.globalAlpha=0.6; renderProp({name:p.name, x:mouse.worldX-p.w/2, y:mouse.worldY-p.h/2, w:p.w, h:p.h, rotation: (document.getElementById('chk-rotate').checked?Math.PI/2:0) }); }
+        }
+        
+        ctx.strokeStyle = "#0f0"; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(prop.x, prop.y, 20, 0, Math.PI*2); ctx.stroke(); ctx.fillText("SPAWN", prop.x-20, prop.y-30);
+        ctx.restore();
+    }
+
+    // --- ANIMATED CHARACTER RENDERER ---
+function renderCharacter(p) {
+        const isMoving = (Math.abs(p.vx) > 0.1 || Math.abs(p.vy) > 0.1);
+        const swing = isMoving ? Math.sin(animTime) * 6 : 0;
+        const bob = isMoving ? Math.abs(Math.sin(animTime)) * 2 : 0;
+        const col = p.color || '#00ffaa';
+        ctx.save();
+        ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(0, p.h / 2 + 8, p.w / 1.6, 6, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.translate(0, -bob);
+        ctx.fillStyle = '#15181d'; ctx.beginPath(); ctx.roundRect(-p.w / 4 - 4, p.h / 2 - 4, 8, 10 + swing, 3); ctx.roundRect(p.w / 4 - 4, p.h / 2 - 4, 8, 10 - swing, 3); ctx.fill();
+        ctx.fillStyle = col; ctx.beginPath(); ctx.roundRect(-p.w / 2 - 6, -4 - swing, 6, 16, 3); ctx.roundRect(p.w / 2, -4 + swing, 6, 16, 3); ctx.fill();
+        ctx.shadowColor = col; ctx.shadowBlur = 14;
+        const g = ctx.createLinearGradient(0, -p.h / 2, 0, p.h / 2); g.addColorStop(0, '#ffffff'); g.addColorStop(0.25, col); g.addColorStop(1, 'rgba(0,0,0,0.6)');
+        ctx.fillStyle = col; ctx.beginPath(); ctx.roundRect(-p.w / 2, -p.h / 2, p.w, p.h, 8); ctx.fill();
+        ctx.shadowBlur = 0; ctx.fillStyle = g; ctx.globalAlpha = 0.55; ctx.fill(); ctx.globalAlpha = 1;
+        let eyeOff = p.vx > 0 ? 4 : p.vx < 0 ? -4 : 0, eyeY = p.vy > 0 ? 2 : p.vy < 0 ? -2 : 0;
+        ctx.fillStyle = '#0b0d12'; ctx.beginPath(); ctx.roundRect(-9 + eyeOff, -9 + eyeY, 18, 8, 4); ctx.fill();
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(-6 + eyeOff, -7 + eyeY, 4, 4); ctx.fillRect(2 + eyeOff, -7 + eyeY, 4, 4);
+        ctx.restore();
+    }
+
+    // --- RENDER ASSETS ---
+function renderProp(o) {
+        let x = o.x, y = o.y, w = o.w, h = o.h;
+        if (o.name === 'Player') { renderCharacter(o); return; }
+        ctx.save();
+        ctx.translate(x + w / 2, y + h / 2);
+        if (o.rotation) ctx.rotate(o.rotation);
+        ctx.translate(-w / 2, -h / 2);
+        ctx.fillStyle = "rgba(0,0,0,0.32)"; ctx.beginPath(); ctx.roundRect(4, 6, w, h, Math.min(10, w / 4, h / 4)); ctx.fill();
+        const lin = (a, b) => { const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, a); g.addColorStop(1, b); return g; };
+        const rad = (a, b) => { const g = ctx.createRadialGradient(w * 0.35, h * 0.3, 1, w / 2, h / 2, Math.max(w, h) / 1.6); g.addColorStop(0, a); g.addColorStop(1, b); return g; };
+        switch (o.name) {
+            case 'Seat':
+                ctx.fillStyle = lin('#b3162a', '#5a0712'); ctx.beginPath(); ctx.roundRect(0, 0, w, h, 8); ctx.fill();
+                ctx.fillStyle = lin('#e0263d', '#8a0d1d'); ctx.beginPath(); ctx.roundRect(5, 4, w - 10, h - 14, 6); ctx.fill();
+                ctx.fillStyle = '#3a040b'; ctx.beginPath(); ctx.roundRect(0, 4, 6, h - 6, 3); ctx.roundRect(w - 6, 4, 6, h - 6, 3); ctx.fill();
+                ctx.fillStyle = 'rgba(255,255,255,0.18)'; ctx.fillRect(8, 6, w - 16, 3); break;
+            case 'Popcorn':
+                ctx.fillStyle = '#ffe36b'; ctx.beginPath(); ctx.arc(w * 0.3, 2, w * 0.3, 0, Math.PI * 2); ctx.arc(w * 0.7, 2, w * 0.3, 0, Math.PI * 2); ctx.arc(w / 2, -3, w * 0.32, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(2, 2); ctx.lineTo(w - 2, 2); ctx.lineTo(w - 4, h); ctx.lineTo(4, h); ctx.closePath(); ctx.fill();
+                ctx.fillStyle = '#e8182c'; ctx.fillRect(w / 2 - 2.5, 2, 5, h - 2); ctx.fillRect(4, 2, 3, h - 2); ctx.fillRect(w - 7, 2, 3, h - 2); break;
+            case 'Cinema Screen':
+                ctx.fillStyle = '#111'; ctx.fillRect(-4, -4, w + 8, h + 8);
+                { const g = ctx.createLinearGradient(0, 0, w, 0); g.addColorStop(0, '#dff3ff'); g.addColorStop(1, '#9fd0ff'); ctx.fillStyle = g; ctx.shadowColor = '#bfe6ff'; ctx.shadowBlur = 30; ctx.fillRect(0, 0, w, h); ctx.shadowBlur = 0; }
+                break;
+            case 'Ticket Booth':
+                ctx.fillStyle = lin('#5a2a2a', '#2a1010'); ctx.beginPath(); ctx.roundRect(0, 0, w, h, 8); ctx.fill();
+                ctx.fillStyle = '#ffd34f'; ctx.fillRect(0, 0, w, 8);
+                ctx.fillStyle = 'rgba(140,200,255,0.35)'; ctx.fillRect(10, 14, w - 20, h / 2 - 14);
+                ctx.fillStyle = '#ffd34f'; ctx.font = '700 16px Orbitron, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('TICKETS', w / 2, h - 18); ctx.textAlign = 'left'; break;
+            case 'Desk':
+                ctx.fillStyle = lin('#c79a6a', '#8a6038'); ctx.beginPath(); ctx.roundRect(0, 0, w, h, 4); ctx.fill();
+                ctx.strokeStyle = 'rgba(90,55,25,0.35)'; ctx.lineWidth = 1; for (let i = 6; i < h; i += 7) { ctx.beginPath(); ctx.moveTo(3, i); ctx.lineTo(w - 3, i + 2); ctx.stroke(); }
+                ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.fillRect(0, 0, w, 3); break;
+            case 'Conf Table':
+                ctx.fillStyle = '#2a2d33'; ctx.beginPath(); ctx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = rad('#7a808c', '#3d424b'); ctx.beginPath(); ctx.ellipse(w / 2, h / 2, w / 2 - 6, h / 2 - 6, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.beginPath(); ctx.ellipse(w * 0.4, h * 0.35, w * 0.25, h * 0.12, -0.2, 0, Math.PI * 2); ctx.fill(); break;
+            case 'Laptop':
+                ctx.fillStyle = lin('#e3e6ea', '#9aa0a8'); ctx.beginPath(); ctx.roundRect(0, 0, w, h, 3); ctx.fill();
+                ctx.fillStyle = '#111'; ctx.fillRect(2, 2, w - 4, h / 2 + 1);
+                ctx.fillStyle = '#3df2ff'; ctx.shadowColor = '#3df2ff'; ctx.shadowBlur = 10; ctx.fillRect(4, 4, w - 8, h / 2 - 3); ctx.shadowBlur = 0; break;
+            case 'Printer':
+                ctx.fillStyle = lin('#f2f2f2', '#b8b8b8'); ctx.beginPath(); ctx.roundRect(0, 0, w, h, 5); ctx.fill();
+                ctx.fillStyle = '#2b2b2b'; ctx.fillRect(6, 0, w - 12, 6); ctx.fillStyle = '#fff'; ctx.fillRect(10, -6, w - 20, 8);
+                ctx.fillStyle = '#4dff88'; ctx.fillRect(w - 10, h - 9, 4, 4); break;
+            case 'Plant':
+                ctx.fillStyle = lin('#b0683a', '#6a3a1a'); ctx.beginPath(); ctx.arc(w / 2, h / 2, w / 3, 0, Math.PI * 2); ctx.fill();
+                for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2; ctx.fillStyle = i % 2 ? '#2fa84f' : '#1f7a38'; ctx.beginPath(); ctx.ellipse(w / 2 + Math.cos(a) * w * 0.28, h / 2 + Math.sin(a) * h * 0.28, w * 0.24, w * 0.12, a, 0, Math.PI * 2); ctx.fill(); }
+                ctx.fillStyle = '#4fd36f'; ctx.beginPath(); ctx.arc(w / 2, h / 2, w * 0.14, 0, Math.PI * 2); ctx.fill(); break;
+            case 'Crate':
+                ctx.fillStyle = lin('#d9a067', '#9a6332'); ctx.fillRect(0, 0, w, h);
+                ctx.strokeStyle = '#6b4020'; ctx.lineWidth = 5; ctx.strokeRect(2.5, 2.5, w - 5, h - 5);
+                ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(4, 4); ctx.lineTo(w - 4, h - 4); ctx.moveTo(w - 4, 4); ctx.lineTo(4, h - 4); ctx.stroke();
+                ctx.fillStyle = 'rgba(255,255,255,0.2)'; ctx.fillRect(0, 0, w, 3); break;
+            case 'Pallet':
+                ctx.fillStyle = '#5a3a1c'; ctx.fillRect(0, 0, w, h);
+                for (let i = 0; i < h; i += 12) { ctx.fillStyle = lin('#c4925c', '#93643a'); ctx.fillRect(0, i, w, 9); ctx.fillStyle = 'rgba(255,255,255,0.15)'; ctx.fillRect(0, i, w, 2); } break;
+            case 'Barrel':
+                ctx.fillStyle = rad('#7fa0c0', '#2f4a66'); ctx.beginPath(); ctx.arc(w / 2, h / 2, w / 2, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#1c2c3c'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(w / 2, h / 2, w / 2 - 2, 0, Math.PI * 2); ctx.stroke();
+                ctx.beginPath(); ctx.arc(w / 2, h / 2, w / 3, 0, Math.PI * 2); ctx.stroke();
+                ctx.fillStyle = '#ffd34f'; ctx.beginPath(); ctx.arc(w * 0.62, h * 0.38, 4, 0, Math.PI * 2); ctx.fill(); break;
+            case 'Toilet':
+                ctx.fillStyle = lin('#ffffff', '#cfd6de'); ctx.beginPath(); ctx.roundRect(w / 4, 0, w / 2, h / 3, 4); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(w / 2, h / 2 + 5, w / 3, h / 3, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#9fc8e6'; ctx.beginPath(); ctx.ellipse(w / 2, h / 2 + 6, w / 5, h / 5, 0, 0, Math.PI * 2); ctx.fill(); break;
+            case 'Sink':
+                ctx.fillStyle = lin('#ffffff', '#cfd6de'); ctx.beginPath(); ctx.arc(w / 2, h / 2, w / 2, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = rad('#e8f4ff', '#a6c4dc'); ctx.beginPath(); ctx.arc(w / 2, h / 2, w / 3, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#8a9099'; ctx.fillRect(w / 2 - 2, 0, 4, 11); break;
+            case 'Vending':
+                ctx.fillStyle = lin('#ff3048', '#9a0718'); ctx.beginPath(); ctx.roundRect(0, 0, w, h, 6); ctx.fill();
+                ctx.fillStyle = '#0d1620'; ctx.fillRect(5, 5, w - 18, h - 22);
+                for (let r = 0; r < 4; r++) for (let c = 0; c < 3; c++) { ctx.fillStyle = ['#ffd34f', '#3df2ff', '#4dff88', '#ff8ad8'][(r + c) % 4]; ctx.fillRect(8 + c * ((w - 24) / 3), 8 + r * ((h - 28) / 4), (w - 30) / 3, 6); }
+                ctx.fillStyle = '#3df2ff'; ctx.shadowColor = '#3df2ff'; ctx.shadowBlur = 8; ctx.fillRect(w - 10, 8, 4, 14); ctx.shadowBlur = 0;
+                ctx.fillStyle = '#111'; ctx.fillRect(5, h - 13, w - 10, 8); break;
+            case 'Trash':
+                ctx.fillStyle = rad('#6a717c', '#2a2e35'); ctx.beginPath(); ctx.arc(w / 2, h / 2, w / 2, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#121418'; ctx.beginPath(); ctx.arc(w / 2, h / 2, w / 2.6, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#d9d0b0'; ctx.beginPath(); ctx.arc(w * 0.45, h * 0.45, 3, 0, Math.PI * 2); ctx.fill(); break;
+            case 'Stairs':
+                for (let i = 0; i < h; i += 10) { const k = i / h; ctx.fillStyle = 'rgb(' + Math.round(40 + k * 60) + ',' + Math.round(46 + k * 66) + ',' + Math.round(56 + k * 70) + ')'; ctx.fillRect(0, i, w, 10); ctx.fillStyle = 'rgba(255,255,255,0.2)'; ctx.fillRect(0, i, w, 2); }
+                ctx.strokeStyle = '#00ffaa'; ctx.lineWidth = 2; ctx.shadowColor = '#00ffaa'; ctx.shadowBlur = 12; ctx.strokeRect(1, 1, w - 2, h - 2); ctx.shadowBlur = 0;
+                ctx.fillStyle = '#00ffaa'; ctx.font = "700 12px Orbitron, sans-serif"; ctx.fillText("STAIRS", 8, 20); break;
+            default: ctx.fillStyle = o.color || '#f0f'; ctx.beginPath(); ctx.roundRect(0, 0, w, h, 6); ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    // --- MAP LOGIC ---
+    function startGame(mapId) {
+        if(typeof mapId === 'string') generatePreset(mapId); 
+        startActualGame();
+    }
+
+    function startActualGame() {
+        document.getElementById('menu').classList.add('hidden');
+        document.getElementById('editor-ui').style.display = 'none';
+        document.getElementById('hud-top').classList.remove('hidden');
+        document.getElementById('wait-prompt').style.display = 'block';
+        
+        // Reset Spawns (Prop spawn is set in generation)
+        prop.name = 'Player'; prop.w=30; prop.h=30; prop.layer = 1; prop.color='#0f0';
+        p1.x = WORLD_W-200; p1.y = 200; p1.ammo = 3; p1.layer = 1;
+        p2.x = WORLD_W-200; p2.y = 400; p2.ammo = 3; p2.layer = 1;
+        updateAmmoUI();
+
+        gameState = 'HIDING';
+        timer = 60;
+        clearInterval(interval);
+        interval = setInterval(() => {
+            timer--;
+            document.getElementById('timer-display').innerText = timer;
+            if(timer <= 0) {
+                if(gameState === 'HIDING') endHiding();
+                else if(gameState === 'HUNTING') gameOver('PROP', "Time Limit Reached!");
+            }
+        }, 1000);
+    }
+
+    function generatePreset(map) {
+        mapName = map;
+        props = []; walls = [];
+        currentFloor = 1;
+        
+        mapFloorColor = (map==='cinema')?'#211' : (map==='office')?'#ddd' : '#333';
+        
+        // Outer Bounds (Floor 1 & 2)
+        [1,2].forEach(f => {
+            addWall(-50,0,50,WORLD_H,f); addWall(WORLD_W,0,50,WORLD_H,f);
+            addWall(0,-50,WORLD_W,50,f); addWall(0,WORLD_H,WORLD_W,50,f);
+        });
+
+        if(map === 'cinema') {
+            // 1. Main Theater
+            makeRoom(0, 0, 2000, 1400, 'right', 1);
+            add('Cinema Screen', 100, 50, 20, 1300, 'bottom', 0, false); 
+            // Seats
+            for(let r=0; r<12; r++) {
+                for(let c=0; c<16; c++) {
+                    if(Math.random()<0.1) continue;
+                    let sx = 300 + c*90, sy = 100 + r*100;
+                    add('Seat', sx, sy, 60, 50, 'bottom', 0, true);
+                    if(Math.random()<0.1) add('Popcorn', sx+20, sy+10, 20, 20, 'top', 0, true);
+                    else if(Math.random()<0.05) add('Trash', sx+20, sy+40, 15, 15, 'bottom', 0, true);
+                }
+            }
+            // 2. Bathroom
+            makeRoom(0, 1400, 800, 600, 'right', 1);
+            for(let i=0; i<4; i++) {
+                addWall(200 + i*150, 1400, 10, 300, 1);
+                add('Toilet', 230 + i*150, 1450, 40, 40, 'mid', 0, true);
+            }
+            for(let i=0; i<3; i++) add('Sink', 50, 1600+i*100, 40, 40, 'mid', 0, true);
+            // 3. Lobby
+            makeRoom(2000, 0, 1000, 2000, 'left', 1);
+            addWall(2800, 500, 20, 800, 1);
+            addWall(2400, 500, 20, 800, 1);
+            for(let i=0; i<15; i++) add('Popcorn', 2410, 520+i*50, 20, 20, 'top', 0, true);
+            add('Ticket Booth', 2500, 1800, 300, 100, 'mid', 0, true);
+            add('Vending', 2200, 100, 60, 80, 'mid', 0, true);
+            add('Trash', 2300, 1500, 40, 40, 'mid', 0, true);
+        }
+
+        else if(map === 'office') {
+            // 1. Conf Room
+            makeRoom(0, 0, 1000, 800, 'bottom', 1);
+            add('Conf Table', 300, 200, 400, 200, 'bottom', 0, true);
+            for(let i=0; i<8; i++) {
+                if(Math.random()<0.2) continue;
+                let cx = (i<4) ? 350 + i*80 : 350 + (i-4)*80;
+                let cy = (i<4) ? 150 : 450;
+                add('Trash', cx, cy, 30, 30, 'mid', 0, true); 
+            }
+            add('Laptop', 400, 250, 40, 30, 'top', 0, true);
+            add('Plant', 50, 50, 60, 60, 'mid', 0, true);
+            // 2. Boss Office
+            makeRoom(2000, 0, 1000, 800, 'left', 1);
+            add('Desk', 2500, 200, 200, 80, 'bottom', 0, true);
+            add('Plant', 2900, 50, 80, 80, 'mid', 0, true);
+            add('Laptop', 2600, 220, 50, 40, 'top', 0, true);
+            // 3. Cubicles
+            for(let r=0; r<3; r++) {
+                for(let c=0; c<5; c++) {
+                    let ox = 100 + c*500, oy = 900 + r*350;
+                    addWall(ox, oy, 10, 200, 1); addWall(ox, oy, 300, 10, 1);
+                    add('Desk', ox+20, oy+20, 120, 60, 'bottom', 0, true);
+                    add('Trash', ox+200, oy+150, 30, 30, 'mid', 0, true);
+                    if(Math.random()>0.3) add('Laptop', ox+40, oy+30, 40, 30, 'top', 0, true);
+                    if(Math.random()>0.5) add('Printer', ox+150, oy+20, 40, 40, 'mid', 0, true);
+                }
+            }
+            // 4. Kitchen
+            addWall(2500, 1200, 10, 800, 1);
+            add('Vending', 2600, 1300, 60, 80, 'mid', 0, true);
+            add('Vending', 2700, 1300, 60, 80, 'mid', 0, true);
+            add('Sink', 2800, 1800, 50, 50, 'mid', 0, true);
+        }
+
+        else if(map === 'warehouse') {
+            // 1. Shipping Office
+            makeRoom(100, 100, 400, 400, 'right', 1);
+            add('Desk', 150, 150, 100, 60, 'bottom', 0, true);
+            add('Laptop', 170, 160, 40, 30, 'top', 0, true);
+            // 2. Maze
+            for(let i=0; i<60; i++) {
+                let mx = 1000 + (i%10)*150, my = 200 + Math.floor(i/10)*150;
+                if(Math.random() > 0.3) {
+                   add('Crate', mx, my, 80, 80, 'mid', 0, true); 
+                   if(Math.random()>0.5) add('Barrel', mx+10, my+10, 30, 30, 'top', 0, true);
+                }
+            }
+            // 3. Shelves
+            for(let i=0; i<4; i++) {
+                let sy = 1200 + i*200;
+                addWall(200, sy, 2000, 20, 1);
+                for(let k=0; k<25; k++) {
+                    if(Math.random() < 0.2) continue;
+                    let type = Math.random()>0.5 ? 'Crate' : 'Barrel';
+                    add(type, 220 + k*75, sy-30, 50, 50, 'top', 0, true);
+                }
+            }
+            // 4. Loading Dock
+            add('Pallet', 2400, 500, 80, 60, 'bottom', 0, true);
+            add('Pallet', 2600, 600, 80, 60, 'bottom', 0, true);
+            add('Barrel', 2420, 510, 30, 30, 'mid', 0, true);
+        }
+        
+        prop.x = 200; prop.y = 800; 
+    }
+
+    // Helpers
+    function add(name, x, y, w, h, layer, rot, morph) {
+        props.push({name, x, y, w, h, layer, rotation: rot||0, floor: 1, morphable: morph});
+    }
+    function addWall(x,y,w,h,f) { walls.push({x,y,w,h,floor:f}); }
+    function makeRoom(x, y, w, h, doorSide, f) {
+        const t = 20;
+        if(doorSide!=='top') addWall(x,y,w,t,f); else { addWall(x,y,w/3,t,f); addWall(x+w*0.66,y,w/3,t,f); }
+        if(doorSide!=='bottom') addWall(x,y+h-t,w,t,f); else { addWall(x,y+h-t,w/3,t,f); addWall(x+w*0.66,y+h-t,w/3,t,f); }
+        if(doorSide!=='left') addWall(x,y,t,h,f); else { addWall(x,y,t,h/3,f); addWall(x,y+h*0.66,t,h/3,f); }
+        if(doorSide!=='right') addWall(x+w-t,y,t,h,f); else { addWall(x+w-t,y,t,h/3,f); addWall(x+w-t,y+h*0.66,t,h/3,f); }
+    }
+
+    // --- UTILS ---
+    function openEditor() {
+        document.getElementById('menu').classList.add('hidden');
+        document.getElementById('editor-ui').style.display = 'block';
+        gameState = 'EDITOR';
+        editorZoom = 1.0; editorCam.x=0; editorCam.y=0; // Reset cam
+        const list = document.getElementById('prop-list'); list.innerHTML = '';
+        PROP_TYPES.forEach(p => {
+            let b = document.createElement('button'); b.className = 'tool-btn'; b.innerText = p.name;
+            b.onclick = () => setTool(p.name);
+            b.onmouseover = () => { let d=document.getElementById('prop-desc-box'); d.style.display='block'; d.innerText=p.desc; };
+            b.onmouseout = () => { document.getElementById('prop-desc-box').style.display='none'; };
+            list.appendChild(b);
+        });
+        generatePreset(''); // Reset map
+    }
+    function setTool(t) { editorTool = t; document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active')); }
+    function setFloor(f) { currentFloor = f; document.getElementById('btn-fl1').style.background=(f===1)?'#0f0':'#333'; document.getElementById('btn-fl1').style.color=(f===1)?'#000':'#fff'; document.getElementById('btn-fl2').style.background=(f===2)?'#0f0':'#333'; document.getElementById('btn-fl2').style.color=(f===2)?'#000':'#fff'; }
+    function resizeMap() { let v=document.getElementById('map-size').value; if(v==='s'){WORLD_W=1500;WORLD_H=1000;} if(v==='m'){WORLD_W=2200;WORLD_H=1600;} if(v==='l'){WORLD_W=3000;WORLD_H=2000;} if(v==='xl'){WORLD_W=4000;WORLD_H=3000;} }
+    
+    function saveToCache() { localStorage.setItem('propHuntMap', JSON.stringify({name: document.getElementById('map-name').value, w: WORLD_W, h: WORLD_H, bg: document.getElementById('floor-col').value, walls, props, spawn: {x:prop.x,y:prop.y}})); alert('Saved!'); }
+    function loadFromCache() { let d=localStorage.getItem('propHuntMap'); if(d) loadMapData(JSON.parse(d)); }
+    function exportJSON() { const d={name: document.getElementById('map-name').value, w: WORLD_W, h: WORLD_H, bg: document.getElementById('floor-col').value, walls, props, spawn: {x:prop.x,y:prop.y}}; const b=new Blob([JSON.stringify(d)],{type:"application/json"}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=d.name+".json"; a.click(); }
+    function importJSON() { const i=document.createElement('input'); i.type='file'; i.onchange=e=>{ const r=new FileReader(); r.onload=re=>loadMapData(JSON.parse(re.target.result)); r.readAsText(e.target.files[0]); }; i.click(); }
+    function loadMapData(d) { document.getElementById('map-name').value=d.name; WORLD_W=d.w; WORLD_H=d.h; document.getElementById('floor-col').value=d.bg; walls=d.walls; props=d.props; prop.x=d.spawn.x; prop.y=d.spawn.y; }
+    function playCustom() { mapFloorColor = document.getElementById('floor-col').value; startActualGame(); }
+    function exitEditor() { document.getElementById('editor-ui').style.display='none'; document.getElementById('menu').classList.remove('hidden'); gameState='MENU'; }
+
+    function endHiding() { gameState = 'INTERMISSION'; document.getElementById('intermission').classList.remove('hidden'); document.getElementById('wait-prompt').style.display = 'none'; document.getElementById('morph-prompt').style.display = 'none'; ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width, canvas.height); }
+    window.startHunting = function() { document.getElementById('intermission').classList.add('hidden'); document.getElementById('divider').style.display = 'block'; gameState = 'HUNTING'; timer = TIME_LIMIT; }
+    function updateAmmoUI() { document.getElementById('p1-ammo').innerText = `P1: ${p1.ammo} (Press E)`; document.getElementById('p2-ammo').innerText = `P2: ${p2.ammo} (Press M)`; }
+    function spawnPopup(x, y, text, color) { const d = document.createElement('div'); d.className = 'popup-text'; d.innerText = text; d.style.color = color; d.style.left = "50%"; d.style.top = "50%"; document.body.appendChild(d); setTimeout(()=>d.remove(), 1000); }
+    function gameOver(w, r) { VFX.sfx(w === 'PROP' ? 'win' : 'boom'); VFX.flash(w === 'PROP' ? '#00ffaa' : '#ffffff', 450); VFX.shake(8, 300); clearInterval(interval); gameState = 'GAMEOVER'; document.getElementById('gameover').classList.remove('hidden'); document.getElementById('winner-text').innerText = w + " WINS!"; document.getElementById('winner-sub').innerText = r; document.getElementById('divider').style.display = 'none'; }
+    function checkWall(x,y,w,h,f) { for(let wa of walls) if(wa.floor===f && x < wa.x+wa.w && x+w > wa.x && y < wa.y+wa.h && y+h > wa.y) return true; return false; }
+    function checkRectOverlap(a, b) { return (a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y); }
+    function pointInRect(x, y, r) { return (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h); }
+    function tryMorph() { const t = getNearestProp(prop); if(t && getDist(prop, t) < MORPH_DIST && t.morphable) { VFX.sfx('power'); fxRing(prop.x + prop.w / 2, prop.y + prop.h / 2, prop.layer, '#00ffaa', 90); prop.w = t.w; prop.h = t.h; prop.name = t.name; prop.rotation = t.rotation || 0; spawnPopup(prop.x, prop.y, "MORPH!", "#0f0"); } }
+    function tryCatch(h) { if(h.layer!==prop.layer)return; let now = Date.now(); if(now - h.lastAtk < 500) return; if(h.ammo <= 0) { spawnPopup(h.x, h.y, "NO AMMO!", "#555"); return; } h.lastAtk = now; h.ammo--; updateAmmoUI(); VFX.sfx('laser'); fxRing(h.x + h.w / 2, h.y + h.h / 2, h.layer, h.color, 130); if(checkCatch(h, prop)) gameOver(h === p1 ? "BLUE HUNTER" : "RED HUNTER", "Caught the Prop!"); else { spawnPopup(h.x, h.y, "MISS!", "#fff"); VFX.sfx('hit'); if(p1.ammo <= 0 && p2.ammo <= 0) gameOver("PROP", "Hunters ran out of ammo!"); } }
+    function checkCatch(p, t) { return Math.sqrt((p.x-t.x)**2 + (p.y-t.y)**2) < CATCH_DIST; }
+    function getNearestProp(p) { let n=null, min=9999; for(let o of props) { if(o.floor !== p.layer) continue; let d=getDist(p,o); if(d<min){min=d; n=o;} } return n; }
+    function getDist(a,b) { return Math.sqrt((a.x+a.w/2 - (b.x+b.w/2))**2 + (a.y+a.h/2 - (b.y+b.h/2))**2); }
+</script>
+</body>
+</html>
