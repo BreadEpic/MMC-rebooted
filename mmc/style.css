@@ -153,23 +153,40 @@ html[data-fx="off"] .tagline::after { animation: none; }
 }
 .tab[aria-selected="true"] .px-icon { color: var(--on-accent); }
 
-/* tip bar: a random tip each time MMC:Rebooted opens */
-.tip {
-  --bd: var(--a2);
-  display: flex; align-items: center; gap: 10px; max-width: min(640px, 100%); margin: var(--bw);
-  padding: 5px 6px 5px 10px; background: var(--panel); text-align: left;
-  box-shadow: calc(var(--bw) * -1) 0 0 0 var(--bd), var(--bw) 0 0 0 var(--bd), 0 calc(var(--bw) * -1) 0 0 var(--bd), 0 var(--bw) 0 0 var(--bd);
-  animation: tip-in .45s var(--ease) both;
+/* ---------- tab transitions ----------
+   View Transitions: the header parts glide between the normal and compact (Minecraft) layouts,
+   the page content slides and fades, the background stays put. */
+.logo { view-transition-name: mmc-logo; }
+.tagline { view-transition-name: mmc-tagline; }
+.tabs { view-transition-name: mmc-tabs; }
+.bg { view-transition-name: mmc-bg; }
+::view-transition-group(mmc-logo), ::view-transition-group(mmc-tagline), ::view-transition-group(mmc-tabs) {
+  animation-duration: .42s; animation-timing-function: var(--ease);
 }
-.tip-label { display: inline-flex; align-items: center; gap: 6px; flex: none; font-family: var(--f-pixel); font-size: 8px; text-transform: uppercase; color: var(--a2); }
-.tip-label .px-icon { font-size: 11px; }
-.tip-text { flex: 1; min-width: 0; font-size: 17px; color: var(--ink-2); }
+::view-transition-old(mmc-bg) { display: none; }
+::view-transition-new(mmc-bg) { animation: none; }
+::view-transition-old(root) { animation: .2s ease both view-out; }
+::view-transition-new(root) { animation: .36s var(--ease) both view-in; }
+html[data-dir="back"]::view-transition-old(root) { animation-name: view-out-back; }
+html[data-dir="back"]::view-transition-new(root) { animation-name: view-in-back; }
+@keyframes view-out { to { opacity: 0; transform: translateX(-24px); } }
+@keyframes view-in { from { opacity: 0; transform: translateX(24px); } }
+@keyframes view-out-back { to { opacity: 0; transform: translateX(24px); } }
+@keyframes view-in-back { from { opacity: 0; transform: translateX(-24px); } }
+/* browsers without View Transitions */
+.view.view-enter { animation: view-in .36s var(--ease) both; }
+html[data-dir="back"] .view.view-enter { animation-name: view-in-back; }
+
+/* ---------- tips panel ---------- */
+.tip-body { display: flex; align-items: center; gap: 14px; }
+.tip-icon { flex: none; display: flex; font-size: 22px; color: var(--a2); filter: drop-shadow(0 0 calc(6px * var(--glow)) var(--a2)); }
+.tip-text { flex: 1; min-width: 0; margin: 0; font-size: 21px; color: var(--ink); }
 .tip-text.swap { animation: tip-swap .35s var(--ease); }
-.tip-btn { flex: none; width: 26px; height: 26px; display: grid; place-items: center; font-size: 12px; color: var(--ink-2); background: var(--panel-2); transition: color .15s, transform .3s var(--ease); }
-.tip-btn:hover { color: var(--a1); transform: rotate(180deg); }
-@keyframes tip-in { from { opacity: 0; transform: translateY(-6px); } }
-@keyframes tip-swap { from { opacity: 0; transform: translateX(8px); } }
-body[data-tab="minecraft"] .tip { display: none; }
+.tip-btn { flex: none; }
+.tip-btn .px-icon { font-size: 10px; transition: transform .35s var(--ease); }
+.tip-btn:hover .px-icon { transform: rotate(180deg); }
+@keyframes tip-swap { from { opacity: 0; transform: translateX(10px); } }
+@media (max-width: 600px) { .tip-body { flex-wrap: wrap; } .tip-text { flex-basis: calc(100% - 40px); } }
 
 /* compact header on the Minecraft tab so the launcher gets the room */
 body[data-tab="minecraft"] .top { flex-direction: row; justify-content: space-between; padding: 10px 18px; gap: 14px; text-align: left; }
@@ -263,6 +280,8 @@ body[data-tab="minecraft"] main { max-width: none; padding: 0 18px 14px; }
 .tile-img { width: 100%; aspect-ratio: 1; object-fit: cover; background: var(--bg-2); }
 .tile.mc .tile-img { object-fit: contain; padding: 16%; background: radial-gradient(circle at 50% 60%, #2f5d2a 0%, #14261a 70%); }
 .tile.px .tile-img { image-rendering: pixelated; padding: 24%; }
+.tile-online { position: absolute; top: 4px; left: 4px; margin-top: 18px; padding: 3px 4px; font-family: var(--f-pixel); font-size: 6px; text-transform: uppercase; background: var(--a1); color: var(--on-accent); pointer-events: none; }
+.tile:not(:has(.tile-new)) .tile-online { margin-top: 0; }
 .tile-new { position: absolute; top: 4px; left: 4px; padding: 3px 4px; font-family: var(--f-pixel); font-size: 6px; text-transform: uppercase; background: var(--a2); color: var(--on-accent); pointer-events: none; }
 .tile-name {
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
@@ -311,7 +330,14 @@ body[data-tab="minecraft"] main { max-width: none; padding: 0 18px 14px; }
 
 /* ---------- minecraft ---------- */
 .mc-frame { --bd: var(--a1); margin: var(--bw); height: calc(100vh - var(--top-h, 90px) - 18px); min-height: 500px; background: #1e1e1e; }
-.mc-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+.mc-frame { position: relative; }
+.mc-frame.mc-enter { animation: mc-in .55s var(--ease) both; }
+@keyframes mc-in { 0%, 25% { opacity: 0; transform: translateY(12px) scale(.985); } }
+.mc-frame iframe { display: block; width: 100%; height: 100%; border: 0; opacity: 0; transition: opacity .4s ease; }
+.mc-frame iframe.ready { opacity: 1; }
+.mc-loading { position: absolute; inset: 0; z-index: 1; display: grid; place-content: center; justify-items: center; gap: 14px; background: #1e1e1e; pointer-events: none; transition: opacity .4s ease; }
+.mc-loading.done { opacity: 0; }
+.mc-loading p { margin: 0; font-family: var(--f-pixel); font-size: 9px; color: var(--a1); text-transform: uppercase; letter-spacing: .2em; }
 
 /* ---------- theme picker ---------- */
 .themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 14px; margin-bottom: 6px; }

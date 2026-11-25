@@ -1,6 +1,11 @@
-# Builds the offline release zip and publishes it as a GitHub release.
-# Zip layout:  Run Me.html  +  tips.js  +  files/  (everything the dashboard needs)
-# Runs when a tag like reboot-1 is pushed, or by hand from the Actions tab.
+# Builds the offline release and publishes it as a GitHub release.
+#
+#   Reboot-N.zip              Run Me.html + tips.js + files/  (the dashboard and everything in the repo)
+#   Reboot-N-Bonus-Pack.zip   files/packs/bonus*              (from the repo)
+#   Reboot-N-<Pack>.zip       files/packs/<id>*               (built here from release/packs/<id>.json)
+#
+# Every zip extracts into the same folder. GitHub caps each release file at 2GB, so the big
+# game collections ship as separate packs; the dashboard shows a pack's games once it is there.
 name: Release zip
 
 on:
@@ -18,8 +23,11 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  core:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      num: ${{ steps.meta.outputs.num }}
     steps:
       - name: Check out
         uses: actions/checkout@v4
@@ -30,31 +38,65 @@ jobs:
           TAG="${{ github.event.inputs.tag || github.ref_name }}"
           NUM="${TAG#reboot-}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "num=$NUM" >> "$GITHUB_OUTPUT"
           echo "title=Reboot $NUM" >> "$GITHUB_OUTPUT"
-          echo "zip=Reboot-$NUM.zip" >> "$GITHUB_OUTPUT"
 
-      - name: Build the zip
+      - name: Build the core zip and the Bonus Pack
         run: |
-          mkdir -p out/files
+          NUM="${{ steps.meta.outputs.num }}"
+          mkdir -p out/files bonus/files
           git archive HEAD | tar -x -C out/files
-          rm -rf out/files/.github out/files/release
+          rm -rf out/files/.github out/files/release out/files/tools
+          mv out/files/packs bonus/files/packs
           cp "release/Run Me.html" "out/Run Me.html"
           cp release/tips.js out/tips.js
-          cd out
-          zip -q -r "../${{ steps.meta.outputs.zip }}" "Run Me.html" tips.js files
-          cd ..
-          ls -lh "${{ steps.meta.outputs.zip }}"
+          (cd out && zip -q -r "../Reboot-$NUM.zip" "Run Me.html" tips.js files)
+          (cd bonus && zip -q -r "../Reboot-$NUM-Bonus-Pack.zip" files)
+          rm -rf out bonus
+          ls -lh *.zip
 
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${{ steps.meta.outputs.tag }}"
+          NUM="${{ steps.meta.outputs.num }}"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "${{ steps.meta.outputs.zip }}" --clobber
+            gh release upload "$TAG" "Reboot-$NUM.zip" "Reboot-$NUM-Bonus-Pack.zip" --clobber
           else
-            gh release create "$TAG" "${{ steps.meta.outputs.zip }}" \
+            gh release create "$TAG" "Reboot-$NUM.zip" "Reboot-$NUM-Bonus-Pack.zip" \
               --title "${{ steps.meta.outputs.title }}" \
               --notes-file release/notes.md \
               --target "$GITHUB_SHA"
           fi
+
+  packs:
+    needs: core
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pack: [extra1, extra2, extra3, fnf, pvz2]
+    steps:
+      - name: Check out the build tools
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            tools
+            release
+            games/mmcsite.js
+          sparse-checkout-cone-mode: false
+
+      - name: Build the pack
+        run: python3 tools/build_pack.py "${{ matrix.pack }}" out
+
+      - name: Zip and attach it to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          NAME=$(python3 -c "import json; print(json.load(open('release/packs/${{ matrix.pack }}.json'))['zip'])")
+          ZIP="Reboot-${{ needs.core.outputs.num }}-$NAME.zip"
+          (cd out && zip -q -r "../$ZIP" files)
+          ls -lh "$ZIP"
+          gh release upload "${{ needs.core.outputs.tag }}" "$ZIP" --clobber

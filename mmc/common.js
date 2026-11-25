@@ -230,6 +230,7 @@
 
   /* ---------- pixel icons (drawn on a grid, crisp at any size) ---------- */
   var ICONS = {
+    pad: ["..XXXXXXX..", ".XXXXXXXXX.", "XX.XXXXX.XX", "X...XXX.X.X", "XX.XXXXX.XX", "XXXX...XXXX", "XXX.....XXX"],
     home: ["...XX...", "..XXXX..", ".XXXXXX.", "XXXXXXXX", ".X....X.", ".X.XX.X.", ".X.XX.X.", ".XXXXXX."],
     pick: ["..XXXXXX..", ".XX....XX.", "XX..XX..XX", "X...XX...X", "....XX....", "....XX....", "....XX....", "....XX....", "....XX....", "....XX...."],
     gear: ["...X.X...", ".XXXXXXX.", ".XX...XX.", "XX..X..XX", "X..XXX..X", "XX..X..XX", ".XX...XX.", ".XXXXXXX.", "...X.X..."],

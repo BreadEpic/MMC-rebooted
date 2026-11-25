@@ -27,19 +27,24 @@
   </div>
   <nav class="tabs" role="tablist" aria-label="Sections">
     <button class="tab" role="tab" id="tabbtn-home" data-tab="home" aria-controls="tab-home"></button>
+    <button class="tab" role="tab" id="tabbtn-games" data-tab="games" aria-controls="tab-games"></button>
     <button class="tab" role="tab" id="tabbtn-minecraft" data-tab="minecraft" aria-controls="tab-minecraft"></button>
     <button class="tab" role="tab" id="tabbtn-settings" data-tab="settings" aria-controls="tab-settings"></button>
   </nav>
-  <div class="tip" id="tip" role="note" aria-live="polite" hidden>
-    <span class="tip-label" id="tipLabel">Tip</span>
-    <span class="tip-text" id="tipText"></span>
-    <button class="tip-btn" id="tipNext" title="Another tip" aria-label="Another tip"></button>
-  </div>
 </header>
 
 <main>
   <!-- ================= HOME ================= -->
   <section class="view" id="tab-home" role="tabpanel" aria-labelledby="tabbtn-home">
+
+    <div class="panel tips-panel" id="tip">
+      <div class="panel-head"><h2>Tips</h2><span class="panel-meta" id="tipCount"></span></div>
+      <div class="tip-body">
+        <span class="tip-icon" id="tipIcon"></span>
+        <p class="tip-text" id="tipText" aria-live="polite"></p>
+        <button class="btn ghost tip-btn" id="tipNext" title="Another tip"><span id="tipNextIcon"></span>New tip</button>
+      </div>
+    </div>
 
     <div class="stat-row" id="statRow"></div>
 
@@ -61,6 +66,10 @@
       <div class="recent" id="recent"></div>
     </div>
 
+  </section>
+
+  <!-- ================= GAMES ================= -->
+  <section class="view" id="tab-games" role="tabpanel" aria-labelledby="tabbtn-games" hidden>
     <div class="panel" id="library">
       <div class="panel-head">
         <h2>All Games</h2><span class="panel-meta" id="gameCount"></span>
@@ -80,6 +89,7 @@
   <!-- ================= MINECRAFT ================= -->
   <section class="view" id="tab-minecraft" role="tabpanel" aria-labelledby="tabbtn-minecraft" hidden>
     <div class="mc-frame">
+      <div class="mc-loading" id="mcLoading"><div class="loading-blocks"><i></i><i></i><i></i><i></i></div><p>Loading launcher</p></div>
       <iframe id="mcFrame" title="Ampler Launcher" allow="autoplay; fullscreen; gamepad"></iframe>
     </div>
   </section>
@@ -166,7 +176,8 @@
           <li><b>Minecraft</b> Ampler Launcher by irv77, Eaglercraft by lax1dude</li>
           <li><b>Flash</b> Ruffle</li>
           <li><b>Fonts</b> Press Start 2P, VT323 (OFL)</li>
-          <li><b>Version</b> Reboot 2.2</li>
+          <li><b>Packs</b> <span id="packInfo">None installed</span></li>
+          <li><b>Version</b> Reboot 2.3</li>
         </ul>
       </div>
     </div>

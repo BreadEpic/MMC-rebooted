@@ -34,6 +34,7 @@ function webedition(){
     document.getElementById('dropdown9').style.display = 'none';
     document.getElementById('dropdown10').style.display = 'none';
     document.getElementById('dropdown11').style.display = 'flex';
+    showNewDrops([])
     precisionclient()
 }
 function moddededition(){
@@ -60,6 +61,7 @@ function moddededition(){
     document.getElementById('dropdown9').style.display = 'none';
     document.getElementById('dropdown10').style.display = 'none';
     document.getElementById('dropdown11').style.display = 'none';
+    showNewDrops([12])
     eaglerforge()
 }
 function eaglercontrols(){
@@ -86,6 +88,7 @@ function eaglercontrols(){
     document.getElementById('dropdown9').style.display = 'flex';
     document.getElementById('dropdown10').style.display = 'flex';
     document.getElementById('dropdown11').style.display = 'none';
+    showNewDrops([])
     dogomobile()
 }
 function eaglerservers(){
@@ -220,6 +223,8 @@ function resetSelected() {
     document.getElementById('gtabs7').style.borderLeft = '';
     document.getElementById('gtabs8').style.fontWeight = '';
     document.getElementById('gtabs8').style.borderLeft = '';
+    document.getElementById('gtabs10').style.fontWeight = '';
+    document.getElementById('gtabs10').style.borderLeft = '';
     document.getElementById('game-header').style.display = 'block';
 }
 
@@ -239,6 +244,84 @@ function preventMotion(event)
     event.stopPropagation();
 }
 
+
+
+/* ---- MMC: more Minecraft versions ---- */
+function showNewDrops(ids) {
+    for (var n = 12; n <= 19; n++) document.getElementById('dropdown' + n).style.display = ids.indexOf(n) === -1 ? 'none' : 'flex';
+}
+
+function moreversions() {
+    resetSelected();
+    resetDefault();
+    document.getElementById('game-bg').style.backgroundImage = 'url(./images/web-edition.jpg)';
+    document.getElementById('game-header').src = './images/web-title.png';
+    document.getElementById('gameedition').innerHTML = 'EAGLERCRAFT MORE VERSIONS';
+    ['header2', 'header5'].forEach(function (h) { document.getElementById(h).style.display = 'none'; });
+    ['header3', 'header4', 'header6'].forEach(function (h) { document.getElementById(h).style.display = 'block'; });
+    document.getElementById('gameselection').style.display = 'block';
+    document.getElementById('gtabs10').style.fontWeight = '700';
+    document.getElementById('gtabs10').style.borderLeft = '#008542 solid 4px';
+    for (var n = 1; n <= 11; n++) { var d = document.getElementById('dropdown' + n); if (d) d.style.display = 'none'; }
+    showNewDrops([13, 14, 15, 16, 17, 18, 19]);
+    mc1206();
+}
+
+function insanemodpack() {
+    document.getElementById('gametitle').innerHTML = 'Insanely huge modpack';
+    document.getElementById('gameversion').innerHTML = 'Modpack WASM-GC';
+    document.getElementById('gameicon').src = './images/m-logo14.png';
+    setPlay('mc-modpack', 'mc/modpack/index.html');
+}
+
+function mc1206() {
+    document.getElementById('gametitle').innerHTML = 'Minecraft 1.20.6';
+    document.getElementById('gameversion').innerHTML = 'WASM-GC';
+    document.getElementById('gameicon').src = './images/m-logo12.png';
+    setPlay('mc-1206', 'mc/1.20.6/index.html');
+}
+
+function mc1165() {
+    document.getElementById('gametitle').innerHTML = 'Minecraft 1.16.5';
+    document.getElementById('gameversion').innerHTML = 'WASM-GC u2 beta';
+    document.getElementById('gameicon').src = './images/m-logo13.png';
+    setPlay('mc-1165', 'mc/1.16.5/index.html');
+}
+
+function mc1122() {
+    document.getElementById('gametitle').innerHTML = 'Minecraft 1.12.2';
+    document.getElementById('gameversion').innerHTML = '1.12.2';
+    document.getElementById('gameicon').src = './images/m-logo15.png';
+    setPlay('mc-1122', 'mc/1.12.2/index.html');
+}
+
+function mcbeta13() {
+    document.getElementById('gametitle').innerHTML = 'Minecraft Beta 1.3';
+    document.getElementById('gameversion').innerHTML = 'Beta 1.3';
+    document.getElementById('gameicon').src = './images/m-logo16.png';
+    setPlay('mc-beta13', 'mc/beta1.3/index.html');
+}
+
+function mcalpha126() {
+    document.getElementById('gametitle').innerHTML = 'Minecraft Alpha 1.2.6';
+    document.getElementById('gameversion').innerHTML = 'Alpha 1.2.6';
+    document.getElementById('gameicon').src = './images/m-logo17.png';
+    setPlay('mc-alpha126', 'mc/alpha1.2.6/index.html');
+}
+
+function mcindev() {
+    document.getElementById('gametitle').innerHTML = 'Minecraft Indev';
+    document.getElementById('gameversion').innerHTML = 'Indev';
+    document.getElementById('gameicon').src = './images/m-logo18.png';
+    setPlay('mc-indev', 'mc/indev/index.html');
+}
+
+function paperminecraft() {
+    document.getElementById('gametitle').innerHTML = 'Paper Minecraft';
+    document.getElementById('gameversion').innerHTML = '2D, v1.15.1';
+    document.getElementById('gameicon').src = './images/m-logo19.png';
+    setPlay('mc-paper', 'mc/paperminecraft/index.html');
+}
 
 /* ---- MMC:Rebooted additions ---- */
 function setPlay(id, href) {

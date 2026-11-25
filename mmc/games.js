@@ -28,6 +28,7 @@
     { name: "Geometry Dash" },
     { name: "Wordle" },
     { name: "Paper IO 2" },
+    { name: "Paper.io 3D", src: "games/paperio3d/index.html", thumb: "games/paperio3d/thumb.jpg", isNew: true, online: true },
     { name: "Jelly Mario", src: "games/jellymario/index.html", thumb: "games/jellymario/thumb.png", isNew: true },
 
     { title: "Unity" },
@@ -108,7 +109,15 @@
     { id: "mc-astra", name: "Astra Client", img: "m-logo7.png", href: "mc/astraclient/EaglercraftX_1.8_Offline_en_US.html" },
     { id: "mc-controller", name: "MC Controller", img: "m-logo8.png", href: "mc/1.8.8/EaglercraftX_1.8_Offline_en_US.html?userscript=irv77-eaglerconsole.js" },
     { id: "mc-redmobile", name: "MC Mobile (Red)", img: "m-logo9.png", href: "mc/1.8.8/EaglercraftX_1.8_Offline_en_US.html?userscript=irv77-eaglercraft-mobile.js" },
-    { id: "mc-dogomobile", name: "MC Mobile (Dogo)", img: "m-logo10.png", href: "mc/1.8.8/EaglercraftX_1.8_Offline_en_US.html?userscript=flameddogo99-eaglermobile.js" }
+    { id: "mc-dogomobile", name: "MC Mobile (Dogo)", img: "m-logo10.png", href: "mc/1.8.8/EaglercraftX_1.8_Offline_en_US.html?userscript=flameddogo99-eaglermobile.js" },
+    { id: "mc-modpack", name: "Insanely huge modpack", img: "m-logo14.png", href: "mc/modpack/index.html" },
+    { id: "mc-1206", name: "Minecraft 1.20.6", img: "m-logo12.png", href: "mc/1.20.6/index.html" },
+    { id: "mc-1165", name: "Minecraft 1.16.5", img: "m-logo13.png", href: "mc/1.16.5/index.html" },
+    { id: "mc-1122", name: "Minecraft 1.12.2", img: "m-logo15.png", href: "mc/1.12.2/index.html" },
+    { id: "mc-beta13", name: "Minecraft Beta 1.3", img: "m-logo16.png", href: "mc/beta1.3/index.html", pixel: true },
+    { id: "mc-alpha126", name: "Minecraft Alpha 1.2.6", img: "m-logo17.png", href: "mc/alpha1.2.6/index.html", pixel: true },
+    { id: "mc-indev", name: "Minecraft Indev", img: "m-logo18.png", href: "mc/indev/index.html", pixel: true },
+    { id: "mc-paper", name: "Paper Minecraft", img: "m-logo19.png", href: "mc/paperminecraft/index.html", pixel: true }
   ];
 
   var list = [], byId = {}, sections = [], section = null;
@@ -123,7 +132,8 @@
       img: g.thumb || ("gams/img/" + slug + ".png"),
       href: g.src || ("gams/" + (g.href || ("g/" + slug + ".html"))),
       raw: !!g.raw,
-      isNew: !!g.isNew
+      isNew: !!g.isNew,
+      online: !!g.online
     };
     list.push(game);
     byId[game.id] = game;
@@ -144,5 +154,23 @@
     byId[game.id] = game;
   });
 
-  window.MMC_GAMES = { list: list, byId: byId, sections: sections };
+  // Optional packs (packs/<id>.js, from the pack zips) add their games here.
+  // New sections go before Tools and Minecraft so those stay at the end.
+  function add(g, packName) {
+    if (!g || !g.id || byId[g.id]) return null;
+    var game = {
+      id: g.id, name: g.name, section: g.section || "More Games", img: g.thumb || "mmc/no-cover.png",
+      href: g.src, isNew: !!g.isNew, online: !!g.online, pack: packName || ""
+    };
+    if (sections.indexOf(game.section) === -1) {
+      var at = sections.indexOf("Tools");
+      if (at === -1) at = sections.length;
+      sections.splice(at, 0, game.section);
+    }
+    list.push(game);
+    byId[game.id] = game;
+    return game;
+  }
+
+  window.MMC_GAMES = { list: list, byId: byId, sections: sections, add: add };
 })();

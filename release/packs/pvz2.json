@@ -1,0 +1,14 @@
+{
+ "id": "pvz2",
+ "name": "PvZ2 Gardendless Pack",
+ "source": "git",
+ "repo": "https://github.com/bubbls/UGS-Assets.git",
+ "commit": "9cf433220236bb0471ab3a68ec8fe3e0a2799e36",
+ "path": "gardenless",
+ "out": "gardenless",
+ "entry": "sources/pvz2-index.html",
+ "skip": [
+  "^CNAME$"
+ ],
+ "zip": "PvZ2-Pack"
+}

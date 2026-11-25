@@ -8,6 +8,7 @@
 
   var TABS = [
     { id: "home", label: "Home", icon: "home" },
+    { id: "games", label: "Games", icon: "pad" },
     { id: "minecraft", label: "Minecraft", icon: "pick" },
     { id: "settings", label: "Settings", icon: "gear" }
   ];
@@ -61,8 +62,28 @@
     document.documentElement.style.setProperty("--top-h", $("top").offsetHeight + "px");
   }
 
-  function showTab(id) {
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Smooth tab changes: View Transitions where the browser has them (the header glides into its
+  // compact Minecraft layout instead of jumping), a short fade/slide everywhere else.
+  function showTab(id, instant) {
     if (!TABS.some(function (t) { return t.id === id; })) id = "home";
+    var order = TABS.map(function (t) { return t.id; });
+    var same = id === state.tab && document.body.hasAttribute("data-tab");
+    document.documentElement.setAttribute("data-dir", order.indexOf(id) >= order.indexOf(state.tab) ? "fwd" : "back");
+    if (instant || same || reduceMotion) { applyTab(id); return; }
+    if (document.startViewTransition) {
+      document.startViewTransition(function () { applyTab(id); });
+    } else {
+      applyTab(id);
+      var v = $("tab-" + id);
+      v.classList.remove("view-enter");
+      void v.offsetWidth;
+      v.classList.add("view-enter");
+    }
+  }
+
+  function applyTab(id) {
     state.tab = id;
     document.body.setAttribute("data-tab", id);
     TABS.forEach(function (t) {
@@ -71,14 +92,31 @@
     });
     if (window.MMCFX) MMCFX.hold("minecraft", id === "minecraft");
     if (id === "minecraft") {
-      var f = $("mcFrame");
-      if (!f.getAttribute("src")) f.setAttribute("src", "minecraft/index.html");
+      loadLauncher();
+      // frames cannot be captured mid-transition, so the launcher fades itself in
+      var mf = document.querySelector(".mc-frame");
+      mf.classList.remove("mc-enter"); void mf.offsetWidth; mf.classList.add("mc-enter");
     }
     if (id === "home") renderHome();
     if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
     measureHeader();
     hideTip();
   }
+
+  // The launcher loads quietly in the background soon after start, so opening the tab is instant
+  function loadLauncher() {
+    var f = $("mcFrame");
+    if (f.getAttribute("src")) return;
+    f.addEventListener("load", function () {
+      f.classList.add("ready");
+      $("mcLoading").classList.add("done");
+    }, { once: true });
+    f.setAttribute("src", "minecraft/index.html");
+  }
+  window.addEventListener("load", function () {
+    var later = window.requestIdleCallback || function (fn) { return setTimeout(fn, 1200); };
+    setTimeout(function () { later(loadLauncher); }, 1500);
+  });
 
   window.addEventListener("hashchange", function () { showTab(location.hash.slice(1)); });
   window.addEventListener("resize", measureHeader);
@@ -311,6 +349,11 @@
     t.appendChild(play);
     t.appendChild(pin);
     if (g.isNew) t.appendChild(el("span", "tile-new", "New"));
+    if (g.online) {
+      var w = el("span", "tile-online", "Online");
+      w.title = "Needs internet to play";
+      t.appendChild(w);
+    }
     return t;
   }
 
@@ -625,7 +668,7 @@
     if (e.key !== "/" || current) return;
     var t = e.target;
     if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
-    if (state.tab !== "home") showTab("home");
+    if (state.tab !== "games") showTab("games", true);
     e.preventDefault();
     var s = $("search");
     s.focus();
@@ -787,14 +830,23 @@
      (release/tips.js in the repo). A random one shows each time.
      ===================================================== */
   var tips = [];
+  var DEFAULT_TIPS = [
+    "Press / to jump straight to the game search.",
+    "Hover any game and hit the pin to keep it on Home.",
+    "Settings > Disguise can make this tab look like Google Docs, Classes and more.",
+    "Turn off Effects in Settings if games feel slow.",
+    "Everything runs offline. No wifi needed once it is unzipped."
+  ];
   window.MMC_TIPS = function (list) {
     if (!Array.isArray(list)) return;
-    tips = list.map(function (t) { return String(t).trim(); }).filter(Boolean);
+    var clean = list.map(function (t) { return String(t).trim(); }).filter(Boolean);
+    if (!clean.length) return;
+    tips = clean;
     showTip_(true);
   };
 
   function showTip_(first) {
-    if (!tips.length) return;
+    if (!tips.length) tips = DEFAULT_TIPS.slice();
     var last = -1;
     try { last = +sessionStorage.getItem("mmc-last-tip"); } catch (e) {}
     var i = Math.floor(Math.random() * tips.length);
@@ -804,21 +856,59 @@
     text.textContent = tips[i];
     text.classList.remove("swap");
     if (!first) { void text.offsetWidth; text.classList.add("swap"); }
-    $("tip").hidden = false;
-    measureHeader();
+    $("tipCount").textContent = (i + 1) + " of " + tips.length;
   }
 
-  $("tipLabel").innerHTML = icon("star") + "Tip";
-  $("tipNext").innerHTML = icon("reload");
+  $("tipIcon").innerHTML = icon("star");
+  $("tipNextIcon").innerHTML = icon("reload");
   $("tipNext").addEventListener("click", function () { showTip_(false); });
+  showTip_(true); // built-in tips right away, replaced as soon as tips.js loads
 
+  // tips.js sits next to Run Me.html in the release zip (release/tips.js in the repo)
   (function loadTips(paths) {
     if (!paths.length) return;
     var s = document.createElement("script");
     s.src = paths[0];
     s.onerror = function () { s.remove(); loadTips(paths.slice(1)); };
     document.body.appendChild(s);
-  })(["../tips.js", "release/tips.js"]);
+  })(["../tips.js", "tips.js", "release/tips.js"]);
+
+  /* =====================================================
+     Packs: optional zips (Extra Games, FNF, PvZ2, Bonus) that extract into the same folder.
+     Each one has packs/<id>.js that calls MMC_PACK({...}); missing packs are simply skipped.
+     ===================================================== */
+  var PACKS = ["bonus", "extra1", "extra2", "extra3", "fnf", "pvz2"];
+  var packsLoaded = [];
+  var packRender;
+  window.MMC_PACK = function (pack) {
+    if (!pack || !Array.isArray(pack.games)) return;
+    var added = 0;
+    pack.games.forEach(function (g) { if (G.add(g, pack.name)) added++; });
+    packsLoaded.push(pack.name + " (" + added + ")");
+    // order: core games by section as before, pack games alphabetical inside their section
+    G.list.sort(function (a, b) {
+      var sa = G.sections.indexOf(a.section), sb = G.sections.indexOf(b.section);
+      if (sa !== sb) return sa - sb;
+      if (!a.pack && !b.pack) return 0;
+      if (!a.pack) return -1;
+      if (!b.pack) return 1;
+      return a.name.localeCompare(b.name);
+    });
+    clearTimeout(packRender);
+    packRender = setTimeout(function () {
+      renderChips();
+      renderLibrary();
+      if (state.tab === "home") renderHome();
+      var pi = $("packInfo");
+      if (pi) pi.textContent = packsLoaded.join(", ");
+    }, 30);
+  };
+  PACKS.forEach(function (id) {
+    var s = document.createElement("script");
+    s.src = "packs/" + id + ".js";
+    s.onerror = function () { s.remove(); };
+    document.body.appendChild(s);
+  });
 
   /* =====================================================
      Boot
@@ -828,5 +918,5 @@
   applyLook();
   renderChips();
   renderLibrary();
-  showTab(location.hash.slice(1) || "home");
+  showTab(location.hash.slice(1) || "home", true);
 })();

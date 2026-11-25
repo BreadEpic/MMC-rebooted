@@ -22,5 +22,9 @@ MMC_TIPS([
   "Everything runs offline. No wifi needed once it is unzipped.",
   "Keep Run Me.html next to the files folder, or nothing will load.",
   "Open games in an about:blank tab from Settings > Games.",
+  "Extra Games, FNF and PvZ2 come as packs. Extract them into the same folder and they show up in Games.",
+  "Games marked Online need internet, everything else works with no wifi.",
+  "Settings > Credits lists the packs you have installed.",
+  "The Minecraft tab has More Versions: 1.20.6, 1.16.5, 1.12.2, Beta, Alpha, Indev and Paper Minecraft.",
   "You can add your own tips to tips.js, right next to Run Me.html."
 ]);
