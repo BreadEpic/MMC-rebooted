@@ -245,6 +245,7 @@ body[data-tab="minecraft"] main { max-width: none; padding: 0 18px 14px; }
 .tile-img { width: 100%; aspect-ratio: 1; object-fit: cover; background: var(--bg-2); }
 .tile.mc .tile-img { object-fit: contain; padding: 16%; background: radial-gradient(circle at 50% 60%, #2f5d2a 0%, #14261a 70%); }
 .tile.px .tile-img { image-rendering: pixelated; padding: 24%; }
+.tile-new { position: absolute; top: 4px; left: 4px; padding: 3px 4px; font-family: var(--f-pixel); font-size: 6px; text-transform: uppercase; background: var(--a2); color: var(--on-accent); pointer-events: none; }
 .tile-name {
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   min-height: calc(2 * 1.05em + 8px); padding: 4px 6px; font-size: 16px; line-height: 1.05; color: var(--ink);

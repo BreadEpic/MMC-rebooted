@@ -310,6 +310,7 @@
     pin.title = pinned ? "Unpin" : "Pin";
     t.appendChild(play);
     t.appendChild(pin);
+    if (g.isNew) t.appendChild(el("span", "tile-new", "New"));
     return t;
   }
 

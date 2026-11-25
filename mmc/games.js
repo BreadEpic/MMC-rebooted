@@ -1,6 +1,7 @@
 /* MMC:Rebooted game list.
    Gams games keep the same names, sections and file layout as Gams-Offline/Gams,
    so each one still loads its own data URL / blob URL bundle from gams/g/.
+   Entries with src/thumb live in games/ (added in v2, packed the same way by games/mmcpack.js).
    Minecraft clients come from gtrdhf/AmplerLauncher (offline single-file builds). */
 (function () {
   var GAMS = [
@@ -27,6 +28,7 @@
     { name: "Geometry Dash" },
     { name: "Wordle" },
     { name: "Paper IO 2" },
+    { name: "Jelly Mario", src: "games/jellymario/index.html", thumb: "games/jellymario/thumb.png", isNew: true },
 
     { title: "Unity" },
     { name: "Slope" },
@@ -43,6 +45,10 @@
     { name: "Slope 2", href: "g/g/slope2/index.html" },
     { name: "Ai Creatures", href: "g/g/aicreatures/index.html" },
     { name: "Grey Box Testing", href: "g/g/greybox/index.html" },
+
+    { title: "Godot" },
+    { name: "Brotato", src: "games/brotato/index.html", thumb: "games/brotato/thumb.png", isNew: true },
+    { name: "Crazy Cattle 3D", src: "games/crazycattle3d/index.html", thumb: "games/crazycattle3d/thumb.png", isNew: true },
 
     { title: "Retro" },
     { name: "Super Mario 64" },
@@ -113,9 +119,10 @@
       id: slug,
       name: g.name,
       section: section,
-      img: "gams/img/" + slug + ".png",
-      href: "gams/" + (g.href || ("g/" + slug + ".html")),
-      raw: !!g.raw
+      img: g.thumb || ("gams/img/" + slug + ".png"),
+      href: g.src || ("gams/" + (g.href || ("g/" + slug + ".html"))),
+      raw: !!g.raw,
+      isNew: !!g.isNew
     };
     list.push(game);
     byId[game.id] = game;

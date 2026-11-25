@@ -2,12 +2,12 @@
 
 **Games, Unblocked, Forever.**
 
-One offline dashboard with 74 games and 10 Minecraft clients. No wifi, no server, no install.
+One offline dashboard with 77 games and 10 Minecraft clients. No wifi, no server, no install.
 It runs straight from the files on your computer (`file://`), so it works on a Chromebook or Windows PC with the internet off.
 
 ## How to use
 
-**Easiest:** grab **Reboot-1.zip** from [Releases](../../releases), extract it, and open **`Run Me.html`**.
+**Easiest:** grab the newest **Reboot zip** from [Releases](../../releases), extract it, and open **`Run Me.html`**.
 All the game files live in the `files` folder next to it.
 
 Or from this repo: download it as a zip (green **Code** button, then **Download ZIP**), extract it, and open **`MMC-Rebooted.html`**.
@@ -47,6 +47,10 @@ Gams gets around this by embedding each game's data inside JavaScript files as *
 MMC:Rebooted keeps that layout untouched in `gams/` and adds:
 
 - `mmc/` the dashboard: `app.js` (tabs, stats, player), `common.js` (storage, playtime tracker, pixel icons, disguise, theme list), `games.js` (game list), `themes.css` (all themes as CSS variables), `fx.js` (animated theme backgrounds on one canvas), `play.html` (new tab player), `fonts.css` (pixel fonts embedded as data URLs).
+- `games/` games added in v2 (Brotato, Crazy Cattle 3D, Jelly Mario), packed the same way:
+  - `games/mmcpack.js` loads big files from base64 `part` scripts, turns them back into blobs, and answers the game's `fetch()` calls with them. Audio worklets get data URLs, since worklets cannot load blob URLs from a local file.
+  - Crazy Cattle 3D's original export needs threads (SharedArrayBuffer), which local files can never use, so its game data runs on Godot's official 4.4.1 single-thread web engine instead.
+  - Jelly Mario reads levels from PNG pixels and fetches its sounds, so every PNG and MP3 is embedded as a data URL in `assets.js`.
 - `minecraft/` the Ampler Launcher, pointed at the single-file offline Eaglercraft builds (their assets are already embedded as data URLs).
   - `mc/eaglerforge/offline.html` + `assets.js`: EaglerForge had no offline build, so its `assets.epk` is embedded as a data URL and loaded with a script tag.
   - `mc/1.8.8/...Offline_en_US.html` accepts `?userscript=` so the mobile and controller scripts work offline.
@@ -60,5 +64,7 @@ Playtime is counted once per second while a game is open (and the tab is visible
 - Games: [Gams](https://github.com/Gams-Offline/Gams) by mountain658
 - Minecraft launcher: [Ampler Launcher](https://github.com/gtrdhf/AmplerLauncher) by irv77
 - Eaglercraft by lax1dude, plus the client authors (Precision, Shadow, Resent, EaglerForge, Astra)
+- Brotato by Blobfish, Crazy Cattle 3D by Anna Mayberry, Jelly Mario by schteppe
+- Godot Engine (MIT) for the Brotato and Crazy Cattle 3D web engines
 - Flash: [Ruffle](https://ruffle.rs)
 - Fonts: Press Start 2P and VT323, SIL Open Font License (see `mmc/FONT-LICENSES.txt`)
