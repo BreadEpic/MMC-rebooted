@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summit Slide 2.0</title>
+    <link rel="stylesheet" href="v2/fonts.css">
+    <style>
+        body { background-color: #050608; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; color: white; font-family: Inter, 'Segoe UI', sans-serif; overflow: hidden; }
+        #game-wrapper { transform-origin: center center; flex: none; }
+        h1, .sub-title, #score-ui, #bank-display { font-family: Orbitron, Inter, sans-serif !important; }
+        h1 { letter-spacing: 2px !important; background: linear-gradient(180deg,#fff,#7fd4ff 60%,#2a8cff); -webkit-background-clip: text; background-clip: text; color: transparent !important; filter: drop-shadow(0 0 18px rgba(77,184,255,.6)); text-shadow: none !important; }
+        .nav-btn, .map-btn { backdrop-filter: blur(6px); }
+        #game-wrapper { position: relative; width: 900px; height: 800px; box-shadow: 0 0 100px rgba(0,0,0,1); border-radius: 15px; background: #000; overflow: hidden; border: 4px solid #111; }
+        canvas { display: block; }
+
+
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; transition: 0.3s; }
+        h1 { font-size: 64px; color: #4db8ff; margin: 0 0 10px 0; text-shadow: 0 0 30px #4db8ff; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; }
+        .subtitle { font-size: 11px; color: #fff; text-transform: uppercase; letter-spacing: 5px; margin-bottom: 40px; font-weight: bold; }
+        
+        #bank-display { position: absolute; top: 25px; right: 35px; color: #ffcc00; font-weight: 900; font-size: 18px; z-index: 110; background: rgba(0,0,0,0.85); padding: 5px 22px; border-radius: 50px; border: 2px solid #ffcc00; display: flex; align-items: center; gap: 8px; }
+        
+        #rebirth-display { position: absolute; top: 70px; right: 35px; color: #d500f9; font-weight: 900; font-size: 14px; z-index: 110; background: rgba(0,0,0,0.85); padding: 5px 15px; border-radius: 50px; border: 1px solid #d500f9; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
+
+
+        .menu-container { width: 450px; display: flex; flex-direction: column; gap: 12px; }
+        button { padding: 15px; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; transition: 0.2s; font-size: 14px; }
+        
+        .nav-btn { background: rgba(0,0,0,0.8); color: #fff; border: 1px solid rgba(255,255,255,0.1); width: 100%; text-align: left; padding-left: 30px; display: flex; align-items: center; justify-content: space-between; }
+        .nav-btn:hover { background: #4db8ff; color: #000; transform: scale(1.03); }
+        .nav-btn.gold { border-color: #ffcc00; color: #ffcc00; }
+        .nav-btn.gold:hover { background: #ffcc00; color: #000; }
+        .nav-btn.purple { border-color: #d500f9; color: #d500f9; }
+        .nav-btn.purple:hover { background: #d500f9; color: #fff; }
+        .nav-btn.danger { border-color: #ff3333; color: #ff3333; }
+        .nav-btn.danger:hover { background: #ff3333; color: #fff; }
+        
+        .map-grid { display: grid; grid-template-columns: 1fr; gap: 8px; width: 450px; max-height: 500px; overflow-y: auto; padding-right:5px; }
+        .map-btn { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(0,0,0,0.8); border: 1px solid #333; color: #888; border-radius: 8px; cursor: pointer; }
+        .map-btn:hover { border-color: #fff; }
+        .map-btn.locked { opacity: 0.7; border-style: dashed; }
+        .map-btn.champion { border: 1px solid #ffd700; color: #ffd700; background: rgba(255, 215, 0, 0.05); }
+        .map-btn.rebirth { border: 1px solid #d500f9; color: #d500f9; background: rgba(213, 0, 249, 0.05); }
+
+
+        .back-btn { background: #222; color: #888; margin-top: 20px; font-size: 11px; width: 100%; }
+        .sub-title { font-size: 12px; color: #4db8ff; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; text-align: center; font-weight: 900; border-bottom: 1px solid #333; padding-bottom: 10px; }
+
+
+        .setup-box { background: rgba(0,0,0,0.9); padding: 25px; border-radius: 15px; border: 1px solid #333; width: 500px; }
+        .player-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .player-btn { flex: 1; background: #222; color: #666; }
+        .player-btn.active { background: #4db8ff; color: #fff; }
+        .char-row { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; margin-bottom: 10px; }
+        .char-box { height: 25px; border-radius: 4px; border: 2px solid transparent; cursor: pointer; }
+        .char-box.selected { border-color: #fff; }
+
+
+        .sled-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 650px; max-height: 500px; overflow-y: auto; padding: 10px; }
+        .sled-item { background: rgba(0,0,0,0.9); padding: 15px; border-radius: 10px; border: 1px solid #333; text-align: center; }
+
+
+        #score-ui { position: absolute; top: 25px; left: 35px; display: none; background: #000; padding: 10px 25px; border-radius: 50px; color: #4db8ff; font-weight: 900; border: 2px solid #4db8ff; z-index: 50; }
+        .point-pop { position: absolute; font-weight: 900; animation: floatUp 1s forwards; pointer-events: none; }
+        
+        .btn-respawn { background: #ffcc00; color: #000; width: 100%; margin-bottom: 10px; box-shadow: 0 0 15px rgba(255, 204, 0, 0.4); }
+        .btn-respawn:hover { background: #ffe066; transform: scale(1.02); }
+        .btn-respawn:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
+        
+        #timer-bar { width: 100%; height: 4px; background: #333; margin-top: 15px; border-radius: 2px; overflow: hidden; }
+        #timer-fill { height: 100%; background: #ff3333; width: 100%; transition: width 1s linear; }
+
+
+        .rebirth-stat { display: flex; justify-content: space-between; margin-bottom: 10px; color: #aaa; font-size: 14px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .rebirth-val { color: #fff; font-weight: bold; }
+        .r-highlight { color: #d500f9; }
+    </style>
+</head>
+<body>
+
+
+<div id="game-wrapper">
+    <div id="bank-display">
+        <canvas id="coin-icon" width="20" height="20" style="vertical-align: middle;"></canvas>
+        <span id="bank-val">0</span>
+    </div>
+    <div id="rebirth-display">
+        <span>⚡ Multiplier: <span id="rebirth-mult">1.0</span>x</span>
+    </div>
+
+
+    <div id="score-ui"><span id="ui-lvl">-</span> | <span id="ui-dist">0</span>M <span id="opp-count" style="margin-left:15px; color:#ffcc00;"></span></div>
+
+
+    <div id="menu-home" class="overlay">
+        <h1>SUMMIT SLIDE</h1>
+        <div class="subtitle">Peak Adventure Resort</div>
+        <div class="menu-container">
+            <button class="nav-btn" onclick="showMenu('tracks')"><span>🏔️ Solo Descent</span> <span>→</span></button>
+            <button class="nav-btn gold" onclick="showMenu('tourney')"><span>🏆 Pro Tournament</span> <span>→</span></button>
+            <button class="nav-btn" onclick="showMenu('shop')"><span>🛒 Gear Garage</span> <span>→</span></button>
+            <button class="nav-btn" onclick="showMenu('setup')"><span>👥 Squad Setup</span> <span>→</span></button>
+            <button class="nav-btn purple" onclick="showMenu('rebirth')"><span>🌀 Rebirth & Prestige</span> <span>→</span></button>
+            <button class="nav-btn danger" onclick="resetData()"><span>⚠️ Reset Save Data</span> <span>✖</span></button>
+        </div>
+    </div>
+
+
+    <div id="menu-rebirth" class="overlay" style="display:none;">
+        <div class="setup-box" style="border-color: #d500f9;">
+            <div class="sub-title" style="color: #d500f9;">Quantum Rebirth</div>
+            <div style="text-align: center; margin-bottom: 20px; color: #ccc; font-size: 13px;">
+                Resets Money, Sleds, and Maps.<br>Keeps Rebirths and permanently increases Multiplier.
+            </div>
+            <div class="rebirth-stat"><span>Current Rebirths</span> <span class="rebirth-val" id="rb-count">0</span></div>
+            <div class="rebirth-stat"><span>Current Multiplier</span> <span class="rebirth-val" id="rb-curr-mult">1.0x</span></div>
+            <div class="rebirth-stat"><span class="r-highlight">Next Multiplier</span> <span class="rebirth-val r-highlight" id="rb-next-mult">1.5x</span></div>
+            <button id="btn-do-rebirth" class="nav-btn purple" style="margin-top: 20px; text-align: center; justify-content: center;" onclick="performRebirth()">
+                ASCEND (Cost: <span id="rb-cost">10000</span>)
+            </button>
+            <button class="back-btn" onclick="showMenu('home')">Cancel</button>
+        </div>
+    </div>
+
+
+    <div id="menu-tracks" class="overlay" style="display:none;">
+        <div class="sub-title">Select Solo Mountain</div>
+        <div class="map-grid" id="map-list"></div>
+        <button class="back-btn" onclick="showMenu('home')">Back to Hub</button>
+    </div>
+
+
+    <div id="menu-tourney" class="overlay" style="display:none;">
+        <div class="sub-title" style="color:#ffcc00;">Circuit Championship</div>
+        <div class="menu-container">
+            <button class="nav-btn gold" onclick="start('tournament-easy')">Amateur Circuit (+500 CP)</button>
+            <button class="nav-btn gold" onclick="start('tournament-hard')">Pro Circuit (+1,000 CP)</button>
+            <button class="nav-btn gold" onclick="start('tournament-extreme')">Elite Circuit (+2,500 CP)</button>
+        </div>
+        <button class="back-btn" onclick="showMenu('home')">Back to Hub</button>
+    </div>
+
+
+    <div id="menu-setup" class="overlay" style="display:none;">
+        <div class="setup-box">
+            <div class="sub-title">Racer Config</div>
+            <div class="player-row">
+                <button class="player-btn active" id="m-1" onclick="setPlayerCount(1)">1P</button>
+                <button class="player-btn" id="m-2" onclick="setPlayerCount(2)">2P</button>
+                <button class="player-btn" id="m-3" onclick="setPlayerCount(3)">3P</button>
+                <button class="player-btn" id="m-4" onclick="setPlayerCount(4)">4P</button>
+            </div>
+            <div id="suit-container"></div>
+            <button class="back-btn" onclick="showMenu('home')">Save & Return</button>
+        </div>
+    </div>
+
+
+    <div id="menu-shop" class="overlay" style="display:none;">
+        <div class="sub-title" style="color:#ffcc00;">Gear Garage</div>
+        <div class="sled-grid" id="shop-items"></div>
+        <button class="back-btn" onclick="showMenu('home')">Back to Hub</button>
+    </div>
+
+
+    <div id="summary-screen" class="overlay" style="display:none;">
+        <div style="background:rgba(0,0,0,0.95); padding:40px; border-radius:20px; border:3px solid #ffcc00; text-align:center; width:400px;">
+            <h2 id="end-status" style="color:#ffcc00; margin-top:0;">WIPEOUT</h2>
+            <p id="end-dist" style="font-size: 50px; font-weight: 900; color: #fff; margin: 0;">0m</p>
+            <div style="background: rgba(255,204,0,0.1); padding: 15px; border-radius: 12px; margin: 20px 0; border: 1px solid #ffcc00;">
+                <div style="font-size: 24px; font-weight: 900; color: #ffcc00;" id="end-payout">+0 CP</div>
+                <div style="font-size: 10px; color: #d500f9; text-transform:uppercase; margin-top:5px;" id="end-mult-tag">Mult Active</div>
+            </div>
+            <button id="btn-respawn" class="btn-respawn" onclick="attemptRespawn()">Respawn (-1000 CP)</button>
+            <button style="padding:15px 70px; background: #fff; color:#000; border-radius: 50px; font-weight: bold; width:100%;" onclick="location.reload()">REPLAY</button>
+            <div id="timer-text" style="font-size:10px; color:#666; margin-top:10px; text-transform:uppercase; letter-spacing:1px;">Auto-Exit in <span id="timer-val">10</span>s</div>
+            <div id="timer-bar"><div id="timer-fill"></div></div>
+        </div>
+    </div>
+
+
+    <canvas id="cvs" width="900" height="800"></canvas>
+</div>
+
+
+<script src="v2/vfx.js"></script>
+<script>
+    VFX.init({ canvas: '#cvs', bloom: 0.35, title: 'Summit Slide', shakeEl: document.getElementById('cvs') });
+    const cvs = document.getElementById('cvs'), ctx = cvs.getContext('2d');
+    let active = false, score = 0, speed = 8, playerCount = 1, isTourney = false, activeMapId = 'easy';
+    let bank = parseInt(localStorage.getItem('ss_bank')) || 0;
+    let rebirths = parseInt(localStorage.getItem('ss_rebirths')) || 0;
+    let unlockedMaps = JSON.parse(localStorage.getItem('ss_maps')) || ['easy'];
+    let safeModeUntil = 0, respawnCountdown = null, autoExitTimer = 10;
+    let ownedSleds = JSON.parse(localStorage.getItem('ss_sleds')) || ['Rookie'];
+    let currentSled = localStorage.getItem('ss_active_sled') || 'Rookie';
+    let pColors = ['#00a2ff', '#ff3333', '#4bc24b', '#ffcc00'];
+    let suitPalette = ['#00a2ff', '#ff3333', '#4bc24b', '#ffcc00', '#a200ff', '#ff8800', '#ffffff', '#222222'];
+
+
+    // DOUBLING RESPAWN COST LOGIC
+    let currentRespawnCost = 1000;
+
+
+    const MAP_DEFS = [
+        { id: 'easy', name: 'Glacier Flow', cost: 0, mult: 1, color: '#2e7d32', desc: 'Standard Earnings' },
+        { id: 'medium', name: 'Pine Ridge', cost: 10000, mult: 2, color: '#1565c0', desc: 'x2 Earnings' },
+        { id: 'hard', name: 'Pendle Hill', cost: 20000, mult: 4, color: '#c62828', desc: 'x4 Earnings' },
+        { id: 'extreme', name: 'The Peak', cost: 50000, mult: 10, color: '#fff', desc: 'x10 Earnings' },
+        { id: 'canyon', name: 'Frostbite Canyon', cost: 100000, mult: 15, color: '#4a148c', desc: 'x15 Earnings' },
+        { id: 'r1', name: 'Neon Skyway', cost: 0, mult: 30, color: '#00e5ff', rebirthReq: 1, desc: 'x30 (Req: 1 Rebirth)' },
+        { id: 'r2', name: 'Galactic Drift', cost: 0, mult: 75, color: '#d500f9', rebirthReq: 2, desc: 'x75 (Req: 2 Rebirths)' },
+        { id: 'r3', name: 'Dimensional Rift', cost: 0, mult: 200, color: '#ff3d00', rebirthReq: 3, desc: 'x200 (Req: 3 Rebirths)' },
+        { id: 'champion', name: 'Champion Summit', cost: 1500000, mult: 20, color: '#ffd700', desc: 'Reach 1500m for 100k Bonus!' }
+    ];
+
+
+    const SLED_DEFS = [
+        { name: 'Rookie', price: 0, power: 10 },
+        { name: 'Lunch Tray', price: 250, power: 11 },
+        { name: 'Wood Carver', price: 500, power: 12 },
+        { name: 'Rusty Blade', price: 1000, power: 13 },
+        { name: 'Edge Carver', price: 1500, power: 15 },
+        { name: 'Snow Torpedo', price: 2500, power: 17 },
+        { name: 'Nitro Wax', price: 4000, power: 19 },
+        { name: 'Glacier Express', price: 6500, power: 22 },
+        { name: 'Storm Chaser', price: 9000, power: 25 },
+        { name: 'Apex Predator', price: 12000, power: 27 },
+        { name: 'Silver Bullet', price: 18000, power: 32 },
+        { name: 'Fusion Core', price: 25000, power: 38 },
+        { name: 'Neutron Star', price: 40000, power: 45 },
+        { name: 'The Void', price: 75000, power: 55 },
+        { name: 'Time Warper', price: 150000, power: 70 }
+    ];
+
+
+    let players = [], obs = [], items = [], fx = [], keys = {};
+    const cheatSeq = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA', 'Digit0'];
+    let cheatIdx = 0;
+
+
+    window.addEventListener('keydown', e => {
+        keys[e.code] = true;
+        if(e.code === cheatSeq[cheatIdx]) {
+            cheatIdx++;
+            if(cheatIdx === cheatSeq.length) {
+                bank = 999999999; localStorage.setItem('ss_bank', bank); updateBankUI();
+                spawnPointPopup(cvs.width/2-50, cvs.height/2, "UNLIMITED FUNDS", "#ff0000");
+                if(document.getElementById('menu-shop').style.display === 'flex') renderShop();
+                cheatIdx = 0;
+            }
+        } else { cheatIdx = 0; if(e.code === cheatSeq[0]) cheatIdx = 1; }
+    });
+    window.addEventListener('keyup', e => keys[e.code] = false);
+
+
+    function getRebirthMultiplier() { return 1 + (rebirths * 0.5); }
+    function getMapMultiplier(mapId) { let m = MAP_DEFS.find(x => x.id === mapId); return m ? m.mult : 1; }
+    function getRebirthCost() { return 10000 + (rebirths * 5000); }
+    function drawMoneyIcon(canvasId, color = '#ffcc00') {
+        const c = document.getElementById(canvasId).getContext('2d');
+        c.clearRect(0,0,20,20); c.fillStyle = color; c.beginPath(); c.arc(10,10,9,0,Math.PI*2); c.fill();
+        c.strokeStyle = '#fff'; c.lineWidth = 1; c.stroke();
+    }
+
+
+    function showMenu(id) {
+        document.querySelectorAll('.overlay').forEach(el => { if(el.id !== 'summary-screen') el.style.display = 'none'; });
+        document.getElementById('menu-' + id).style.display = 'flex';
+        if(id === 'shop') renderShop(); if(id === 'setup') renderSuitSelectors();
+        if(id === 'tracks') renderMapList(); if(id === 'rebirth') renderRebirthMenu();
+        updateBankUI();
+    }
+
+
+    function updateBankUI() { 
+        document.getElementById('bank-val').innerText = bank.toLocaleString();
+        document.getElementById('rebirth-mult').innerText = getRebirthMultiplier().toFixed(1);
+        drawMoneyIcon('coin-icon');
+    }
+
+
+    function renderMapList() {
+        const list = document.getElementById('map-list'); list.innerHTML = '';
+        MAP_DEFS.forEach(m => {
+            let isOwned = unlockedMaps.includes(m.id), isRebirthLocked = m.rebirthReq && rebirths < m.rebirthReq;
+            if(!isOwned && m.rebirthReq && !isRebirthLocked) isOwned = true;
+            let btnClass = 'map-btn' + (isRebirthLocked?' locked':(!isOwned?' locked':(m.id==='champion'?' champion':(m.rebirthReq?' rebirth':''))));
+            let status = isRebirthLocked ? `LOCKED (Req ${m.rebirthReq} Rebirths)` : (!isOwned ? `UNLOCK: ${m.cost.toLocaleString()}` : 'START');
+            let div = document.createElement('div'); div.className = btnClass;
+            div.innerHTML = `<div><div style="font-weight:900; color:${m.color}">${m.name}</div><div style="font-size:10px; opacity:0.7">${m.desc || `Multiplier x${m.mult}`}</div></div><div style="font-weight:bold; font-size:14px;">${status}</div>`;
+            div.onclick = () => { if(isRebirthLocked) { spawnPointPopup(500,400,`Need ${m.rebirthReq} Rebirths!`,"#ff3333"); } else if(isOwned || (m.rebirthReq && !isRebirthLocked)) { start(m.id); } else if(bank >= m.cost) { bank-=m.cost; unlockedMaps.push(m.id); localStorage.setItem('ss_bank', bank); localStorage.setItem('ss_maps', JSON.stringify(unlockedMaps)); renderMapList(); updateBankUI(); } };
+            list.appendChild(div);
+        });
+    }
+
+
+    function renderRebirthMenu() {
+        document.getElementById('rb-count').innerText = rebirths;
+        document.getElementById('rb-curr-mult').innerText = getRebirthMultiplier().toFixed(1) + 'x';
+        document.getElementById('rb-next-mult').innerText = (getRebirthMultiplier() + 0.5).toFixed(1) + 'x';
+        let cost = getRebirthCost(); document.getElementById('rb-cost').innerText = cost.toLocaleString();
+        let btn = document.getElementById('btn-do-rebirth'); btn.style.opacity = bank >= cost ? '1' : '0.5'; btn.style.cursor = bank >= cost ? 'pointer' : 'not-allowed';
+    }
+
+
+    function performRebirth() {
+        let cost = getRebirthCost();
+        if(bank >= cost && confirm("⚠ PRESTIGE REBIRTH ⚠\n\nReset Money, Sleds, and Maps?")) {
+            rebirths++; localStorage.setItem('ss_rebirths', rebirths); bank = 0; ownedSleds = ['Rookie']; currentSled = 'Rookie'; unlockedMaps = ['easy'];
+            localStorage.setItem('ss_bank', 0); localStorage.setItem('ss_sleds', JSON.stringify(ownedSleds)); localStorage.setItem('ss_maps', JSON.stringify(unlockedMaps));
+            showMenu('home'); spawnPointPopup(cvs.width/2-70, cvs.height/2, "REBIRTH COMPLETE!", "#d500f9");
+        }
+    }
+
+
+    function resetData() { if(confirm("PERMANENTLY RESET ALL PROGRESS?")) { Object.keys(localStorage).filter(k => k.startsWith('ss_')).forEach(k => localStorage.removeItem(k)); location.reload(); } }
+    function setPlayerCount(n) { playerCount = n; for(let i=1; i<=4; i++) document.getElementById('m-'+i).classList.toggle('active', i===n); renderSuitSelectors(); }
+    
+    function renderSuitSelectors() {
+        const container = document.getElementById('suit-container'); container.innerHTML = '';
+        for(let i=0; i<playerCount; i++) {
+            let row = document.createElement('div'); row.innerHTML = `<div style="font-size:9px; color:#888; margin-top:5px;">P${i+1} SUIT</div>`;
+            let grid = document.createElement('div'); grid.className = 'char-row';
+            suitPalette.forEach(c => {
+                let box = document.createElement('div'); box.className = 'char-box' + (pColors[i]===c?' selected':'');
+                box.style.background = c; box.onclick = () => { pColors[i] = c; renderSuitSelectors(); };
+                grid.appendChild(box);
+            });
+            row.appendChild(grid); container.appendChild(row);
+        }
+    }
+
+
+    function renderShop() {
+        const grid = document.getElementById('shop-items'); grid.innerHTML = '';
+        SLED_DEFS.forEach(s => {
+            const isOwned = ownedSleds.includes(s.name), isEq = currentSled === s.name;
+            grid.innerHTML += `<div class="sled-item"><div style="font-weight:900; color:#4db8ff;">${s.name.toUpperCase()}</div><div style="font-size:11px; color:#888; margin-bottom:5px;">Power: ${s.power}</div><button style="width:100%; padding:10px; background:${isEq?'#4db8ff':(isOwned?'#333':'#ffcc00')}; color:${isEq||isOwned?'#fff':'#000'}" onclick="handlePurchase('${s.name}', ${s.price})">${isEq?'ACTIVE':(isOwned?'SELECT':'BUY: '+s.price.toLocaleString())}</button></div>`;
+        });
+    }
+
+
+    function handlePurchase(n, p) {
+        if(ownedSleds.includes(n)) { currentSled = n; localStorage.setItem('ss_active_sled', n); }
+        else if(bank >= p) { bank -= p; ownedSleds.push(n); currentSled = n; localStorage.setItem('ss_bank', bank); localStorage.setItem('ss_sleds', JSON.stringify(ownedSleds)); }
+        renderShop(); updateBankUI();
+    }
+
+
+    function start(modeId) {
+        let sledData = SLED_DEFS.find(s => s.name === currentSled) || SLED_DEFS[0];
+        active = true; score = 0; obs = []; items = []; fx = []; isTourney = modeId.startsWith('tournament'); activeMapId = modeId; safeModeUntil = 0; 
+        currentRespawnCost = 1000; // Reset respawn price for new round
+        document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none'); document.getElementById('score-ui').style.display = 'block';
+        if(modeId === 'easy') speed = 8; else if(modeId === 'medium') speed = 12; else if(modeId === 'hard') speed = 16; else if(modeId === 'extreme') speed = 20;
+        else if(modeId === 'canyon') speed = 24; else if(modeId === 'r1') speed = 22; else if(modeId === 'r2') speed = 26; else if(modeId === 'r3') speed = 30;
+        else if(modeId === 'champion') speed = 26; else if(modeId.includes('tournament')) speed = 12; 
+        document.getElementById('ui-lvl').innerText = modeId.toUpperCase().replace('TOURNAMENT-', '');
+        players = []; let space = cvs.width / (playerCount + 1);
+        for(let i=0; i<playerCount; i++) { players.push({ id: i+1, x: space*(i+1)-15, y: 300, color: pColors[i], active: true, basePower: sledData.power, power: sledData.power, tilt: 0, isAI: false, boostTimer: 0, ghostTimer: 0, jumpTimer: 0 }); }
+        if (isTourney) { players = [players[0]]; players[0].x = 440; for(let i=0; i<3; i++) players.push({ id: i+2, x: 150+(i*280), y: 300, color: '#111', active: true, basePower: 10, power: 10, tilt: 0, isAI: true, boostTimer:0, ghostTimer:0, jumpTimer:0 }); }
+    }
+
+
+    function startExitTimer() {
+        if(respawnCountdown) clearInterval(respawnCountdown); autoExitTimer = 10;
+        document.getElementById('timer-val').innerText = autoExitTimer; document.getElementById('timer-fill').style.width = '100%';
+        respawnCountdown = setInterval(() => { autoExitTimer--; document.getElementById('timer-val').innerText = autoExitTimer; document.getElementById('timer-fill').style.width = (autoExitTimer * 10) + '%'; if(autoExitTimer <= 0) { clearInterval(respawnCountdown); location.reload(); } }, 1000);
+    }
+
+
+    function attemptRespawn() {
+        // DOUBLE PRICE CHECK
+        if(bank >= currentRespawnCost) {
+            clearInterval(respawnCountdown);
+            bank -= currentRespawnCost;
+            currentRespawnCost *= 2; // Doubling for next time
+            localStorage.setItem('ss_bank', bank);
+            updateBankUI();
+            document.getElementById('summary-screen').style.display = 'none';
+            active = true;
+            players.forEach(p => { if(!p.isAI) { p.active = true; p.y = 300; p.tilt = 0; p.ghostTimer = 60; p.jumpTimer = 0; } });
+            safeModeUntil = score + 300; obs = [];
+            spawnPointPopup(players[0].x, players[0].y, "RESPAWNED!", "#ffcc00");
+        }
+    }
+
+
+    function spawnPointPopup(x, y, text, color) {
+        let p = document.createElement('div'); p.className = 'point-pop'; p.innerText = text; p.style.left = x + 'px'; p.style.top = y + 'px'; p.style.color = color; document.getElementById('game-wrapper').appendChild(p); setTimeout(() => p.remove(), 1000);
+    }
+
+
+    function update() {
+        if(!active) {
+            obs.forEach(o => o.y -= 2); items.forEach(c => c.y -= 2);
+            if(document.getElementById('summary-screen').style.display === 'none' && Math.random()<0.02) obs.push({x:Math.random()*cvs.width, y:cvs.height+50, w:30, h:40, type:'tree'});
+            obs = obs.filter(o => o.y > -100); items = items.filter(c => c.y > -100); return;
+        }
+
+
+        players.forEach(p => {
+            if(!p.active) return;
+            p.power = p.basePower; if(p.boostTimer > 0) { p.power *= 1.8; p.boostTimer--; } if(p.ghostTimer > 0) p.ghostTimer--; if(p.jumpTimer > 0) p.jumpTimer--;
+            p.tilt *= 0.8;
+            if(!p.isAI) {
+                let kM = { 1: ['KeyA', 'KeyD', 'KeyW', 'KeyS'], 2: ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'], 3: ['KeyJ', 'KeyL', 'KeyI', 'KeyK'], 4: ['KeyF', 'KeyH', 'KeyT', 'KeyG'] };
+                let k = kM[p.id]; if(keys[k[0]]) { p.x -= p.power; p.tilt = -0.3; } if(keys[k[1]]) { p.x += p.power; p.tilt = 0.3; } if(keys[k[2]]) p.y -= p.power/1.5; if(keys[k[3]]) p.y += p.power/1.5;
+            } else {
+                let targetX = p.x, danger = obs.filter(o => o.y > p.y && o.y < p.y + 180).sort((a,b) => a.y - b.y)[0];
+                if(danger && Math.abs(p.x - danger.x) < 70) targetX = (danger.x < p.x) ? p.x + 25 : p.x - 25;
+                if(p.x < targetX) p.x += 4; else if(p.x > targetX) p.x -= 4;
+            }
+            p.x = Math.max(20, Math.min(cvs.width-50, p.x)); p.y = Math.max(50, Math.min(cvs.height-380, p.y));
+
+
+            obs.forEach(o => {
+                if(p.x < o.x+o.w-12 && p.x+30 > o.x+12 && p.y < o.y+o.h-8 && p.y+40 > o.y+8) {
+                    if(o.type === 'ramp') { if (p.jumpTimer <= 0) VFX.sfx('jump'); p.jumpTimer = 40; }
+                    else if(p.ghostTimer <= 0) {
+                        if(o.type === 'rock' && p.jumpTimer > 0) return; // FLY OVER ROCKS
+                        p.active = false; crashFx(p);
+                    }
+                }
+            });
+            
+            items.forEach((it, idx) => {
+                if(p.x < it.x+30 && p.x+30 > it.x && p.y < it.y+30 && p.y+40 > it.y) {
+                    if(it.type === 'money') { let val = Math.floor((10 + Math.random()*40) * getMapMultiplier(activeMapId) * getRebirthMultiplier()); bank += val; updateBankUI(); spawnPointPopup(p.x, p.y, `+${val}`, '#ffcc00'); VFX.sfx('coin'); sparkle(it.x + 15, it.y + 15, '#ffd54a'); }
+                    else if(it.type === 'boost') { p.boostTimer = 180; spawnPointPopup(p.x, p.y, "SPEED SURGE", '#4db8ff'); VFX.sfx('power'); sparkle(it.x + 15, it.y + 15, '#4db8ff'); }
+                    else if(it.type === 'ghost') { p.ghostTimer = 240; spawnPointPopup(p.x, p.y, "GHOST PHASE", '#a200ff'); VFX.sfx('power'); sparkle(it.x + 15, it.y + 15, '#c86bff'); }
+                    items.splice(idx, 1);
+                }
+            });
+        });
+
+
+        if(score > safeModeUntil && Math.random() < 0.1) {
+            let rnd = Math.random(), obsType = rnd < 0.2 ? 'ramp' : (rnd < 0.5 ? 'rock' : 'tree');
+            obs.push({ x: Math.random()*cvs.width, y: cvs.height+80, w: 50, h: 70, type: obsType });
+        }
+        if(Math.random() < 0.04) { let rnd = Math.random(), type = rnd < 0.05 ? 'boost' : (rnd < 0.1 ? 'ghost' : 'money'); items.push({ x: Math.random()*(cvs.width-30), y: cvs.height+50, type }); }
+        obs.forEach(o => o.y -= speed); items.forEach(it => it.y -= speed); obs = obs.filter(o => o.y > -150); items = items.filter(it => it.y > -150); fx.forEach((f, i) => { f.a -= 0.05; if(f.a <= 0) fx.splice(i,1); });
+
+
+        let humanAlive = players.some(p => !p.isAI && p.active), win = isTourney && (players.filter(p => p.isAI && p.active).length === 0 || Math.floor(score/10) >= 1500) && players[0].active;
+        if(!humanAlive || win) {
+            active = false; let dist = Math.floor(score/10), bonus = isTourney ? (speed > 25 ? 2500 : (speed > 18 ? 1000 : 500)) : 0;
+            if(activeMapId === 'champion' && dist >= 1500) bonus += 100000;
+            let totalMult = getMapMultiplier(activeMapId) * getRebirthMultiplier(), totalPayout = Math.floor((dist * 2 + bonus) * totalMult);
+            bank += totalPayout; localStorage.setItem('ss_bank', bank); document.getElementById('end-status').innerText = win ? "🏆 CHAMPION" : "WIPEOUT";
+            document.getElementById('end-dist').innerText = dist + "m"; document.getElementById('end-payout').innerText = "+" + totalPayout.toLocaleString() + " CP";
+            document.getElementById('end-mult-tag').innerText = `Active Multiplier: ${totalMult.toFixed(1)}x`;
+            
+            // DYNAMIC RESPAWN BUTTON UI
+            let btn = document.getElementById('btn-respawn');
+            btn.disabled = bank < currentRespawnCost || win;
+            btn.innerText = win ? "COURSE COMPLETE" : (bank < currentRespawnCost ? `NEED ${currentRespawnCost.toLocaleString()} CP` : `RESPAWN (-${currentRespawnCost.toLocaleString()} CP)`);
+            
+            document.getElementById('summary-screen').style.display = 'flex'; startExitTimer(); VFX.sfx(win ? 'win' : 'lose');
+        }
+        score++; speed += 0.002; document.getElementById('ui-dist').innerText = Math.floor(score/10);
+    }
+    const THEMES = {
+        easy: { snow: ['#f4f9ff', '#dbe9f7'], tree: '#1f5a36', rock: '#6b7686', dark: false },
+        medium: { snow: ['#eef5ff', '#cfe0f3'], tree: '#174a2c', rock: '#5c6878', dark: false },
+        hard: { snow: ['#fff3f1', '#f0d6d3'], tree: '#2a4a2a', rock: '#6e5a5a', dark: false },
+        extreme: { snow: ['#ffffff', '#e3f1ff'], tree: '#2b5e4a', rock: '#7d8a9e', dark: false },
+        canyon: { snow: ['#e9e2ff', '#bfb2ea'], tree: '#2b2a5a', rock: '#58507a', dark: false },
+        r1: { snow: ['#0a1030', '#050818'], tree: '#00e5ff', rock: '#2b6bff', dark: true, line: '#00e5ff' },
+        r2: { snow: ['#1a0730', '#07020f'], tree: '#d500f9', rock: '#6a2bff', dark: true, line: '#d500f9', stars: true },
+        r3: { snow: ['#2a0705', '#0f0202'], tree: '#ff3d00', rock: '#ff8a00', dark: true, line: '#ff3d00' },
+        champion: { snow: ['#fff8e6', '#ffe2a8'], tree: '#3a5a1a', rock: '#8a7a5a', dark: false },
+        tour: { snow: ['#f4f9ff', '#dbe9f7'], tree: '#1f5a36', rock: '#6b7686', dark: false }
+    };
+    let tracks = [], spray = [], flakes = [], bgT = 0;
+    for (let i = 0; i < 90; i++) flakes.push({ x: Math.random() * 900, y: Math.random() * 800, r: 0.6 + Math.random() * 2.2, s: 0.4 + Math.random() * 1.4, w: Math.random() * 6.28 });
+    function theme() { return THEMES[activeMapId] || THEMES.tour; }
+    function sparkle(x, y, c) { for (let i = 0; i < 16; i++) { const a = Math.random() * 6.28, v = 1 + Math.random() * 4; spray.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, l: 1, c, r: 2 + Math.random() * 2 }); } }
+    function crashFx(p) {
+        VFX.sfx('hurt'); VFX.shake(10, 350);
+        for (let i = 0; i < 40; i++) { const a = Math.random() * 6.28, v = 2 + Math.random() * 6; spray.push({ x: p.x + 15, y: p.y + 20, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 2, l: 1, c: theme().dark ? theme().line : '#ffffff', r: 2 + Math.random() * 4 }); }
+    }
+    function drawTree(o, T) {
+        const cx = o.x + 27, by = o.y + 62;
+        ctx.fillStyle = T.dark ? 'rgba(0,0,0,0.35)' : 'rgba(60,90,140,0.18)';
+        ctx.beginPath(); ctx.ellipse(cx + 12, by + 6, 26, 9, 0.3, 0, 6.28); ctx.fill();
+        ctx.fillStyle = '#3b2412'; ctx.fillRect(cx - 4, by - 10, 8, 14);
+        for (let k = 0; k < 3; k++) {
+            const w = 30 - k * 7, y0 = o.y + 8 + k * 16;
+            if (T.dark) { ctx.strokeStyle = T.tree; ctx.lineWidth = 2.5; ctx.shadowColor = T.tree; ctx.shadowBlur = 14; ctx.fillStyle = 'rgba(0,0,0,0.6)'; }
+            else { const g = ctx.createLinearGradient(cx - w, 0, cx + w, 0); g.addColorStop(0, T.tree); g.addColorStop(1, 'rgba(0,25,10,1)'); ctx.fillStyle = g; }
+            ctx.beginPath(); ctx.moveTo(cx, o.y - 4 + k * 14); ctx.lineTo(cx + w, y0 + 34 - k * 4); ctx.lineTo(cx - w, y0 + 34 - k * 4); ctx.closePath(); ctx.fill();
+            if (T.dark) { ctx.stroke(); ctx.shadowBlur = 0; }
+            else { ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(cx, o.y - 4 + k * 14); ctx.lineTo(cx + w * 0.45, y0 + 10 - k * 2); ctx.lineTo(cx, y0 + 6 - k * 2); ctx.lineTo(cx - w * 0.45, y0 + 10 - k * 2); ctx.closePath(); ctx.fill(); }
+        }
+    }
+    function drawRock(o, T) {
+        const cx = o.x + 27, cy = o.y + 36;
+        ctx.fillStyle = T.dark ? 'rgba(0,0,0,0.4)' : 'rgba(60,90,140,0.2)'; ctx.beginPath(); ctx.ellipse(cx + 8, cy + 18, 28, 9, 0, 0, 6.28); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(cx - 26, cy + 14); ctx.lineTo(cx - 20, cy - 10); ctx.lineTo(cx - 4, cy - 22); ctx.lineTo(cx + 16, cy - 16); ctx.lineTo(cx + 26, cy + 4); ctx.lineTo(cx + 20, cy + 16); ctx.closePath();
+        if (T.dark) { ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fill(); ctx.strokeStyle = T.rock; ctx.lineWidth = 2.5; ctx.shadowColor = T.rock; ctx.shadowBlur = 14; ctx.stroke(); ctx.shadowBlur = 0; return; }
+        const g = ctx.createLinearGradient(cx - 20, cy - 20, cx + 20, cy + 20); g.addColorStop(0, '#a3adbd'); g.addColorStop(1, T.rock); ctx.fillStyle = g; ctx.fill();
+        ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(cx - 20, cy - 10); ctx.lineTo(cx - 4, cy - 22); ctx.lineTo(cx + 16, cy - 16); ctx.lineTo(cx + 8, cy - 9); ctx.lineTo(cx - 8, cy - 12); ctx.closePath(); ctx.fill();
+    }
+    function drawRamp(o, T) {
+        const x = o.x, y = o.y;
+        ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(x + 6, y + 44, 48, 8);
+        const g = ctx.createLinearGradient(x, y, x, y + 46); g.addColorStop(0, T.dark ? '#ffe14f' : '#ffb03b'); g.addColorStop(1, T.dark ? '#ff7a00' : '#b5651d');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x + 4, y + 46); ctx.lineTo(x + 12, y); ctx.lineTo(x + 42, y); ctx.lineTo(x + 50, y + 46); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 1.5; for (let k = 1; k < 5; k++) { ctx.beginPath(); ctx.moveTo(x + 6 + k, y + k * 9); ctx.lineTo(x + 48 - k, y + k * 9); ctx.stroke(); }
+        ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(x + 27, y + 8); ctx.lineTo(x + 36, y + 22); ctx.lineTo(x + 18, y + 22); ctx.closePath(); ctx.fill();
+    }
+    function drawItem(it, T) {
+        const cx = it.x + 15, cy = it.y + 15 + Math.sin(bgT * 0.1 + it.x) * 2;
+        const col = it.type === 'money' ? '#ffcc00' : it.type === 'boost' ? '#4db8ff' : '#b04dff';
+        ctx.save(); ctx.shadowColor = col; ctx.shadowBlur = 16;
+        const g = ctx.createRadialGradient(cx - 4, cy - 4, 2, cx, cy, 15); g.addColorStop(0, '#ffffff'); g.addColorStop(0.35, col); g.addColorStop(1, it.type === 'money' ? '#b07800' : '#20306a');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, it.type === 'money' ? 12 * Math.abs(Math.cos(bgT * 0.06 + it.x)) + 2 : 14, 0, 6.28); ctx.fill(); ctx.restore();
+        ctx.fillStyle = '#ffffff'; ctx.font = '900 14px Inter, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        if (it.type !== 'money') ctx.fillText(it.type === 'boost' ? '⚡' : '◈', cx, cy + 1);
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    }
+    function drawSkier(p, T) {
+        const jumping = p.jumpTimer > 0, lift = jumping ? Math.sin((40 - p.jumpTimer) / 40 * Math.PI) * 26 : 0;
+        ctx.fillStyle = T.dark ? 'rgba(0,0,0,0.45)' : 'rgba(40,70,120,0.22)';
+        ctx.beginPath(); ctx.ellipse(p.x + 15 + lift * 0.3, p.y + 42, 16 - lift * 0.2, 6, 0, 0, 6.28); ctx.fill();
+        ctx.save(); ctx.translate(p.x + 15, p.y + 20 - lift); const sc = 1 + lift / 90; ctx.scale(sc, sc);
+        ctx.rotate(p.tilt); if (p.ghostTimer > 0) ctx.globalAlpha = 0.45 + 0.2 * Math.sin(bgT * 0.4);
+        if (p.boostTimer > 0) { ctx.shadowColor = '#4db8ff'; ctx.shadowBlur = 22; }
+        ctx.fillStyle = T.dark ? '#ffffff' : '#1b2436'; ctx.beginPath(); ctx.roundRect(-17, -24, 5, 50, 3); ctx.roundRect(12, -24, 5, 50, 3); ctx.fill();
+        ctx.fillStyle = p.color; ctx.beginPath(); ctx.roundRect(-12, -6, 24, 24, 7); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(-10, -4, 20, 4);
+        ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-12, 4); ctx.lineTo(-20, 18); ctx.moveTo(12, 4); ctx.lineTo(20, 18); ctx.stroke();
+        const sway = Math.sin(bgT * 0.25) * 4 - p.tilt * 20;
+        ctx.fillStyle = '#ff4d6d'; ctx.beginPath(); ctx.moveTo(-4, -10); ctx.quadraticCurveTo(sway, -24, sway * 1.4, -34); ctx.lineTo(sway * 1.4 + 5, -32); ctx.quadraticCurveTo(sway + 4, -22, 4, -10); ctx.fill();
+        const hg = ctx.createRadialGradient(-3, -18, 2, 0, -14, 12); hg.addColorStop(0, '#ffffff'); hg.addColorStop(0.3, p.color); hg.addColorStop(1, '#0d0d14');
+        ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(0, -14, 10.5, 0, 6.28); ctx.fill();
+        ctx.fillStyle = '#ffd04a'; ctx.beginPath(); ctx.roundRect(-7, -12, 14, 5, 2); ctx.fill();
+        ctx.restore();
+        if (p.isAI) { ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.font = '700 10px Orbitron, sans-serif'; ctx.textAlign = 'center'; ctx.fillText('CPU', p.x + 15, p.y - 18 - lift); ctx.textAlign = 'left'; }
+    }
+    function draw() {
+        bgT++;
+        const T = theme(), W = cvs.width, H = cvs.height, sp = active ? speed : 2;
+        const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, T.snow[0]); g.addColorStop(1, T.snow[1]); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        if (T.dark) {
+            ctx.strokeStyle = T.line; ctx.globalAlpha = 0.18; ctx.lineWidth = 1; const off = (bgT * sp) % 60;
+            for (let y = -off + 60; y < H; y += 60) { ctx.beginPath(); ctx.moveTo(0, H - y); ctx.lineTo(W, H - y); ctx.stroke(); }
+            for (let x = 0; x <= W; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+            ctx.globalAlpha = 1;
+        } else {
+            ctx.fillStyle = 'rgba(120,160,210,0.07)';
+            for (let i = 0; i < 14; i++) { const y = ((i * 97 - bgT * sp * 0.6) % (H + 100) + H + 100) % (H + 100) - 50; ctx.beginPath(); ctx.ellipse((i * 263) % W, y, 120, 26, 0.2, 0, 6.28); ctx.fill(); }
+        }
+        // ski tracks
+        if (active) players.forEach(pl => { if (pl.active && pl.jumpTimer <= 0) tracks.push({ x: pl.x + 15, y: pl.y + 40, t: pl.tilt }); });
+        tracks.forEach(t => t.y -= sp); tracks = tracks.filter(t => t.y > -10); if (tracks.length > 1600) tracks.splice(0, tracks.length - 1600);
+        ctx.fillStyle = T.dark ? 'rgba(255,255,255,0.16)' : 'rgba(110,140,190,0.28)';
+        for (const t of tracks) { ctx.fillRect(t.x - 16, t.y, 3, sp + 1); ctx.fillRect(t.x + 13, t.y, 3, sp + 1); }
+        // spray when carving
+        if (active) players.forEach(pl => { if (pl.active && Math.abs(pl.tilt) > 0.12 && pl.jumpTimer <= 0) for (let k = 0; k < 2; k++) spray.push({ x: pl.x + 15 + (pl.tilt > 0 ? -16 : 16), y: pl.y + 36, vx: (pl.tilt > 0 ? -1 : 1) * (1 + Math.random() * 3), vy: -1 - Math.random() * 2, l: 0.8, c: T.dark ? T.line : '#ffffff', r: 1.5 + Math.random() * 2.5 }); });
+        const sorted = [...obs.map(o => ({ k: 'o', o, y: o.y + 60 })), ...items.map(o => ({ k: 'i', o, y: o.y + 30 })), ...players.filter(p => p.active).map(o => ({ k: 'p', o, y: o.y + 40 }))].sort((a, b) => a.y - b.y);
+        for (const e of sorted) {
+            if (e.k === 'o') { if (e.o.type === 'tree') drawTree(e.o, T); else if (e.o.type === 'rock') drawRock(e.o, T); else drawRamp(e.o, T); }
+            else if (e.k === 'i') drawItem(e.o, T);
+            else drawSkier(e.o, T);
+        }
+        for (const s of spray) { s.x += s.vx; s.y += s.vy - (active ? 0 : 0); s.vy += 0.15; s.l -= 0.03; ctx.globalAlpha = Math.max(0, s.l); ctx.fillStyle = s.c; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.28); ctx.fill(); }
+        ctx.globalAlpha = 1; spray = spray.filter(s => s.l > 0);
+        // falling snow and speed lines
+        ctx.fillStyle = T.dark ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.95)';
+        for (const f of flakes) { f.w += 0.02; f.y -= sp * 0.5 - f.s; f.x += Math.sin(f.w) * 0.6; if (f.y < -5) f.y = H + 5; if (f.y > H + 5) f.y = -5; ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, 6.28); ctx.fill(); }
+        if (!T.dark) { ctx.strokeStyle = 'rgba(80,120,180,0.35)'; ctx.lineWidth = 1; ctx.beginPath(); for (const f of flakes) { if (f.r > 1.6) { ctx.moveTo(f.x + 0.5, f.y); ctx.lineTo(f.x + 0.5, f.y + 1); } } ctx.stroke(); }
+        if (active && sp > 14) { ctx.strokeStyle = T.dark ? 'rgba(255,255,255,0.2)' : 'rgba(90,130,190,0.18)'; ctx.lineWidth = 2; for (let i = 0; i < 8; i++) { const x = (i * 131 + bgT * 7) % W, y = (i * 211 + bgT * sp * 1.5) % H; ctx.beginPath(); ctx.moveTo(x, H - y); ctx.lineTo(x, H - y + sp * 3); ctx.stroke(); } }
+        const v = ctx.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, H * 0.8); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, T.dark ? 'rgba(0,0,0,0.5)' : 'rgba(40,70,130,0.18)'); ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+    }
+
+
+    let accT = 0, lastT = performance.now();
+    function mainLoop(now) { now = now || performance.now(); accT += Math.min(100, now - lastT); lastT = now; while (accT >= 1000 / 60) { update(); accT -= 1000 / 60; } draw(); requestAnimationFrame(mainLoop); }
+    function fit() { const s = Math.min(1, innerWidth / 910, innerHeight / 810); document.getElementById('game-wrapper').style.transform = 'scale(' + s + ')'; }
+    addEventListener('resize', fit); fit();
+    updateBankUI(); showMenu('home'); mainLoop();
+</script>
+</body>
+</html>

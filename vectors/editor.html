@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vector Studio</title>
+<link rel="stylesheet" href="v2/fonts.css">
+<style>
+  :root { --bg: #0b0b14; --panel: #12121f; --panel2: #181829; --line: #262640; --ink: #dcdcf5; --dim: #7b7ba3; --acc: #7df9ff; --acc2: #ff4fd8; --ok: #4dffa0; --warn: #ffd84f; --bad: #ff5a7a;
+    --mono: 'Cascadia Code', 'JetBrains Mono', Consolas, 'Courier New', monospace; --fs: 14px; --lh: 21px; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: Inter, 'Segoe UI', sans-serif; display: flex; flex-direction: column; overflow: hidden; }
+  header { display: flex; align-items: center; gap: 10px; padding: 9px 14px; background: linear-gradient(180deg, #151528, #10101c); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .logo { font: 900 15px Orbitron, sans-serif; letter-spacing: .14em; background: linear-gradient(90deg, var(--acc), var(--acc2)); -webkit-background-clip: text; background-clip: text; color: transparent; margin-right: 6px; white-space: nowrap; }
+  .logo small { font: 700 9px Orbitron, sans-serif; color: var(--dim); -webkit-text-fill-color: var(--dim); letter-spacing: .2em; margin-left: 6px; }
+  input[type=text], select { background: var(--panel2); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; font: 500 13px Inter, sans-serif; outline: none; }
+  input[type=text]:focus, select:focus { border-color: var(--acc); }
+  #fileName { width: 130px; } #tpl { width: 128px; }
+  .b { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel2); color: var(--ink);
+    font: 600 13px Inter, sans-serif; cursor: pointer; transition: border-color .15s, background .15s, transform .1s; white-space: nowrap; }
+  .b:hover { border-color: var(--acc); } .b:active { transform: translateY(1px); }
+  .b.pri { background: linear-gradient(180deg, #8cfbff, #3fc9e6); color: #031218; border: 0; box-shadow: 0 0 18px rgba(125, 249, 255, .3); }
+  .b.bad:hover { border-color: var(--bad); color: var(--bad); }
+  .sp { flex: 1; }
+  .tog { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--dim); cursor: pointer; }
+  .tog input { accent-color: var(--acc); }
+  main { flex: 1; display: flex; min-height: 0; }
+  main.stack { flex-direction: column; }
+  .pane { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  #left { flex: 0 0 50%; }
+  #right { flex: 1; }
+  .tabs { display: flex; align-items: stretch; background: var(--panel); border-bottom: 1px solid var(--line); height: 36px; }
+  .tab { padding: 0 16px; display: flex; align-items: center; gap: 7px; font: 700 11px Orbitron, sans-serif; letter-spacing: .12em; color: var(--dim); cursor: pointer; border-right: 1px solid var(--line); position: relative; }
+  .tab .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .tab.on { color: #fff; background: var(--bg); }
+  .tab.on::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--c); box-shadow: 0 0 10px var(--c); }
+  .tabs .info { margin-left: auto; display: flex; align-items: center; padding: 0 12px; font-size: 11px; color: var(--dim); }
+  .ed { flex: 1; display: flex; min-height: 0; position: relative; background: var(--bg); }
+  .gut { width: 48px; padding: 12px 8px 12px 0; text-align: right; color: #44446a; font: var(--fs)/var(--lh) var(--mono); overflow: hidden; user-select: none; background: #0d0d18; border-right: 1px solid #1a1a2c; white-space: pre; }
+  .code { flex: 1; position: relative; min-width: 0; }
+  .code pre, .code textarea { position: absolute; inset: 0; margin: 0; padding: 12px 14px; font: var(--fs)/var(--lh) var(--mono); white-space: pre; overflow: auto; tab-size: 2; border: 0; letter-spacing: 0; }
+  .code pre { color: var(--ink); pointer-events: none; overflow: hidden; }
+  .code textarea { background: transparent; color: transparent; caret-color: var(--acc); resize: none; outline: none; }
+  .code textarea::selection { background: rgba(125, 249, 255, .22); color: transparent; }
+  .t-tag { color: #ff6ad5; } .t-att { color: #7df9ff; } .t-str { color: #c3f584; } .t-com { color: #55557a; font-style: italic; } .t-kw { color: #ff9e64; } .t-num { color: #ffd84f; }
+  .t-fn { color: #82aaff; } .t-prop { color: #7df9ff; } .t-sel { color: #ff6ad5; } .t-pun { color: #8a8ab8; } .t-col { color: #ffd84f; }
+  .split { flex: 0 0 6px; background: var(--line); cursor: col-resize; transition: background .15s; }
+  main.stack .split { cursor: row-resize; }
+  .split:hover, .split.drag { background: var(--acc); }
+  .pv { flex: 1; display: flex; flex-direction: column; min-height: 0; background: #fff; position: relative; }
+  .pv iframe { flex: 1; border: 0; width: 100%; background: #fff; }
+  .con { height: 130px; background: #0d0d18; border-top: 1px solid var(--line); overflow: auto; font: 12px/18px var(--mono); padding: 6px 10px; color: var(--ink); }
+  .con.hide { display: none; }
+  .con .e { color: var(--bad); } .con .w { color: var(--warn); } .con .i { color: var(--dim); }
+  .pv.fs { position: fixed; inset: 0; z-index: 50; }
+  #exitFs { position: fixed; top: 14px; right: 14px; z-index: 51; display: none; }
+  .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px); opacity: 0; background: #1a1a2e; border: 1px solid var(--acc); color: #fff; padding: 9px 16px; border-radius: 10px; font-size: 13px; transition: .25s; z-index: 60; pointer-events: none; }
+  .toast.on { opacity: 1; transform: translateX(-50%); }
+  @media (max-width: 760px) { main { flex-direction: column; } #left { flex-basis: 50%; } .split { cursor: row-resize; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">VECTOR STUDIO<small>2.0</small></div>
+  <input type="text" id="fileName" value="index.html" spellcheck="false" title="File name">
+  <select id="tpl" title="Start from a template">
+    <option value="">Templates...</option>
+    <option value="hello">Hello World</option>
+    <option value="neon">Neon card</option>
+    <option value="canvas">Canvas game starter</option>
+    <option value="balls">Bouncing balls</option>
+    <option value="blank">Blank page</option>
+  </select>
+  <button class="b pri" id="runBtn" title="Run (Ctrl+Enter)">&#9654; Run</button>
+  <label class="tog"><input type="checkbox" id="auto" checked>Auto run</label>
+  <span class="sp"></span>
+  <button class="b" id="openBtn" title="Open an HTML file">Open</button>
+  <button class="b" id="saveBtn" title="Download (Ctrl+S)">Download</button>
+  <button class="b" id="layoutBtn" title="Side by side or stacked">Layout</button>
+  <button class="b" id="fsBtn" title="Full screen preview">&#x26F6; Full</button>
+  <button class="b bad" id="resetBtn">Reset</button>
+  <input type="file" id="fileIn" accept=".html,.htm,.txt,.css,.js" hidden>
+</header>
+<main id="main">
+  <section class="pane" id="left">
+    <div class="tabs" id="tabs">
+      <div class="tab on" data-k="html" style="--c:#ff6ad5"><span class="dot" style="background:#ff6ad5"></span>HTML</div>
+      <div class="tab" data-k="css" style="--c:#7df9ff"><span class="dot" style="background:#7df9ff"></span>CSS</div>
+      <div class="tab" data-k="js" style="--c:#ffd84f"><span class="dot" style="background:#ffd84f"></span>JS</div>
+      <div class="info" id="pos">Ln 1, Col 1</div>
+    </div>
+    <div class="ed">
+      <div class="gut" id="gut">1</div>
+      <div class="code"><pre id="hl" aria-hidden="true"></pre><textarea id="src" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off"></textarea></div>
+    </div>
+  </section>
+  <div class="split" id="split"></div>
+  <section class="pane" id="right">
+    <div class="tabs"><div class="tab on" style="--c:#4dffa0;cursor:default"><span class="dot" style="background:#4dffa0"></span>PREVIEW</div>
+      <div class="tab" id="conTab" style="--c:#ffd84f">CONSOLE <span id="conCount" style="color:var(--bad)"></span></div></div>
+    <div class="pv" id="pv"><iframe id="frame" sandbox="allow-scripts allow-modals allow-forms allow-popups" title="Preview"></iframe><div class="con hide" id="con"></div></div>
+  </section>
+</main>
+<button class="b pri" id="exitFs">Exit full preview</button>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+"use strict";
+const $ = id => document.getElementById(id);
+const src = $('src'), hl = $('hl'), gut = $('gut');
+const KEY = 'vector-studio';
+const TPL = {
+  hello: { html: '<h1>Hello World!</h1>\n<p>Edit the code on the left to see changes here.</p>\n<button id="b">Click me</button>', css: 'body {\n  font-family: sans-serif;\n  text-align: center;\n  padding: 50px;\n}\nh1 { color: #007acc; }', js: "document.getElementById('b').onclick = () => {\n  console.log('Clicked!');\n  alert('Hello from Vector Studio');\n};" },
+  neon: { html: '<div class="card">\n  <h1>NEON</h1>\n  <p>Glowing card made with CSS</p>\n</div>', css: "body {\n  margin: 0; height: 100vh;\n  display: grid; place-items: center;\n  background: #0b0b14; font-family: sans-serif;\n}\n.card {\n  padding: 40px 60px; border-radius: 16px;\n  border: 2px solid #7df9ff; color: #fff; text-align: center;\n  box-shadow: 0 0 30px #7df9ff, inset 0 0 30px rgba(125,249,255,.3);\n  animation: pulse 2s infinite alternate;\n}\nh1 { margin: 0; letter-spacing: 8px; text-shadow: 0 0 20px #ff4fd8; }\n@keyframes pulse { to { box-shadow: 0 0 60px #ff4fd8, inset 0 0 40px rgba(255,79,216,.3); } }", js: '' },
+  canvas: { html: '<canvas id="c" width="480" height="320"></canvas>\n<p>Arrow keys to move</p>', css: 'body { background: #111; color: #aaa; font-family: sans-serif; text-align: center; }\ncanvas { background: #000; border: 2px solid #333; }', js: "const c = document.getElementById('c');\nconst ctx = c.getContext('2d');\nconst keys = {};\nconst p = { x: 240, y: 160, s: 4 };\naddEventListener('keydown', e => keys[e.key] = true);\naddEventListener('keyup', e => keys[e.key] = false);\n\nfunction loop() {\n  if (keys.ArrowLeft) p.x -= p.s;\n  if (keys.ArrowRight) p.x += p.s;\n  if (keys.ArrowUp) p.y -= p.s;\n  if (keys.ArrowDown) p.y += p.s;\n  ctx.fillStyle = 'rgba(0,0,0,0.25)';\n  ctx.fillRect(0, 0, c.width, c.height);\n  ctx.fillStyle = '#7df9ff';\n  ctx.fillRect(p.x - 10, p.y - 10, 20, 20);\n  requestAnimationFrame(loop);\n}\nloop();" },
+  balls: { html: '<canvas id="c"></canvas>', css: 'html, body { margin: 0; height: 100%; background: #0b0b14; }\ncanvas { display: block; }', js: "const c = document.getElementById('c');\nconst ctx = c.getContext('2d');\nfunction size() { c.width = innerWidth; c.height = innerHeight; }\nsize(); addEventListener('resize', size);\nconst balls = Array.from({ length: 40 }, () => ({\n  x: Math.random() * c.width, y: Math.random() * c.height,\n  vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6,\n  r: 6 + Math.random() * 18, h: Math.random() * 360\n}));\nfunction loop() {\n  ctx.fillStyle = 'rgba(11,11,20,0.3)';\n  ctx.fillRect(0, 0, c.width, c.height);\n  for (const b of balls) {\n    b.x += b.vx; b.y += b.vy;\n    if (b.x < b.r || b.x > c.width - b.r) b.vx *= -1;\n    if (b.y < b.r || b.y > c.height - b.r) b.vy *= -1;\n    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);\n    ctx.fillStyle = 'hsl(' + b.h + ',100%,60%)'; ctx.fill();\n  }\n  requestAnimationFrame(loop);\n}\nloop();\nconsole.log('40 balls bouncing');" },
+  blank: { html: '', css: '', js: '' }
+};
+let doc = { html: '', css: '', js: '', name: 'index.html' };
+let cur = 'html';
+const views = { html: { s: 0, l: 0, a: 0, b: 0 }, css: { s: 0, l: 0, a: 0, b: 0 }, js: { s: 0, l: 0, a: 0, b: 0 } };
+
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (d && typeof d.html === 'string') { doc = d; return; }
+    const old = localStorage.getItem('autosave_code');
+    if (old) { doc.html = old; return; }
+  } catch (e) {}
+  Object.assign(doc, TPL.hello);
+}
+let saveT;
+function persist() { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(doc)); } catch (e) {} }, 300); }
+
+// ---------- highlighting ----------
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const span = (c, t) => '<span class="t-' + c + '">' + esc(t) + '</span>';
+const JSKW = /^(?:const|let|var|function|return|if|else|for|while|do|break|continue|new|class|extends|import|export|from|default|switch|case|try|catch|finally|throw|typeof|instanceof|in|of|this|true|false|null|undefined|async|await|yield|delete|void|super|static|get|set)$/;
+function hlJS(s) {
+  return s.replace(/(\/\/[^\n]*|\/\*[\s\S]*?(?:\*\/|$))|(`(?:\\[\s\S]|[^`\\])*`?|'(?:\\.|[^'\\\n])*'?|"(?:\\.|[^"\\\n])*"?)|(\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b|\b0x[\da-f]+\b)|([A-Za-z_$][\w$]*)(\s*\()?|([&<>])/gi,
+    (m, com, str, num, id, call, ch) => {
+      if (com) return span('com', com);
+      if (str) return span('str', str);
+      if (num) return span('num', num);
+      if (id) { if (JSKW.test(id)) return span('kw', id) + (call ? esc(call) : ''); if (call) return span('fn', id) + esc(call); return esc(id); }
+      return esc(ch);
+    });
+}
+function hlCSS(s) {
+  return s.replace(/(\/\*[\s\S]*?(?:\*\/|$))|('(?:\\.|[^'\\\n])*'?|"(?:\\.|[^"\\\n])*"?)|(#[\da-f]{3,8}\b)|(-?\b\d+(?:\.\d+)?(?:px|em|rem|%|vh|vw|s|ms|deg|fr)?)|([\w-]+)(\s*:(?!:))|([^{};\n]+)(?=\{)|([&<>])/gi,
+    (m, com, str, col, num, prop, colon, sel, ch) => {
+      if (com) return span('com', com);
+      if (str) return span('str', str);
+      if (col) return span('col', col);
+      if (num) return span('num', num);
+      if (prop) return span('prop', prop) + esc(colon);
+      if (sel) return span('sel', sel);
+      return esc(ch);
+    });
+}
+function hlHTML(s) {
+  return s.replace(/(<!--[\s\S]*?(?:-->|$))|(<\/?)([\w-]+)((?:[^>"']|"[^"]*"?|'[^']*'?)*)(>?)|([&<>])/g, (m, com, open, tag, attrs, close, ch) => {
+    if (com) return span('com', com);
+    if (tag) {
+      const a = attrs.replace(/([\w:-]+)(=?)("[^"]*"?|'[^']*'?)?|([^\w"']+)/g, (x, n, eq, v, rest) => rest ? esc(rest) : span('att', n) + esc(eq || '') + (v ? span('str', v) : ''));
+      return span('pun', open) + span('tag', tag) + a + span('pun', close);
+    }
+    return esc(ch);
+  });
+}
+const HL = { html: hlHTML, css: hlCSS, js: hlJS };
+function paint() {
+  const v = src.value;
+  hl.innerHTML = HL[cur](v) + '\n';
+  const n = v.split('\n').length;
+  let g = '';
+  for (let i = 1; i <= n; i++) g += i + '\n';
+  gut.textContent = g;
+  syncScroll();
+}
+function syncScroll() { hl.scrollTop = src.scrollTop; hl.scrollLeft = src.scrollLeft; gut.scrollTop = src.scrollTop; }
+src.addEventListener('scroll', syncScroll);
+
+function pos() {
+  const before = src.value.slice(0, src.selectionStart).split('\n');
+  $('pos').textContent = 'Ln ' + before.length + ', Col ' + (before[before.length - 1].length + 1) + '  ·  ' + src.value.length + ' chars';
+}
+['keyup', 'click', 'select'].forEach(e => src.addEventListener(e, pos));
+
+function setTab(k) {
+  views[cur] = { s: src.scrollTop, l: src.scrollLeft, a: src.selectionStart, b: src.selectionEnd };
+  cur = k;
+  document.querySelectorAll('#tabs .tab').forEach(t => t.classList.toggle('on', t.dataset.k === k));
+  src.value = doc[k];
+  paint();
+  const v = views[k]; src.setSelectionRange(v.a, v.b); src.scrollTop = v.s; src.scrollLeft = v.l; syncScroll(); pos();
+  src.focus();
+}
+document.querySelectorAll('#tabs .tab').forEach(t => t.addEventListener('click', () => setTab(t.dataset.k)));
+
+// ---------- editing helpers ----------
+function insert(text, selStart, selEnd) {
+  src.setRangeText(text, src.selectionStart, src.selectionEnd, 'end');
+  if (selStart !== undefined) src.setSelectionRange(selStart, selEnd);
+  onInput();
+}
+src.addEventListener('keydown', e => {
+  const v = src.value, a = src.selectionStart, b = src.selectionEnd;
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    if (a !== b && v.slice(a, b).includes('\n')) {
+      const ls = v.lastIndexOf('\n', a - 1) + 1, block = v.slice(ls, b);
+      const out = e.shiftKey ? block.replace(/^ {1,2}/gm, '') : block.replace(/^/gm, '  ');
+      src.setRangeText(out, ls, b, 'select'); onInput();
+    } else if (!e.shiftKey) insert('  ');
+    return;
+  }
+  if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault();
+    const ls = v.lastIndexOf('\n', a - 1) + 1, ind = v.slice(ls, a).match(/^\s*/)[0];
+    const prev = v[a - 1], next = v[a];
+    if ((prev === '{' && next === '}') || (prev === '>' && next === '<' && cur === 'html' && /<\/[\w-]+>/.test(v.slice(a, a + 30)))) {
+      const t = '\n' + ind + '  \n' + ind;
+      insert(t, a + ind.length + 3, a + ind.length + 3);
+    } else insert('\n' + ind + (prev === '{' || prev === '(' || prev === '[' ? '  ' : ''));
+    return;
+  }
+  const pairs = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '`': '`' };
+  if (pairs[e.key] && !e.ctrlKey && !e.metaKey) {
+    const close = pairs[e.key];
+    if ((e.key === '"' || e.key === "'" || e.key === '`') && v[a] === e.key && a === b) { e.preventDefault(); src.setSelectionRange(a + 1, a + 1); return; }
+    e.preventDefault();
+    const sel = v.slice(a, b);
+    src.setRangeText(e.key + sel + close, a, b, 'end');
+    src.setSelectionRange(a + 1, a + 1 + sel.length); onInput();
+    return;
+  }
+  if ((e.key === ')' || e.key === ']' || e.key === '}') && v[a] === e.key && a === b) { e.preventDefault(); src.setSelectionRange(a + 1, a + 1); return; }
+  if (e.key === 'Backspace' && a === b && a > 0 && pairs[v[a - 1]] === v[a]) { e.preventDefault(); src.setRangeText('', a - 1, a + 1, 'end'); onInput(); return; }
+  if (e.key === '>' && cur === 'html' && a === b) {
+    const m = v.slice(0, a).match(/<([a-zA-Z][\w-]*)(?:\s[^<>]*)?$/);
+    const voids = /^(area|base|br|col|embed|hr|img|input|link|meta|source|track|wbr)$/i;
+    if (m && !voids.test(m[1]) && !/\/$/.test(v.slice(0, a))) { e.preventDefault(); src.setRangeText('></' + m[1] + '>', a, b, 'end'); src.setSelectionRange(a + 1, a + 1); onInput(); return; }
+  }
+});
+
+// ---------- preview ----------
+const consoleShim = `<script>(function(){var send=function(t,a){try{parent.postMessage({vstudio:1,t:t,m:[].map.call(a,function(x){try{return typeof x==='object'?JSON.stringify(x):String(x)}catch(e){return String(x)}}).join(' ')},'*')}catch(e){}};
+['log','info','warn','error'].forEach(function(k){var o=console[k];console[k]=function(){send(k,arguments);o.apply(console,arguments)}});
+addEventListener('error',function(e){send('error',[e.message+(e.lineno?' (line '+e.lineno+')':'')])});})();<\/script>`;
+function build(forDownload) {
+  const h = doc.html, hasDoc = /<html[\s>]/i.test(h) || /<!doctype/i.test(h);
+  const css = doc.css.trim() ? '<style>\n' + doc.css + '\n</style>\n' : '';
+  const js = doc.js.trim() ? '<script>\n' + doc.js + '\n<\/script>\n' : '';
+  const shim = forDownload ? '' : consoleShim;
+  if (hasDoc) {
+    let out = h;
+    out = /<\/head>/i.test(out) ? out.replace(/<\/head>/i, shim + css + '</head>') : shim + css + out;
+    out = /<\/body>/i.test(out) ? out.replace(/<\/body>(?![\s\S]*<\/body>)/i, js + '</body>') : out + js;
+    return out;
+  }
+  return '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n' + shim + css + '</head>\n<body>\n' + h + '\n' + js + '</body>\n</html>';
+}
+let conN = 0;
+function run() {
+  $('con').innerHTML = ''; conN = 0; $('conCount').textContent = '';
+  $('frame').srcdoc = build(false);
+}
+addEventListener('message', e => {
+  if (!e.data || !e.data.vstudio) return;
+  const d = document.createElement('div');
+  d.className = e.data.t === 'error' ? 'e' : e.data.t === 'warn' ? 'w' : e.data.t === 'info' ? 'i' : '';
+  d.textContent = (e.data.t === 'error' ? '✖ ' : '› ') + e.data.m;
+  $('con').appendChild(d); $('con').scrollTop = 1e9;
+  if (e.data.t === 'error') { conN++; $('conCount').textContent = '(' + conN + ')'; }
+});
+let runT;
+function onInput() {
+  doc[cur] = src.value; persist(); paint(); pos();
+  if ($('auto').checked) { clearTimeout(runT); runT = setTimeout(run, 450); }
+}
+src.addEventListener('input', onInput);
+$('runBtn').onclick = run;
+$('conTab').onclick = () => { $('con').classList.toggle('hide'); $('conTab').classList.toggle('on'); };
+
+// ---------- files ----------
+function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 1800); }
+function download() {
+  let name = ($('fileName').value || 'index.html').trim();
+  if (!/\.html?$/i.test(name)) name += '.html';
+  const url = URL.createObjectURL(new Blob([build(true)], { type: 'text/html' }));
+  const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  toast('Saved ' + name);
+}
+$('saveBtn').onclick = download;
+$('openBtn').onclick = () => $('fileIn').click();
+$('fileIn').onchange = () => {
+  const f = $('fileIn').files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    const t = String(r.result);
+    if (/\.css$/i.test(f.name)) doc.css = t; else if (/\.js$/i.test(f.name)) doc.js = t; else { doc.html = t; doc.css = ''; doc.js = ''; $('fileName').value = f.name; doc.name = f.name; }
+    setTab(/\.css$/i.test(f.name) ? 'css' : /\.js$/i.test(f.name) ? 'js' : 'html'); persist(); run(); toast('Opened ' + f.name);
+  };
+  r.readAsText(f); $('fileIn').value = '';
+};
+$('fileName').value = doc.name || 'index.html';
+$('fileName').addEventListener('input', () => { doc.name = $('fileName').value; persist(); });
+$('tpl').onchange = () => {
+  const k = $('tpl').value; $('tpl').value = '';
+  if (!k) return;
+  if ((doc.html || doc.css || doc.js) && !confirm('Replace your code with this template?')) return;
+  Object.assign(doc, { html: TPL[k].html, css: TPL[k].css, js: TPL[k].js });
+  setTab('html'); persist(); run();
+};
+$('resetBtn').onclick = () => {
+  if (!confirm('Clear all HTML, CSS and JS?')) return;
+  Object.assign(doc, { html: '', css: '', js: '' }); setTab('html'); persist(); run();
+};
+
+// ---------- layout ----------
+const main = $('main'), left = $('left'), split = $('split');
+let stacked = false;
+try { stacked = localStorage.getItem(KEY + '-stack') === '1'; } catch (e) {}
+function applyLayout() { main.classList.toggle('stack', stacked); }
+applyLayout();
+$('layoutBtn').onclick = () => { stacked = !stacked; left.style.flexBasis = '50%'; applyLayout(); try { localStorage.setItem(KEY + '-stack', stacked ? '1' : '0'); } catch (e) {} };
+split.addEventListener('mousedown', e => {
+  e.preventDefault(); split.classList.add('drag');
+  const fr = $('frame'); fr.style.pointerEvents = 'none';
+  const vert = stacked || innerWidth <= 760;
+  function mv(ev) {
+    const r = main.getBoundingClientRect();
+    const pct = vert ? (ev.clientY - r.top) / r.height : (ev.clientX - r.left) / r.width;
+    left.style.flexBasis = Math.max(15, Math.min(85, pct * 100)) + '%';
+  }
+  function up() { split.classList.remove('drag'); fr.style.pointerEvents = ''; removeEventListener('mousemove', mv); removeEventListener('mouseup', up); }
+  addEventListener('mousemove', mv); addEventListener('mouseup', up);
+});
+function fs(on) { $('pv').classList.toggle('fs', on); $('exitFs').style.display = on ? 'block' : 'none'; }
+$('fsBtn').onclick = () => fs(true);
+$('exitFs').onclick = () => fs(false);
+addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); download(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); run(); }
+  if (e.key === 'Escape') fs(false);
+});
+
+load();
+setTab('html');
+run();
+})();
+</script>
+</body>
+</html>
