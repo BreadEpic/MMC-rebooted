@@ -1,0 +1,1478 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marmalade Tycoon 2.0</title>
+    <link rel="stylesheet" href="v2/fonts.css">
+    <style>
+        /* CSS VARIABLES & THEMING */
+        :root {
+            --primary: rgb(255, 144, 0); /* Vibrant Orange */
+            --accent: #4169e1; /* Royal Blue */
+            --bg-gradient: radial-gradient(circle at 50% 10%, #fff3e0 0%, #ffb347 100%);
+            --panel-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #2d3748;
+            --text-sub: #718096;
+            --border-color: rgb(255, 144, 0); /* Orange Borders */
+            --wood-dark: #744210;
+            --wood-light: #975a16;
+            --bar-bg: #e2e8f0;
+            --bar-fill: rgb(255, 144, 0);
+            --tech-color: #4169e1; /* Blue Tech */
+            --special-color: rgb(255, 144, 0);
+        }
+
+
+        body.dark-mode {
+            --primary: rgb(255, 144, 0);
+            --accent: #6495ed; /* Lighter Blue for Dark Mode */
+            --bg-gradient: radial-gradient(circle at 50% 10%, #2d3748 0%, #1a202c 100%);
+            --panel-bg: rgba(45, 55, 72, 0.98);
+            --text-main: #f7fafc;
+            --text-sub: #a0aec0;
+            --border-color: #4169e1; /* Blue Borders in Dark Mode */
+            --bar-bg: #4a5568;
+            --tech-color: #6495ed;
+            --special-color: rgb(255, 144, 0);
+        }
+
+
+        * { box-sizing: border-box; }
+
+
+        body {
+            font-family: Inter, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            margin: 0;
+            height: 100vh;
+            overflow: hidden; 
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+
+        button { touch-action: manipulation; }
+
+
+        .main-container {
+            display: flex;
+            height: 100%;
+            width: 100%;
+        }
+
+
+        /* --- SAVES SECTION (LEFT) --- */
+        .saves-section {
+            width: 250px;
+            background: var(--panel-bg);
+            border-right: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.05);
+            z-index: 10;
+            transition: width 0.3s;
+        }
+
+
+        .saves-section.hidden {
+            display: none !important;
+        }
+
+
+        .save-slot {
+            background: rgba(0,0,0,0.03);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+            font-weight: bold;
+            color: var(--text-main);
+        }
+        .save-slot:hover { background: rgba(0,0,0,0.06); border-color: var(--border-color); }
+        .save-slot.active { border-color: var(--accent); background: rgba(65, 105, 225, 0.1); }
+
+
+        .save-options {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .save-options.open { display: flex; }
+
+
+        .save-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        .save-btn:hover { filter: brightness(1.1); }
+        .save-btn.reset { background: #e53e3e; }
+        .save-btn.close-btn { background: var(--text-sub); }
+        .save-btn.rename { background: var(--special-color); }
+        .save-btn.save-action { background: #38a169; }
+
+
+        /* --- GAME SECTION (MIDDLE) --- */
+        .game-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+        }
+
+
+        h1 { 
+            font-size: 2.2rem; 
+            margin: 0 0 20px 0; 
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.1); 
+            color: var(--text-main);
+            cursor: pointer;
+        }
+
+
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            padding: 0 10px;
+        }
+
+
+        .stat-card {
+            background: var(--panel-bg);
+            padding: 10px 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 2px solid var(--border-color);
+            text-align: center;
+            min-width: 85px;
+        }
+
+
+        .stat-val { font-size: 1.1rem; font-weight: 800; color: var(--accent); }
+        .stat-label { font-size: 0.65rem; color: var(--text-sub); text-transform: uppercase; font-weight: bold; }
+
+
+        .work-area {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 60px;
+            width: 100%;
+            flex: 1;
+            padding-bottom: 80px;
+        }
+
+
+        /* THE KITCHEN (ORANGE) */
+        .kitchen-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+
+        .squeeze-hint {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 5px;
+            animation: bounce 1.5s infinite;
+            text-shadow: 0 2px 0 rgba(255,255,255,0.8);
+            pointer-events: none;
+        }
+
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+
+        #orange-btn {
+            width: 160px;
+            height: 160px;
+            background: transparent; 
+            border: none;
+            font-size: 100px; 
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            transition: transform 0.05s;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));
+            margin-bottom: 10px;
+            touch-action: manipulation;
+        }
+        
+        #orange-btn:hover { transform: scale(1.05); }
+        #orange-btn:active { transform: scale(0.95); }
+
+
+        .squash-anim { animation: squash 0.1s ease-in-out; }
+        @keyframes squash {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1, 0.85); } 
+            100% { transform: scale(1); }
+        }
+
+
+        /* JUICE PARTICLE */
+        .juice-drop {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 20;
+            animation: dropFade 0.6s ease-out forwards;
+        }
+        @keyframes dropFade {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+
+        /* THE STAND GRAPHIC */
+        .stand-wrapper {
+            position: relative;
+            width: 220px;
+            height: 240px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            touch-action: manipulation;
+        }
+        .stand-wrapper:active { transform: scale(0.98); }
+
+
+        .sell-hint {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--primary);
+            white-space: nowrap;
+            animation: bounce 1.5s infinite;
+            text-shadow: 0 2px 0 rgba(255,255,255,0.8);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .sell-hint.visible { opacity: 1; }
+
+
+        .awning {
+            height: 60px;
+            width: 100%;
+            background: repeating-linear-gradient(90deg, rgb(255, 144, 0) 0px, rgb(255, 144, 0) 20px, #fff 20px, #fff 40px);
+            position: relative;
+            z-index: 5;
+            border-radius: 5px 5px 0 0;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+        .awning::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: radial-gradient(circle, rgb(255, 144, 0) 10px, transparent 11px) repeat-x;
+            background-size: 40px 20px;
+        }
+
+
+        .pillars {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 25px;
+            height: 80px;
+            margin-top: -5px;
+        }
+        .pillar {
+            width: 12px;
+            height: 100%;
+            background: var(--wood-light);
+            box-shadow: inset 2px 0 5px rgba(0,0,0,0.2);
+        }
+
+
+        .counter {
+            width: 100%;
+            height: 100px;
+            background: var(--wood-light);
+            border-top: 8px solid var(--wood-dark);
+            border-radius: 2px;
+            position: absolute;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+
+        .sign {
+            background: #fff;
+            padding: 5px 15px;
+            border: 2px solid rgb(255, 144, 0);
+            color: var(--accent);
+            font-weight: bold;
+            font-family: sans-serif;
+            font-size: 1rem;
+            transform: rotate(-3deg);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+
+        /* CUSTOM JAR GRAPHIC */
+        .pitcher-display {
+            position: absolute;
+            bottom: 105px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+            z-index: 4;
+        }
+        .pitcher-display.visible { opacity: 1; transform: translateX(-50%) scale(1); }
+        
+        .jar-graphic {
+            background: var(--primary);
+            color: white;
+            font-size: 14px;
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 3px solid var(--wood-dark);
+            font-weight: 900;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            line-height: 1.2;
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.3);
+        }
+
+
+        .inv-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: var(--accent);
+            color: white;
+            width: 45px;
+            height: 35px;
+            border-radius: 15px;
+            border: 3px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            z-index: 20;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+        }
+
+
+        /* --- SHOP SECTION (RIGHT) --- */
+        .shop-section {
+            width: 380px;
+            background: var(--panel-bg);
+            border-left: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+
+        .shop-header {
+            padding: 15px;
+            border-bottom: 2px solid var(--border-color);
+            background: var(--panel-bg);
+        }
+
+
+        .shop-title { font-size: 1.2rem; font-weight: bold; display: block; margin-bottom: 10px; color: var(--accent); }
+
+
+        .bulk-controls {
+            display: flex;
+            gap: 5px;
+            background: rgba(0,0,0,0.05);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+
+        .bulk-btn {
+            flex: 1;
+            border: 1px solid transparent;
+            background: transparent;
+            padding: 6px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+        }
+        .bulk-btn.active { 
+            background: white; 
+            color: var(--accent); 
+            border-color: var(--accent);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+        }
+        body.dark-mode .bulk-btn.active { background: #2d3748; }
+
+
+        .shop-list { flex: 1; overflow-y: auto; padding: 15px; }
+
+
+        .upgrade-row {
+            display: flex;
+            flex-direction: column;
+            background: rgba(0,0,0,0.03);
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 2px solid transparent;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .upgrade-row:hover { background: rgba(0,0,0,0.06); border-color: var(--border-color); }
+        
+        .upgrade-row.tech-upgrade { border: 2px solid var(--tech-color); background: rgba(65, 105, 225, 0.05); }
+        .upgrade-row.tech-upgrade .item-name { color: var(--tech-color); }
+
+
+        .upgrade-row.special-upgrade { border: 2px solid var(--special-color); background: rgba(255, 144, 0, 0.05); }
+        .upgrade-row.special-upgrade .item-name { color: var(--special-color); }
+
+
+        .row-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .item-name { font-weight: bold; font-size: 0.95rem; }
+        .item-count { background: var(--border-color); color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: bold; }
+        .item-desc { font-size: 0.8rem; color: var(--text-sub); margin-bottom: 8px; }
+
+
+        .buy-btn {
+            width: 100%;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        .buy-btn.tech-btn { background: var(--tech-color); }
+        .buy-btn.special-btn { background: var(--special-color); }
+
+
+        body.dark-mode .buy-btn { color: #1a202c; }
+        .buy-btn:disabled { background: var(--text-sub); cursor: not-allowed; opacity: 0.5; }
+
+
+        /* SETTINGS & FLOATER */
+        .bottom-btn-group {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+
+        .action-btn {
+            background: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            color: var(--accent);
+            height: 45px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 20px;
+            font-weight: bold;
+        }
+        .action-btn.icon-only { width: 45px; padding: 0; font-size: 20px; }
+        
+        #settings-modal {
+            display: none;
+            position: fixed;
+            bottom: 75px;
+            right: 20px;
+            background: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+            z-index: 99;
+            min-width: 250px;
+        }
+
+
+        /* DEV MENU */
+        #dev-menu {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2d3748;
+            color: rgb(255, 144, 0);
+            border: 3px solid #4169e1;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(65, 105, 225, 0.4);
+            z-index: 200;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            min-width: 320px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        #dev-menu h2 { margin-top: 0; text-transform: uppercase; letter-spacing: 2px; }
+        .dev-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: transparent;
+            border: 1px solid #4169e1;
+            color: #4169e1;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .dev-btn:hover { background: #4169e1; color: #fff; }
+
+
+        .settings-row {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .settings-btn {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+            border: 2px solid var(--border-color);
+            background: var(--bar-bg);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            width: 100%;
+            font-weight: bold;
+        }
+
+
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; margin-top: -6px; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--border-color); border-radius: 2px; }
+
+
+        .floater {
+            position: absolute;
+            color: var(--accent);
+            font-weight: 900;
+            font-size: 1.5rem;
+            pointer-events: none;
+            animation: floatUp 0.8s ease-out forwards;
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
+            z-index: 50;
+        }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-80px); } }
+
+
+        @media (max-width: 800px) {
+            .main-container { flex-direction: column; overflow-y: auto;}
+            .saves-section { width: 100%; border-right: none; border-bottom: 2px solid var(--border-color); }
+            .shop-section { width: 100%; border-left: none; border-top: 2px solid var(--border-color); }
+            .game-section { min-height: 50vh; padding-top: 10px; }
+            .work-area { gap: 20px; padding-bottom: 20px; align-items: center; }
+            #orange-btn { width: 130px; height: 130px; font-size: 80px; }
+            .stand-wrapper { width: 160px; height: 180px; }
+            .awning { height: 40px; }
+            .counter { height: 80px; }
+            .pitcher-display { bottom: 85px; }
+            h1 { font-size: 1.5rem; margin-bottom: 10px; }
+        }
+    
+        /* ---- Vectors 2.0 ---- */
+        :root { --bg-gradient: linear-gradient(180deg, #7fd3ff 0%, #bfe8ff 38%, #fff1d6 70%, #ffc77a 100%); --panel-bg: rgba(255,255,255,0.82); }
+        body.dark-mode { --bg-gradient: linear-gradient(180deg, #0b1030 0%, #1b2350 45%, #3a2a4a 80%, #5a3240 100%); --panel-bg: rgba(24,30,52,0.86); }
+        .game-section { position: relative; overflow: hidden; }
+        .v2-sky { position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+        .v2-sun { position: absolute; top: -110px; left: 88%; width: 260px; height: 260px; margin-left: -130px; border-radius: 50%;
+          background: radial-gradient(circle, #fff9d6 0%, #ffe07a 40%, rgba(255,200,80,0) 70%); animation: v2pulse 6s ease-in-out infinite; }
+        body.dark-mode .v2-sun { background: radial-gradient(circle, #ffffff 0%, #dfe6ff 30%, rgba(180,190,255,0) 65%); }
+        .v2-rays { position: absolute; top: -60px; left: 88%; width: 1200px; height: 1200px; margin-left: -600px; margin-top: -560px;
+          background: repeating-conic-gradient(from 0deg, rgba(255,255,255,0.16) 0deg 8deg, rgba(255,255,255,0) 8deg 20deg); animation: v2spin 60s linear infinite;
+          -webkit-mask: radial-gradient(circle, #000 20%, transparent 60%); mask: radial-gradient(circle, #000 20%, transparent 60%); }
+        body.dark-mode .v2-rays { opacity: .25; }
+        .v2-cloud { position: absolute; height: 34px; border-radius: 40px; background: rgba(255,255,255,0.85); filter: blur(0.5px); animation: v2drift linear infinite; }
+        .v2-cloud::before, .v2-cloud::after { content: ''; position: absolute; background: inherit; border-radius: 50%; }
+        .v2-cloud::before { width: 46px; height: 46px; top: -22px; left: 18px; } .v2-cloud::after { width: 34px; height: 34px; top: -14px; left: 52px; }
+        body.dark-mode .v2-cloud { background: rgba(140,150,200,0.25); }
+        .v2-star { position: absolute; width: 2px; height: 2px; background: #fff; border-radius: 50%; opacity: 0; }
+        body.dark-mode .v2-star { opacity: .8; animation: v2tw 3s ease-in-out infinite; }
+        @keyframes v2drift { from { transform: translateX(-160px); } to { transform: translateX(110vw); } }
+        @keyframes v2spin { to { transform: rotate(360deg); } }
+        @keyframes v2pulse { 50% { transform: scale(1.06); } }
+        @keyframes v2tw { 50% { opacity: .2; } }
+        .game-section > *:not(.v2-sky) { position: relative; z-index: 1; }
+        .stat-card, .saves-section, .shop-section, .upgrade-row, .save-slot { border-radius: 16px !important; box-shadow: 0 8px 24px rgba(120,60,0,0.12) !important; backdrop-filter: blur(8px); }
+        .stat-val, .shop-title, .item-name, .sign, h1, h2, h3 { font-family: 'Fredoka One', Inter, sans-serif !important; letter-spacing: .3px; }
+        .stat-val { font-size: 1.25rem !important; }
+        #orange-btn { filter: drop-shadow(0 14px 18px rgba(200,90,0,0.35)) drop-shadow(0 0 30px rgba(255,170,40,0.55)); transition: transform .12s, filter .2s; }
+        #orange-btn:hover { transform: scale(1.06) rotate(-4deg); filter: drop-shadow(0 18px 22px rgba(200,90,0,0.4)) drop-shadow(0 0 46px rgba(255,190,60,0.85)); }
+        .buy-btn { background: linear-gradient(180deg, #ffb13b, #ff8a00) !important; box-shadow: 0 3px 0 #c25e00, 0 6px 14px rgba(255,138,0,0.3) !important; border: 0 !important; transition: transform .1s, box-shadow .1s, filter .15s !important; }
+        .buy-btn:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+        .buy-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #c25e00 !important; }
+        .buy-btn:disabled { filter: grayscale(.7) opacity(.6); }
+        .upgrade-row { transition: transform .15s, box-shadow .15s; }
+        .upgrade-row:hover { transform: translateX(-3px); }
+        .awning { filter: drop-shadow(0 6px 6px rgba(0,0,0,0.18)); }
+        .floater { font-family: 'Fredoka One', sans-serif !important; text-shadow: 0 2px 0 rgba(0,0,0,0.25), 0 0 12px rgba(255,255,255,0.6); }
+        .juice-drop { box-shadow: 0 0 8px rgba(255,150,0,0.7); }
+    </style>
+</head>
+<body>
+
+
+    <div class="main-container">
+        
+        <div class="saves-section" id="saves-section">
+            <div class="shop-header">
+                <span class="shop-title">Save Files</span>
+            </div>
+            <div class="shop-list" id="saves-list">
+                </div>
+        </div>
+
+
+        <div class="game-section">
+            <h1>Marmalade Tycoon</h1>
+            
+            <div class="dashboard">
+                <div class="stat-card">
+                    <div class="stat-val" id="money-display">$0.00</div>
+                    <div class="stat-label">Bank</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="click-rate-display">1.0</div>
+                    <div class="stat-label">Click</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="sell-val-display">$0.50</div>
+                    <div class="stat-label">Price</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="make-rate-display">0.0/s</div>
+                    <div class="stat-label">Make/s</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="sell-rate-display">0.0/s</div>
+                    <div class="stat-label">Sell/s</div>
+                </div>
+            </div>
+
+
+            <div class="work-area">
+                <div class="kitchen-zone">
+                    <div class="squeeze-hint">Squeeze Me!</div>
+                    <div id="orange-btn">🍊</div>
+                </div>
+
+
+                <div class="stand-wrapper" id="stand-btn">
+                    <div class="sell-hint" id="sell-hint">Sell Me!</div>
+                    <div class="inv-badge" id="inv-badge">0</div>
+                    
+                    <div class="awning"></div>
+                    <div class="pillars">
+                        <div class="pillar"></div>
+                        <div class="pillar"></div>
+                    </div>
+                    
+                    <div class="pitcher-display" id="pitcher-icon">
+                        <div class="jar-graphic">JAR OF<br>MARMALADE</div>
+                    </div>
+                    
+                    <div class="counter">
+                        <div class="sign">MARMALADE</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="shop-section">
+            <div class="shop-header">
+                <span class="shop-title">Shop</span>
+                <div class="bulk-controls">
+                    <button class="bulk-btn active" id="mode-1" onclick="setBuyMode(1)">1x</button>
+                    <button class="bulk-btn" id="mode-10" onclick="setBuyMode(10)">10x</button>
+                    <button class="bulk-btn" id="mode-max" onclick="setBuyMode('MAX')">MAX</button>
+                </div>
+            </div>
+            <div class="shop-list" id="shop-list"></div>
+        </div>
+    </div>
+
+
+    <div class="bottom-btn-group">
+        <button id="saves-toggle-btn" class="action-btn" onclick="toggleSaves()">Collapse Saves</button>
+        <button id="settings-btn" class="action-btn icon-only" onclick="toggleSettings()">⚙</button>
+    </div>
+
+
+    <div id="settings-modal">
+        <h3 style="margin-top:0">Settings</h3>
+        <div class="settings-row">
+            <button class="settings-btn" onclick="toggleTheme()">Toggle Theme 🌓</button>
+        </div>
+        <div style="font-size:0.9rem; font-weight:bold; margin-bottom:5px;">Music Volume</div>
+        <div class="settings-row">
+            <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.3">
+        </div>
+        <div style="font-size:0.75rem; color:var(--text-sub);">(Music starts on first click)</div>
+    </div>
+
+
+    <div id="dev-menu">
+        <h2>// DEV MODE //</h2>
+        <button class="dev-btn" onclick="devAddMoney()">>>> INFINITE MONEY</button>
+        <button class="dev-btn" onclick="devFillInventory()">>>> FILL INVENTORY</button>
+        <button class="dev-btn" onclick="devBuyAll(1)">>>> BUY 1 OF EVERYTHING</button>
+        <button class="dev-btn" onclick="devBuyAll(10)">>>> BUY 10 OF EVERYTHING</button>
+        <button class="dev-btn" onclick="devBuyAll(100)">>>> BUY 100 OF EVERYTHING</button>
+        <button class="dev-btn" onclick="document.getElementById('dev-menu').style.display = 'none'" style="border-color: #e53e3e; color: #e53e3e;">CLOSE</button>
+    </div>
+
+
+    <script src="v2/vfx.js"></script>
+    <script>
+        VFX.init({ title: 'Marmalade Tycoon', vignette: false });
+        document.addEventListener('DOMContentLoaded', () => {
+            const gs = document.querySelector('.game-section'); if (!gs) return;
+            const sky = document.createElement('div'); sky.className = 'v2-sky';
+            let h = '<div class="v2-rays"></div><div class="v2-sun"></div>';
+            for (let i = 0; i < 5; i++) h += '<div class="v2-cloud" style="top:' + (30 + i * 46) + 'px;width:' + (90 + (i * 37) % 70) + 'px;animation-duration:' + (38 + i * 11) + 's;animation-delay:-' + (i * 9) + 's;opacity:' + (0.5 + (i % 3) * 0.2) + '"></div>';
+            for (let i = 0; i < 40; i++) h += '<div class="v2-star" style="left:' + ((i * 61) % 100) + '%;top:' + ((i * 37) % 60) + '%;animation-delay:-' + (i % 5) + 's"></div>';
+            sky.innerHTML = h; gs.insertBefore(sky, gs.firstChild);
+        });
+        // --- GAME VARIABLES ---
+        let money = 0.00;
+        let inventory = 0.00;
+        let buyMode = 1;
+        
+        // --- SAVE SYSTEM VARS ---
+        let currentSaveSlot = 1;
+        let expandedSaveSlot = null;
+        let saveNames = JSON.parse(localStorage.getItem('marmalade_save_names')) || {
+            1: "Save File 1",
+            2: "Save File 2",
+            3: "Save File 3"
+        };
+        
+        // --- AUDIO ENGINE ---
+        // Offline music: a gentle generated lounge loop (no internet needed).
+        const bgMusic = (function () {
+            let ac = null, out = null, timer = null, step = 0, nextT = 0, vol = 0.3, playing = false;
+            const BPM = 92, S = 60 / BPM / 2;
+            const CH = [[60, 64, 67, 71], [57, 60, 64, 67], [62, 65, 69, 72], [55, 59, 62, 65]];
+            const MEL = [76, 79, 83, 79, 76, 74, 72, 74, 72, 76, 79, 76, 77, 74, 71, 74];
+            const hz = n => 440 * Math.pow(2, (n - 69) / 12);
+            function note(f, t, d, type, v) {
+                const o = ac.createOscillator(), g = ac.createGain();
+                o.type = type; o.frequency.value = f;
+                g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+                o.connect(g); g.connect(out); o.start(t); o.stop(t + d + 0.05);
+            }
+            function tick() {
+                while (nextT < ac.currentTime + 0.25) {
+                    const bar = Math.floor(step / 8) % 4, ch = CH[bar], i = step % 8;
+                    if (i === 0) ch.forEach(n => note(hz(n), nextT, S * 7.5, 'sine', 0.05));
+                    if (i === 0 || i === 4) note(hz(ch[0] - 24), nextT, S * 3.5, 'triangle', 0.12);
+                    if (i % 2 === 1) note(hz(MEL[(step >> 1) % MEL.length]), nextT, S * 1.8, 'triangle', 0.045);
+                    if (i === 3 || i === 7) note(hz(ch[2] + 12), nextT, S * 0.6, 'sine', 0.03);
+                    nextT += S; step++;
+                }
+            }
+            return {
+                loop: true,
+                get volume() { return vol; },
+                set volume(v) { vol = +v; if (out) out.gain.value = vol * 0.9; },
+                play() {
+                    try {
+                        if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); out = ac.createGain(); out.gain.value = vol * 0.9; out.connect(ac.destination); }
+                        if (ac.state === 'suspended') ac.resume();
+                        if (!playing) { playing = true; nextT = ac.currentTime + 0.1; timer = setInterval(tick, 80); }
+                    } catch (e) { return Promise.reject(e); }
+                    return Promise.resolve();
+                },
+                pause() { playing = false; clearInterval(timer); }
+            };
+        })();
+
+
+        // --- DATA ---
+        const speedCosts = [10, 15, 25, 40, 80, 100, 150, 250, 500, 1000];
+
+
+        const buildings = [
+            { id: 'squeezer', name: 'Orange Squeezer', type: 'maker', baseRate: 0.5, baseCost: 100, count: 0, scale: 1.5, desc: "Only makes marmalade" },
+            { id: 'kid', name: 'Neighbor', type: 'seller', baseRate: 0.5, baseCost: 120, count: 0, scale: 1.5, desc: "Only sells marmalade" },
+            { id: 'stand', name: 'Pro Stand', type: 'both', baseRate: 2.0, baseCost: 1000, count: 0, scale: 1.6, desc: "Makes AND Sells" },
+            { id: 'plant', name: 'Bottling Plant', type: 'both', baseRate: 15.0, baseCost: 5000, count: 0, scale: 1.6, desc: "Mass production/sales" },
+            { id: 'factory', name: 'Factory', type: 'both', baseRate: 50.0, baseCost: 50000, count: 0, scale: 1.6, desc: "Industrial output" }
+        ];
+
+
+        const upgrades = [
+            { id: 'organic', name: 'Organic Oranges', category: 'special', count: 0, max: 1, baseCost: 50, desc: "Base Price = $1.00" },
+            { id: 'titan_grip', name: 'Titan Grip', category: 'player', count: 0, max: 7, baseCost: 50, tiers: [0.5, 1, 1.5, 2, 3, 5, 10], desc: "" },
+            { id: 'speed', name: 'Hand Squeeze Power', category: 'player', count: 0, desc: "+0.5 Oranges per click" },
+            { id: 'recipe', name: 'Better Recipe', category: 'player', baseCost: 25, count: 0, scale: 2.0, desc: "Increases price (+$0.50)" },
+            { id: 'gym', name: 'Gym Membership', category: 'tech', target: 'squeezer', multiplier: 1.5, baseCost: 500, count: 0, max: 1, desc: "Squeezers +50% Speed" },
+            { id: 'megaphone', name: 'Megaphone', category: 'tech', target: 'kid', multiplier: 1.5, baseCost: 600, count: 0, max: 1, desc: "Neighbors +50% Sales" },
+            { id: 'blender', name: 'Electric Blenders', category: 'tech', target: 'stand', multiplier: 2.0, baseCost: 5000, count: 0, max: 1, desc: "Pro Stand x2 Output" }
+        ];
+
+
+        let basePrice = 0.50; 
+        const gameTickRate = 100;
+
+
+        // --- DOM ELEMENTS ---
+        const ui = {
+            money: document.getElementById('money-display'),
+            sellVal: document.getElementById('sell-val-display'),
+            makeRate: document.getElementById('make-rate-display'),
+            sellRate: document.getElementById('sell-rate-display'),
+            clickRate: document.getElementById('click-rate-display'),
+            invBadge: document.getElementById('inv-badge'),
+            orangeBtn: document.getElementById('orange-btn'),
+            standBtn: document.getElementById('stand-btn'),
+            pitcherIcon: document.getElementById('pitcher-icon'),
+            sellHint: document.getElementById('sell-hint'),
+            shopList: document.getElementById('shop-list'),
+            savesList: document.getElementById('saves-list'),
+            settingsModal: document.getElementById('settings-modal'),
+            volumeSlider: document.getElementById('volume-slider'),
+            devMenu: document.getElementById('dev-menu'),
+            btns: { 1: document.getElementById('mode-1'), 10: document.getElementById('mode-10'), max: document.getElementById('mode-max') }
+        };
+
+
+        // --- INIT ---
+        function init() {
+            // Auto Load Last Save
+            const lastSlot = localStorage.getItem('last_save_slot');
+            if (lastSlot) {
+                loadGame(parseInt(lastSlot));
+            } else {
+                loadGame(1); // Default to slot 1
+            }
+
+
+            renderSaves();
+            renderShop();
+            updateUI(); 
+            
+            // Loop ticks
+            setInterval(gameTick, gameTickRate);
+            
+            // Auto Save every 5 mins
+            setInterval(() => {
+                if(currentSaveSlot) saveGame(currentSaveSlot, true);
+            }, 300000); 
+
+
+            document.body.addEventListener('pointerdown', tryPlayMusic, { once: true });
+        }
+
+
+        function tryPlayMusic() { bgMusic.play().catch(e => console.log("Audio waiting")); }
+        ui.volumeSlider.addEventListener('input', (e) => { bgMusic.volume = e.target.value; });
+
+
+        function toggleSaves() {
+            const panel = document.getElementById('saves-section');
+            const btn = document.getElementById('saves-toggle-btn');
+            if (panel.classList.contains('hidden')) {
+                panel.classList.remove('hidden');
+                btn.textContent = "Collapse Saves";
+            } else {
+                panel.classList.add('hidden');
+                btn.textContent = "Show Saves";
+            }
+        }
+
+
+        // --- SAVE SYSTEM LOGIC ---
+        function renderSaves() {
+            ui.savesList.innerHTML = "";
+            for(let i=1; i<=3; i++) {
+                const div = document.createElement('div');
+                div.className = 'save-slot' + (currentSaveSlot === i ? ' active' : '');
+                
+                div.innerHTML = `
+                    <div style="padding: 5px;" onclick="expandSave(${i})">
+                        ${saveNames[i]} ${currentSaveSlot === i ? ' <span style="font-size:0.7rem;color:var(--primary);">(Active)</span>' : ''}
+                    </div>
+                    <div class="save-options ${expandedSaveSlot === i ? 'open' : ''}">
+                        <button class="save-btn" onclick="loadGame(${i})">Open</button>
+                        <button class="save-btn save-action" onclick="saveGame(${i})">Save Here</button>
+                        <button class="save-btn rename" onclick="renameSave(${i})">Rename</button>
+                        <button class="save-btn reset" onclick="resetSave(${i})">Reset</button>
+                        <button class="save-btn close-btn" onclick="expandSave(null)">Close</button>
+                    </div>
+                `;
+                ui.savesList.appendChild(div);
+            }
+        }
+
+
+        function expandSave(slot) {
+            expandedSaveSlot = slot;
+            renderSaves();
+        }
+
+
+        function renameSave(slot) {
+            let newName = prompt("Enter new name for save file:", saveNames[slot]);
+            if(newName && newName.trim() !== "") {
+                saveNames[slot] = newName.substring(0, 20); 
+                localStorage.setItem('marmalade_save_names', JSON.stringify(saveNames));
+                renderSaves();
+            }
+        }
+
+
+        function saveGame(slot, silent = false) {
+            const data = {
+                money: money,
+                inventory: inventory,
+                buildings: buildings.map(b => ({id: b.id, count: b.count})),
+                upgrades: upgrades.map(u => ({id: u.id, count: u.count}))
+            };
+            localStorage.setItem('marmalade_save_' + slot, JSON.stringify(data));
+            currentSaveSlot = slot;
+            localStorage.setItem('last_save_slot', slot);
+            
+            expandedSaveSlot = null; // Close options after save
+            renderSaves();
+            if(!silent) createFloater(window.innerWidth/2, window.innerHeight/2, "Game Saved!");
+        }
+
+
+        function loadGame(slot) {
+            const dataStr = localStorage.getItem('marmalade_save_' + slot);
+            
+            // Clear current state first
+            buildings.forEach(b => b.count = 0);
+            upgrades.forEach(u => u.count = 0);
+            money = 0;
+            inventory = 0;
+
+
+            if (dataStr) {
+                const data = JSON.parse(dataStr);
+                money = data.money || 0;
+                inventory = data.inventory || 0;
+
+
+                if(data.buildings) {
+                    data.buildings.forEach(savedB => {
+                        let target = buildings.find(b => b.id === savedB.id);
+                        if(target) target.count = savedB.count;
+                    });
+                }
+                if(data.upgrades) {
+                    data.upgrades.forEach(savedU => {
+                        let target = upgrades.find(u => u.id === savedU.id);
+                        if(target) target.count = savedU.count;
+                    });
+                }
+            } 
+            
+            currentSaveSlot = slot;
+            expandedSaveSlot = null; // Close options
+            localStorage.setItem('last_save_slot', slot);
+            
+            renderSaves();
+            renderShop();
+            updateUI();
+            createFloater(window.innerWidth/2, window.innerHeight/2, "Save Loaded");
+        }
+
+
+        function resetSave(slot) {
+            if(confirm("Are you sure you want to permanently wipe this save slot?")) {
+                localStorage.removeItem('marmalade_save_' + slot);
+                if(currentSaveSlot === slot) {
+                    loadGame(slot); // Loading wiped slot just loads defaults
+                } else {
+                    renderSaves();
+                }
+            }
+        }
+
+
+
+
+        // --- CHEAT CODE LOGIC ---
+        let inputHistory = [];
+        const cheatCode = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a', '9', '9'];
+        
+        document.addEventListener('keydown', (e) => {
+            inputHistory.push(e.key.toLowerCase());
+            if (inputHistory.length > cheatCode.length) inputHistory.shift();
+            
+            const isMatch = inputHistory.length === cheatCode.length && 
+                            inputHistory.every((val, index) => val === cheatCode[index]);
+                            
+            if (isMatch) {
+                ui.devMenu.style.display = 'block';
+                inputHistory = []; 
+            }
+        });
+
+
+        function devAddMoney() { money += 1000000000; updateUI(); ui.devMenu.style.display = 'none'; }
+        function devFillInventory() { inventory += 1000; updateUI(); ui.devMenu.style.display = 'none'; }
+        function devBuyAll(qty) {
+            buildings.forEach(b => b.count += qty);
+            upgrades.forEach(u => {
+                if (u.category === 'tech' || u.category === 'special') u.count = u.max;
+                else {
+                    let limit = u.max ? (u.max - u.count) : Infinity;
+                    u.count += Math.min(qty, limit);
+                }
+            });
+            renderShop(); updateUI();
+        }
+
+
+        // --- LOGIC ---
+        function gameTick() {
+            const rates = getRates();
+            const tickMult = gameTickRate / 1000;
+
+
+            let made = rates.make * tickMult;
+            inventory += made;
+
+
+            let maxSell = rates.sell * tickMult;
+            let actualSell = (inventory >= maxSell) ? maxSell : inventory;
+
+
+            if (actualSell > 0) {
+                inventory -= actualSell;
+                money += actualSell * getSellPrice();
+            }
+            if(inventory < 0.001) inventory = 0; 
+
+
+            updateUI();
+        }
+
+
+        function getClickPower() {
+            let power = 1.0;
+            const speed = upgrades.find(u => u.id === 'speed');
+            if (speed) power += (speed.count * 0.5);
+            
+            const titan = upgrades.find(u => u.id === 'titan_grip');
+            if (titan && titan.count > 0) {
+                power += titan.tiers[titan.count - 1]; 
+            }
+            
+            return power;
+        }
+
+
+        // --- INTERACTION ---
+        ui.orangeBtn.addEventListener('pointerdown', (e) => {
+            spawnJuice(e.clientX, e.clientY);
+            triggerSquash();
+            inventory += getClickPower();
+            updateUI();
+            pulseBadge();
+        });
+
+
+        ui.standBtn.addEventListener('pointerdown', (e) => {
+            let sellAmt = Math.min(1, inventory);
+            if (sellAmt > 0) {
+                inventory -= sellAmt;
+                const val = getSellPrice() * sellAmt;
+                money += val;
+                createFloater(e.clientX, e.clientY, `+$${val.toLocaleString(undefined, {minimumFractionDigits: 2})}`);
+                updateUI();
+            } else {
+                ui.standBtn.style.transform = "translateX(5px)";
+                setTimeout(() => ui.standBtn.style.transform = "translateX(0)", 100);
+            }
+        });
+
+
+        // --- CALCULATIONS ---
+        function getSellPrice() {
+            let val = basePrice;
+            const organic = upgrades.find(u => u.id === 'organic');
+            if (organic && organic.count > 0) val = 1.00;
+
+
+            const recipe = upgrades.find(u => u.id === 'recipe');
+            val += (recipe.count * 0.50);
+            return val;
+        }
+
+
+        function getRates() {
+            let make = 0;
+            let sell = 0;
+            buildings.forEach(b => {
+                if (b.count === 0) return;
+                let mult = 1;
+                const tech = upgrades.find(u => u.category === 'tech' && u.target === b.id);
+                if (tech && tech.count > 0) mult = tech.multiplier;
+                const totalRate = b.baseRate * b.count * mult;
+
+
+                if (b.type === 'maker') make += totalRate;
+                if (b.type === 'seller') sell += totalRate;
+                if (b.type === 'both') { make += totalRate; sell += totalRate; }
+            });
+            return { make, sell };
+        }
+
+
+        // --- COST ENGINE ---
+        function getSingleLevelCost(item, levelIndex) {
+            if (item.id === 'titan_grip') {
+                return item.baseCost * Math.pow(2, levelIndex);
+            }
+            if (item.id === 'speed') {
+                if (levelIndex < speedCosts.length) return speedCosts[levelIndex];
+                else {
+                    const lastListPrice = speedCosts[speedCosts.length - 1]; 
+                    const overflow = levelIndex - speedCosts.length + 1;
+                    return lastListPrice * Math.pow(2, overflow);
+                }
+            } 
+            else if (item.category === 'tech' || item.category === 'special') return item.baseCost;
+            else return Math.floor(item.baseCost * Math.pow(item.scale, levelIndex));
+        }
+
+
+        function getTotalCost(item, quantity) {
+            if (item.category === 'tech' || item.category === 'special') return item.baseCost;
+            let total = 0;
+            for(let i=0; i<quantity; i++) total += getSingleLevelCost(item, item.count + i);
+            return total;
+        }
+
+
+        function buy(id, isBuilding) {
+            setTimeout(() => VFX.sfx('coin'), 0);
+            const list = isBuilding ? buildings : upgrades;
+            const item = list.find(x => x.id === id);
+            
+            let qty = 0;
+            let cost = 0;
+
+
+            if (item.category === 'tech' || item.category === 'special') {
+                if (item.count >= item.max) return;
+                cost = item.baseCost;
+                qty = 1;
+            } else {
+                let limit = item.max ? (item.max - item.count) : Infinity;
+                if (limit <= 0) return;
+
+
+                if (buyMode === 1) qty = Math.min(1, limit);
+                else if (buyMode === 10) qty = Math.min(10, limit);
+                else if (buyMode === 'MAX') {
+                    let tempTotal = 0;
+                    let c = 0;
+                    while(c < limit) {
+                        let nextCost = getSingleLevelCost(item, item.count + c);
+                        if (money >= tempTotal + nextCost) {
+                            tempTotal += nextCost;
+                            c++;
+                        } else break;
+                    }
+                    qty = c;
+                }
+                if (qty > 0) cost = getTotalCost(item, qty);
+            }
+
+
+            if (money >= cost && qty > 0) {
+                money -= cost;
+                item.count += qty;
+                renderShop(); 
+                updateUI();
+            }
+        }
+
+
+        function setBuyMode(mode) {
+            buyMode = mode;
+            Object.values(ui.btns).forEach(b => b.classList.remove('active'));
+            if(mode === 'MAX') ui.btns.max.classList.add('active');
+            else ui.btns[mode].classList.add('active');
+            updateUI(); 
+        }
+
+
+        // --- RENDER ---
+        function renderShop() {
+            const scrollPos = ui.shopList.scrollTop || 0;
+            ui.shopList.innerHTML = "";
+
+
+            upgrades.forEach(item => {
+                if (item.category === 'special' && item.count < item.max) createShopItem(item, false);
+            });
+
+
+            const sep1 = document.createElement('div');
+            sep1.style.borderTop = "2px dashed var(--border-color)";
+            sep1.style.margin = "10px 0";
+            ui.shopList.appendChild(sep1);
+
+
+            buildings.forEach(item => createShopItem(item, true));
+            
+            const sep2 = document.createElement('div');
+            sep2.style.borderTop = "2px dashed var(--border-color)";
+            sep2.style.margin = "10px 0";
+            ui.shopList.appendChild(sep2);
+
+
+            upgrades.forEach(item => {
+                if (item.category === 'special') return; 
+                if (item.category === 'tech') {
+                    const related = buildings.find(b => b.id === item.target);
+                    if (!related || related.count === 0 || item.count >= item.max) return; 
+                }
+                createShopItem(item, false);
+            });
+            
+            ui.shopList.scrollTop = scrollPos;
+        }
+
+
+        function createShopItem(item, isBuilding) {
+            const div = document.createElement('div');
+            div.className = 'upgrade-row';
+            if(item.category === 'tech') div.classList.add('tech-upgrade');
+            if(item.category === 'special') div.classList.add('special-upgrade');
+
+
+            let info = item.desc;
+            
+            if (item.id === 'titan_grip') {
+                if (item.count < item.max) {
+                    info = `Next Upgrade: +${item.tiers[item.count]} Oranges/click`;
+                } else {
+                    info = `Power Maxed: +${item.tiers[item.max - 1]} Oranges/click`;
+                }
+            }
+            
+            if (isBuilding) {
+                if (item.type === 'maker') info += ` (+${item.baseRate}/s Make)`;
+                if (item.type === 'seller') info += ` (+${item.baseRate}/s Sell)`;
+                if (item.type === 'both') info += ` (+${item.baseRate}/s Both)`;
+            }
+
+
+            div.innerHTML = `
+                <div class="row-top">
+                    <span class="item-name">${item.name}</span>
+                    ${(item.category !== 'tech' && item.category !== 'special') ? `<span class="item-count">${item.count}${item.max ? '/' + item.max : ''}</span>` : ''}
+                </div>
+                <div class="item-desc">${info}</div>
+                <button id="buy-btn-${item.id}" class="buy-btn ${item.category === 'tech' ? 'tech-btn' : ''} ${item.category === 'special' ? 'special-btn' : ''}" 
+                    onclick="buy('${item.id}', ${isBuilding})">
+                    <span class="btn-label" id="label-${item.id}">Buy</span>
+                    <span class="btn-cost" id="cost-${item.id}">$0</span>
+                </button>
+            `;
+            ui.shopList.appendChild(div);
+        }
+
+
+        // --- DYNAMIC UI UPDATER ---
+        function updateUI() {
+            ui.money.textContent = `$${money.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            ui.sellVal.textContent = `$${getSellPrice().toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            
+            const rates = getRates();
+            ui.makeRate.textContent = `${rates.make.toFixed(1)}/s`;
+            ui.sellRate.textContent = `${rates.sell.toFixed(1)}/s`;
+            ui.clickRate.textContent = getClickPower().toFixed(1);
+            
+            ui.invBadge.textContent = inventory > 0 ? inventory.toFixed(1).replace(/\.0$/, '') : "0";
+            
+            ui.invBadge.style.background = inventory > 0 ? "var(--accent)" : "#e53e3e";
+            
+            if (inventory > 0) {
+                ui.pitcherIcon.classList.add('visible');
+                ui.sellHint.classList.add('visible');
+            } else {
+                ui.pitcherIcon.classList.remove('visible');
+                ui.sellHint.classList.remove('visible');
+            }
+
+
+            updateShopState(); 
+        }
+
+
+        function updateShopState() {
+            const items = [...buildings, ...upgrades];
+            items.forEach(item => {
+                const btn = document.getElementById(`buy-btn-${item.id}`);
+                if (!btn) return; 
+
+
+                const labelEl = document.getElementById(`label-${item.id}`);
+                const costEl = document.getElementById(`cost-${item.id}`);
+
+
+                if (item.max && item.count >= item.max) {
+                    if (labelEl) labelEl.textContent = "MAXED";
+                    if (costEl) costEl.textContent = "---";
+                    btn.disabled = true;
+                    return; 
+                }
+
+
+                let cost = 0;
+                let label = "";
+                let affordable = false;
+
+
+                if (item.category === 'tech' || item.category === 'special') {
+                    cost = item.baseCost;
+                    label = "Unlock";
+                    affordable = money >= cost;
+                } else {
+                    let limit = item.max ? (item.max - item.count) : Infinity;
+
+
+                    if (buyMode === 1) {
+                        cost = getTotalCost(item, 1);
+                        label = "Buy 1";
+                    } else if (buyMode === 10) {
+                        let actualQty = Math.min(10, limit);
+                        cost = getTotalCost(item, actualQty);
+                        label = `Buy ${actualQty}`;
+                    } else if (buyMode === 'MAX') {
+                        let tempTotal = 0;
+                        let c = 0;
+                        while(c < limit) {
+                            let nextCost = getSingleLevelCost(item, item.count + c);
+                            if (money >= tempTotal + nextCost) {
+                                tempTotal += nextCost;
+                                c++;
+                            } else break;
+                        }
+                        if (c === 0) { cost = getTotalCost(item, 1); label = "Buy 1"; }
+                        else { cost = tempTotal; label = `Buy ${c}`; }
+                    }
+                    affordable = money >= cost;
+                }
+                
+                if (labelEl) labelEl.textContent = label;
+                if (costEl) costEl.textContent = `$${cost.toLocaleString()}`;
+                btn.disabled = !affordable;
+            });
+        }
+
+
+        // --- VISUALS ---
+        function spawnJuice(x, y) {
+            for(let i=0; i<6; i++) {
+                const drop = document.createElement('div');
+                drop.classList.add('juice-drop');
+                const tx = (Math.random() * 100) - 50 + 'px';
+                const ty = (Math.random() * 100) + 20 + 'px';
+                drop.style.setProperty('--tx', tx);
+                drop.style.setProperty('--ty', ty);
+                drop.style.left = x + 'px';
+                drop.style.top = y + 'px';
+                document.body.appendChild(drop);
+                setTimeout(() => drop.remove(), 600);
+            }
+        }
+        function triggerSquash() {
+            VFX.sfx('click');
+            ui.orangeBtn.classList.remove('squash-anim');
+            void ui.orangeBtn.offsetWidth; 
+            ui.orangeBtn.classList.add('squash-anim');
+        }
+        function pulseBadge() {
+            ui.invBadge.style.transform = "scale(1.5)";
+            setTimeout(() => ui.invBadge.style.transform = "scale(1)", 200);
+        }
+        function createFloater(x, y, text) {
+            const el = document.createElement('div');
+            el.classList.add('floater');
+            el.innerText = text;
+            const randomX = (Math.random() * 40) - 20;
+            el.style.left = `${x + randomX}px`;
+            el.style.top = `${y - 50}px`;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 800);
+        }
+        function toggleSettings() {
+            const disp = ui.settingsModal.style.display;
+            ui.settingsModal.style.display = (disp === "block") ? "none" : "block";
+        }
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            updateUI(); 
+        }
+
+
+        init();
+    </script>
+</body>
+</html>
