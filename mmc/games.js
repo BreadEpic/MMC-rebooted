@@ -45,6 +45,7 @@
     { name: "Slope 2", href: "g/g/slope2/index.html" },
     { name: "Ai Creatures", href: "g/g/aicreatures/index.html" },
     { name: "Grey Box Testing", href: "g/g/greybox/index.html" },
+    { name: "3Dash", src: "games/3dash/index.html", thumb: "games/3dash/thumb.png", isNew: true },
 
     { title: "Godot" },
     { name: "Brotato", src: "games/brotato/index.html", thumb: "games/brotato/thumb.png", isNew: true },

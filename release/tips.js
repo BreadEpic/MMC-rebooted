@@ -17,6 +17,7 @@ MMC_TIPS([
   "Your playtime, pins and settings stay on this computer only.",
   "Your streak goes up every day you play something.",
   "Games with a NEW badge were added in the latest Reboot.",
+  "3Dash is in the Unity section. Use the arrows to pick a level.",
   "Filter the library by Flash for the classics, or Godot for Brotato and Crazy Cattle 3D.",
   "Everything runs offline. No wifi needed once it is unzipped.",
   "Keep Run Me.html next to the files folder, or nothing will load.",
