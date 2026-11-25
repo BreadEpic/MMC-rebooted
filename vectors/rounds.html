@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rounds 2.0</title>
+    <link rel="stylesheet" href="v2/fonts.css">
+    <style>
+        body { margin: 0; padding: 0; background-color: #0b0b0f; color: white; font-family: Inter, 'Segoe UI', Tahoma, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; user-select: none; }
+        #gameContainer { position: relative; }
+        canvas { background-color: #1a1a24; box-shadow: 0 0 50px rgba(0,0,0,1); border: 4px solid #333; border-radius: 8px; cursor: crosshair; }
+        
+        #uiOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; justify-content: space-between; padding: 20px; box-sizing: border-box; }
+        .player-ui { display: flex; flex-direction: column; width: 300px; }
+        .health-bar-container { width: 100%; height: 25px; background: rgba(0,0,0,0.8); border: 2px solid #fff; border-radius: 12px; overflow: hidden; position: relative; margin-bottom: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.5); }
+        .health-bar { height: 100%; width: 100%; transition: width 0.1s linear; }
+        #p1Health { background: linear-gradient(90deg, #ff4757, #ff6b81); }
+        #p2Health { background: linear-gradient(90deg, #1e90ff, #70a1ff); }
+        .health-text { position: absolute; width: 100%; text-align: center; top: 2px; font-weight: bold; font-size: 14px; text-shadow: 1px 1px 2px #000; }
+        .controls-text { font-size: 11px; color: #aaa; text-shadow: 1px 1px 2px #000; margin-top: -3px; margin-bottom: 5px; }
+        
+        #scoreBoard { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 2.5em; font-weight: bold; background: rgba(0,0,0,0.7); padding: 10px 30px; border-radius: 20px; border: 2px solid #555; text-shadow: 2px 2px 4px #000; display: flex; gap: 20px; }
+        .p1-score { color: #ff4757; }
+        .p2-score { color: #1e90ff; }
+        
+        #mainMenu, #pauseMenu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; backdrop-filter: blur(8px); pointer-events: auto; }
+        #pauseMenu { display: none; background: rgba(0,0,0,0.7); }
+        .menu-title { font-size: 4em; font-weight: 900; color: #fff; margin-bottom: 30px; text-shadow: 0 0 20px rgba(255,255,255,0.8); text-transform: uppercase; }
+        
+        .menu-row { display: flex; gap: 15px; margin-bottom: 20px; }
+        .menu-select { background: rgba(0,0,0,0.6); color: white; padding: 12px 20px; font-size: 1.2em; border: 2px solid #1e90ff; border-radius: 8px; outline: none; cursor: pointer; text-align: center; }
+        .menu-select:hover { background: rgba(30, 144, 255, 0.2); }
+        .menu-select option { background: #222; }
+
+        .menu-btn { background: #1e90ff; color: #fff; border: none; padding: 15px 50px; font-size: 1.5em; font-weight: bold; border-radius: 8px; cursor: pointer; transition: background 0.2s; box-shadow: 0 5px 15px rgba(30, 144, 255, 0.4); margin: 10px; }
+        .menu-btn:hover { background: #3742fa; }
+        .endless-btn { background: #feca57; box-shadow: 0 5px 15px rgba(254, 202, 87, 0.4); }
+        .endless-btn:hover { background: #ff9f43; }
+
+        #upgradeScreen, #winScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); display: none; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; z-index: 10; backdrop-filter: blur(8px); }
+        #upgradeTitle { font-size: 2.2em; margin-bottom: 30px; color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.6); }
+        #cardsContainer { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; max-width: 950px; max-height: 80vh; overflow-y: auto; padding: 10px;}
+        .card { background: #fff; color: #222; width: 210px; height: 330px; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; transition: all 0.2s ease-out; box-shadow: 0 10px 20px rgba(0,0,0,0.6); border: 4px solid transparent; box-sizing: border-box; }
+        .card:hover { transform: translateY(-12px) scale(1.03); border-color: #eccc68; box-shadow: 0 15px 35px rgba(236, 204, 104, 0.5); }
+        .card-title { font-size: 1.3em; font-weight: 900; margin-bottom: 10px; color: #2f3542; text-transform: uppercase; line-height: 1.1; }
+        .card-desc { font-size: 0.85em; color: #57606f; flex-grow: 1; font-style: italic; }
+        .card-stats { font-size: 0.85em; font-weight: bold; color: #2ed573; display: flex; flex-direction: column; gap: 4px; background: #f1f2f6; padding: 10px; border-radius: 8px; width: 100%; box-sizing: border-box; }
+        .negative-stat { color: #ff4757; }
+        .neutral-stat { color: #1e90ff; }
+
+        #winTitle { font-size: 4em; font-weight: 900; margin-bottom: 20px; text-transform: uppercase; text-shadow: 0 0 20px rgba(255,255,255,0.8); }
+        
+        canvas { width: min(1024px, 96vw, calc((100vh - 24px) * 16 / 9)); height: auto; border: 1px solid rgba(255,255,255,.12) !important; border-radius: 14px !important; box-shadow: 0 30px 80px rgba(0,0,0,.8), 0 0 60px rgba(30,144,255,.12) !important; }
+        .menu-title, #winTitle, #upgradeTitle, #scoreBoard { font-family: Orbitron, Inter, sans-serif !important; letter-spacing: 3px; }
+        .menu-title { background: linear-gradient(180deg, #fff, #7fb8ff); -webkit-background-clip: text; background-clip: text; color: transparent !important; filter: drop-shadow(0 0 18px rgba(30,144,255,.55)); text-shadow: none !important; }
+        .menu-btn { font-family: Orbitron, Inter, sans-serif; letter-spacing: 2px; box-shadow: 0 0 24px rgba(30,144,255,.45); }
+        .card { border-radius: 16px !important; background: linear-gradient(170deg, #ffffff, #e9eef8) !important; }
+        #mainMenu, #upgradeScreen, #winScreen { background: radial-gradient(ellipse at 50% 40%, rgba(20,24,60,.82), rgba(4,4,10,.95)) !important; backdrop-filter: blur(3px); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.5); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #feca57; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div id="gameContainer">
+    <canvas id="gameCanvas" width="1024" height="576"></canvas>
+    <div id="uiOverlay">
+        <div class="player-ui">
+            <h3 style="margin: 0; color: #ff4757; text-shadow: 1px 1px 2px #000;">Player 1</h3>
+            <div id="p1Controls" class="controls-text">Move: WASD | Crouch: S | Fire: Space | Block: Shift</div>
+            <div class="health-bar-container"><div id="p1Health" class="health-bar"></div><div id="p1HealthText" class="health-text">100 / 100</div></div>
+        </div>
+        <div id="scoreBoard"><span class="p1-score" id="scoreP1">0</span> - <span class="p2-score" id="scoreP2">0</span></div>
+        <div class="player-ui" style="text-align: right; align-items: flex-end;">
+            <h3 id="p2Label" style="margin: 0; color: #1e90ff; text-shadow: 1px 1px 2px #000;">Player 2</h3>
+            <div class="controls-text">Move: Arrows | Crouch: Down | Fire: Enter | Block: Shift</div>
+            <div class="health-bar-container"><div id="p2Health" class="health-bar"></div><div id="p2HealthText" class="health-text">100 / 100</div></div>
+        </div>
+    </div>
+
+    <div id="mainMenu">
+        <div class="menu-title">Rounds HTML5</div>
+        
+        <div class="menu-row">
+            <select id="modeSelect" class="menu-select" onchange="toggleAiMenu()">
+                <option value="pvp">Player vs Player</option>
+                <option value="pve">Player vs AI</option>
+            </select>
+            <select id="aiDifficulty" class="menu-select" style="display:none;">
+                <option value="0">AI: Noob</option>
+                <option value="1" selected>AI: Normal</option>
+                <option value="2">AI: Extremely Good</option>
+            </select>
+        </div>
+
+        <select id="mapSelect" class="menu-select">
+            <option value="random">Map Selection: Random</option>
+            <option value="0">Map 1 (Classic)</option>
+            <option value="1">Map 2 (Pillars)</option>
+            <option value="2">Map 3 (Wall)</option>
+            <option value="3">Map 4 (Symmetrical)</option>
+            <option value="4">Map 5 (Steps)</option>
+            <option value="5">Map 6 (Castle)</option>
+            <option value="6">Map 7 (Split)</option>
+            <option value="7">Map 8 [DYNAMIC Pads & Movers]</option>
+            <option value="8">Map 9 [DESTRUCTIBLE Floor]</option>
+            <option value="9">Map 10 [DESTRUCTIBLE Cave]</option>
+            <option value="10">Map 11 [DESTRUCTIBLE Mountain]</option>
+            <option value="11">Map 12 [SWINGING Pendulums]</option>
+            <option value="12">Map 13 [PHYSICS Playground]</option>
+            <option value="13">Map 14 [PHYSICS Box Tower]</option>
+            <option value="14">Map 15 [PHYSICS Avalanche]</option>
+        </select>
+        <button class="menu-btn" onclick="startGame()">Play Game</button>
+    </div>
+
+    <div id="pauseMenu">
+        <div class="menu-title">Paused</div>
+        <button class="menu-btn" onclick="togglePause()">Resume</button>
+    </div>
+
+    <div id="upgradeScreen">
+        <div id="upgradeTitle">Player X, Choose Your Upgrade!</div>
+        <div id="cardsContainer"></div>
+    </div>
+
+    <div id="winScreen">
+        <div id="winTitle">Player X Wins The Game!</div>
+        <div class="menu-row">
+            <button class="menu-btn play-again-btn" onclick="location.reload()">Main Menu</button>
+            <button class="menu-btn endless-btn" onclick="continueEndless()">Continue (Endless)</button>
+        </div>
+    </div>
+</div>
+
+<script src="v2/vfx.js"></script>
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    VFX.init({ canvas: canvas, bloom: 0.5, title: 'Rounds' });
+    const GRAVITY = 0.6;
+    const FRICTION = 0.82;
+    const WIN_SCORE = 15;
+    
+    let gameState = 'MAIN_MENU'; 
+    let gameMode = 'pvp'; 
+    let aiDifficulty = 1; 
+    let isEndless = false;
+    let savedLoserId = null;
+    let loserIndex = null;
+    let particles = []; let bullets = []; let boxes = [];
+    let currentMapIndex = 0;
+    let p1Score = 0; let p2Score = 0;
+    
+    let currentMapPlatforms = [];
+
+    const keys = {};
+    window.addEventListener('keydown', e => {
+        if(['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
+        if (gameMode === 'pve' && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'ShiftRight'].includes(e.code)) return;
+        keys[e.code] = true;
+        if (e.code === 'Escape') togglePause();
+    });
+    window.addEventListener('keyup', e => keys[e.code] = false);
+
+    let mouseX = 0;
+    let mouseY = 0;
+    let isMouseDown = false;
+
+    canvas.addEventListener('mousemove', e => {
+        const rect = canvas.getBoundingClientRect();
+        mouseX = (e.clientX - rect.left) * canvas.width / rect.width;
+        mouseY = (e.clientY - rect.top) * canvas.height / rect.height;
+    });
+
+    canvas.addEventListener('mousedown', e => {
+        if (e.button === 0) isMouseDown = true;
+    });
+
+    window.addEventListener('mouseup', e => {
+        if (e.button === 0) isMouseDown = false;
+    });
+
+    function toggleAiMenu() {
+        const mode = document.getElementById('modeSelect').value;
+        document.getElementById('aiDifficulty').style.display = mode === 'pve' ? 'block' : 'none';
+    }
+
+    function startGame() {
+        gameMode = document.getElementById('modeSelect').value;
+        aiDifficulty = parseInt(document.getElementById('aiDifficulty').value);
+        document.getElementById('p2Label').innerText = gameMode === 'pve' ? `AI (Level ${aiDifficulty})` : 'Player 2';
+        
+        document.getElementById('p1Controls').innerText = gameMode === 'pve' 
+            ? 'Move: WASD | Crouch: S | Aim: Mouse | Fire: Click | Block: Shift' 
+            : 'Move & Aim: WASD | Crouch: S | Fire: Space | Block: Shift';
+
+        document.getElementById('mainMenu').style.display = 'none';
+        gameState = 'PLAYING';
+        resetRound();
+    }
+
+    function togglePause() {
+        if (gameState === 'PLAYING') {
+            gameState = 'PAUSED';
+            document.getElementById('pauseMenu').style.display = 'flex';
+        } else if (gameState === 'PAUSED') {
+            gameState = 'PLAYING';
+            document.getElementById('pauseMenu').style.display = 'none';
+        }
+    }
+
+    function generateBlocks(x, y, w, h, size = 40) {
+        let blocks = [];
+        for (let i = x; i < x + w - size/2; i += size) {
+            for (let j = y; j < y + h - size/2; j += size) {
+                blocks.push({ x: i, y: j, w: size, h: size, destructible: true });
+            }
+        }
+        return blocks;
+    }
+
+    function generateMountain() {
+        let blocks = [];
+        let rows = 10;
+        let size = 40;
+        for (let row = 0; row < rows; row++) {
+            let widthBlocks = (rows - row) * 2 + 2; 
+            let w = widthBlocks * size;
+            let x = 512 - (w / 2);
+            let y = 536 - ((row + 1) * size);
+            blocks.push(...generateBlocks(x, y, w, size, size));
+        }
+        return blocks;
+    }
+
+    function generateBoxTower() {
+        let bx = [];
+        for(let i=0; i<10; i++) {
+            for(let j=0; j<3; j++) {
+                bx.push({type: 'box', x: 462 + j*40, y: 500 - i*40, w: 40, h: 40});
+            }
+        }
+        return bx;
+    }
+
+    function generateAvalanche() {
+        let bx = [];
+        for(let i=0; i<30; i++) {
+            let isCircle = Math.random() > 0.5;
+            if (isCircle) {
+                bx.push({type: 'circle', x: 50 + Math.random()*200, y: -400 - Math.random()*800, radius: 15 + Math.random()*15});
+                bx.push({type: 'circle', x: 750 + Math.random()*200, y: -400 - Math.random()*800, radius: 15 + Math.random()*15});
+            } else {
+                bx.push({type: 'box', x: 50 + Math.random()*200, y: -400 - Math.random()*800, w: 30 + Math.random()*30, h: 30 + Math.random()*30});
+                bx.push({type: 'box', x: 750 + Math.random()*200, y: -400 - Math.random()*800, w: 30 + Math.random()*30, h: 30 + Math.random()*30});
+            }
+        }
+        return bx;
+    }
+
+    const maps = [
+        { color: '#2f3542', platforms: [ {x: 0, y: 536, w: 400, h: 40}, {x: 624, y: 536, w: 400, h: 40}, {x: 362, y: 380, w: 300, h: 20}, {x: 150, y: 280, w: 150, h: 20}, {x: 724, y: 280, w: 150, h: 20}, {x: 462, y: 180, w: 100, h: 20} ], boxes: [ {type: 'box', x: 500, y: 300, w: 40, h: 40}, {type: 'box', x: 550, y: 300, w: 40, h: 40}, {type: 'circle', x: 200, y: 200, radius: 20} ], hazards: [ {x: 400, y: 536, w: 224, h: 40} ] },
+        { color: '#40407a', platforms: [ {x: 0, y: 536, w: 350, h: 40}, {x: 674, y: 536, w: 350, h: 40}, {x: 412, y: 450, w: 200, h: 20}, {x: 350, y: 320, w: 324, h: 20}, {x: 100, y: 220, w: 150, h: 20}, {x: 774, y: 220, w: 150, h: 20} ], boxes: [ {type: 'box', x: 480, y: 400, w: 50, h: 50}, {type: 'circle', x: 150, y: 500, radius: 20}, {type: 'circle', x: 800, y: 500, radius: 20} ], hazards: [ {x: 350, y: 536, w: 324, h: 40} ] },
+        { color: '#474787', platforms: [ {x: 0, y: 536, w: 350, h: 40}, {x: 450, y: 536, w: 574, h: 40}, {x: 0, y: 350, w: 250, h: 20}, {x: 250, y: 350, w: 20, h: 100}, {x: 400, y: 400, w: 150, h: 20}, {x: 650, y: 300, w: 150, h: 20}, {x: 850, y: 180, w: 174, h: 20} ], boxes: [ {type: 'box', x: 50, y: 450, w: 45, h: 45}, {type: 'box', x: 100, y: 450, w: 45, h: 45} ], hazards: [ {x: 350, y: 536, w: 100, h: 40} ] },
+        { color: '#2c2c54', platforms: [ {x: 0, y: 536, w: 450, h: 40}, {x: 574, y: 536, w: 450, h: 40}, {x: 250, y: 400, w: 150, h: 20}, {x: 624, y: 400, w: 150, h: 20}, {x: 250, y: 250, w: 150, h: 20}, {x: 624, y: 250, w: 150, h: 20}, {x: 412, y: 320, w: 200, h: 20} ], boxes: [ {type: 'box', x: 300, y: 350, w: 35, h: 35}, {type: 'box', x: 670, y: 350, w: 35, h: 35}, {type: 'circle', x: 480, y: 250, radius: 25} ], hazards: [ {x: 450, y: 536, w: 124, h: 40} ] },
+        { color: '#84817a', platforms: [ {x: 0, y: 536, w: 450, h: 40}, {x: 574, y: 536, w: 450, h: 40}, {x: 0, y: 0, w: 1024, h: 40}, {x: 0, y: 250, w: 200, h: 20}, {x: 824, y: 250, w: 200, h: 20}, {x: 350, y: 400, w: 324, h: 20}, {x: 350, y: 250, w: 20, h: 150}, {x: 654, y: 250, w: 20, h: 150} ], boxes: [ {type: 'box', x: 480, y: 350, w: 40, h: 40}, {type: 'box', x: 520, y: 350, w: 40, h: 40} ], hazards: [ {x: 450, y: 536, w: 124, h: 40} ] },
+        { color: '#b33939', platforms: [ {x: 0, y: 536, w: 200, h: 40}, {x: 350, y: 536, w: 250, h: 40}, {x: 750, y: 536, w: 274, h: 40}, {x: 150, y: 450, w: 120, h: 20}, {x: 320, y: 360, w: 120, h: 20}, {x: 490, y: 270, w: 120, h: 20}, {x: 660, y: 180, w: 120, h: 20} ], boxes: [ {type: 'circle', x: 200, y: 400, radius: 20}, {type: 'circle', x: 370, y: 310, radius: 20}, {type: 'circle', x: 540, y: 220, radius: 20} ], hazards: [ {x: 200, y: 536, w: 150, h: 40}, {x: 600, y: 536, w: 150, h: 40} ] },
+        { color: '#30336b', platforms: [ {x: 0, y: 536, w: 220, h: 40}, {x: 804, y: 536, w: 220, h: 40}, {x: 200, y: 380, w: 624, h: 20}, {x: 200, y: 380, w: 20, h: 156}, {x: 804, y: 380, w: 20, h: 156} ], boxes: [ {type: 'box', x: 480, y: 190, w: 40, h: 40} ], hazards: [ {x: 220, y: 536, w: 584, h: 40} ] },
+        { color: '#1B1464', platforms: [ {x: 0, y: 536, w: 300, h: 40}, {x: 450, y: 536, w: 124, h: 40}, {x: 724, y: 536, w: 300, h: 40}, {x: 400, y: 200, w: 224, h: 20} ], moving: [ {x: 200, y: 400, w: 120, h: 20, minX: 50, maxX: 350, vx: 2, vy: 0}, {x: 700, y: 400, w: 120, h: 20, minX: 600, maxX: 900, vx: -2, vy: 0} ], jumpPads: [ {x: 480, y: 516, w: 64, h: 20, power: 22} ], boxes: [], hazards: [ {x: 300, y: 536, w: 150, h: 40}, {x: 574, y: 536, w: 150, h: 40} ] },
+        { color: '#f0932b', platforms: [ {x: 0, y: 536, w: 100, h: 40}, {x: 924, y: 536, w: 100, h: 40}, ...generateBlocks(100, 400, 824, 60, 30), ...generateBlocks(400, 200, 224, 60, 30) ], boxes: [], hazards: [ {x: 100, y: 536, w: 824, h: 40} ] },
+        { color: '#535c68', p1Spawn: {x: 400, y: 300}, p2Spawn: {x: 600, y: 300}, platforms: [ 
+            {x: 0, y: 0, w: 1024, h: 40}, {x: 0, y: 40, w: 40, h: 496}, {x: 984, y: 40, w: 40, h: 496}, 
+            {x: 0, y: 536, w: 300, h: 40}, {x: 724, y: 536, w: 300, h: 40},
+            ...generateBlocks(40, 40, 320, 496, 40), ...generateBlocks(664, 40, 320, 496, 40), ...generateBlocks(360, 40, 304, 120, 40) 
+        ], boxes: [], hazards: [ {x: 300, y: 536, w: 424, h: 40} ] },
+        { color: '#22a6b3', platforms: [ {x: 0, y: 536, w: 300, h: 40}, {x: 724, y: 536, w: 300, h: 40}, ...generateMountain() ], boxes: [], hazards: [ {x: 300, y: 536, w: 424, h: 40} ] },
+        { color: '#c23616', platforms: [ {x: 0, y: 536, w: 200, h: 40}, {x: 824, y: 536, w: 200, h: 40} ], 
+          swinging: [ {w: 150, h: 20, pivotX: 300, pivotY: -50, radius: 400, baseAngle: Math.PI/2, swingArc: Math.PI/3, speed: 0.03, time: 0}, {w: 150, h: 20, pivotX: 724, pivotY: -50, radius: 400, baseAngle: Math.PI/2, swingArc: Math.PI/3, speed: 0.025, time: 50} ],
+          boxes: [{type: 'box', x: 100, y: 300, w: 40, h: 40}, {type: 'box', x: 880, y: 300, w: 40, h: 40}], hazards: [ {x: 200, y: 536, w: 624, h: 40} ] },
+        { color: '#6ab04c', platforms: [ {x: 300, y: 536, w: 150, h: 40}, {x: 574, y: 536, w: 150, h: 40}, {x: 0, y: 350, w: 300, h: 20}, {x: 724, y: 350, w: 300, h: 20}, {x: 412, y: 450, w: 200, h: 20} ], boxes: [{type:'box', x: 100, y: 250, w: 50, h: 50}, {type:'circle', x: 150, y: 250, radius: 20}, {type:'box', x: 800, y: 250, w: 50, h: 50}, {type:'circle', x: 850, y: 250, radius: 20}, {type:'box', x: 480, y: 150, w: 60, h: 60}], hazards: [ {x: 450, y: 536, w: 124, h: 40} ] },
+        { color: '#535c68', platforms: [ {x: 350, y: 536, w: 324, h: 40} ], boxes: generateBoxTower(), hazards: [] },
+        { color: '#4834d4', platforms: [ {x: 200, y: 536, w: 150, h: 40}, {x: 674, y: 536, w: 150, h: 40}, {x: 0, y: 200, w: 200, h: 20}, {x: 824, y: 200, w: 200, h: 20}, {x: 200, y: 200, w: 20, h: 336}, {x: 804, y: 200, w: 20, h: 336} ], boxes: generateAvalanche(), hazards: [ {x: 350, y: 536, w: 324, h: 40} ] }
+    ];
+    
+    let platforms = []; 
+    let movingPlatforms = [];
+    let swingingPlatforms = [];
+    let jumpPads = [];
+
+    class Particle {
+        constructor(x, y, vx, vy, color, life, size) {
+            this.x = x; this.y = y; this.vx = vx; this.vy = vy;
+            this.color = color; this.life = life; this.maxLife = life; this.size = size;
+        }
+        update() { this.x += this.vx; this.y += this.vy; this.life--; }
+        draw(ctx) {
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
+            ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.size * (0.5 + 0.5 * this.life / this.maxLife), 0, Math.PI*2); ctx.fill();
+            ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+        }
+    }
+
+    class Box {
+        constructor(props) {
+            this.type = props.type || 'box';
+            this.x = props.x !== undefined ? props.x : 0;
+            this.y = props.y !== undefined ? props.y : 0;
+
+            if (this.type === 'circle') {
+                this.radius = props.radius || (props.size ? props.size/2 : 20);
+                this.w = this.radius * 2; 
+                this.h = this.radius * 2;
+                this.maxHealth = this.radius * 4;
+            } else {
+                this.w = props.w || props.size || 40; 
+                this.h = props.h || props.size || 40;
+                this.maxHealth = ((this.w + this.h) / 2) * 3;
+            }
+            this.vx = 0; this.vy = 0;
+            this.angle = 0;
+            this.angularVelocity = 0;
+            this.health = this.maxHealth;
+            this.active = true;
+            this.grounded = false;
+        }
+
+        update() {
+            this.vy += GRAVITY;
+            this.vx *= this.type === 'circle' ? 0.98 : 0.85; 
+            
+            if (this.type === 'box') {
+                this.angle += this.angularVelocity;
+                this.angularVelocity *= 0.92;
+                if (Math.abs(this.angularVelocity) < 0.01) this.angularVelocity = 0;
+
+                if (this.angle > Math.PI/4 || this.angle < -Math.PI/4) {
+                    let dir = Math.sign(this.angle);
+                    this.angle -= dir * Math.PI/2;
+                    let temp = this.w; this.w = this.h; this.h = temp;
+                    this.y -= Math.abs(this.w - this.h)/2; 
+                    this.x += dir * (this.h/4); 
+                    this.vx += dir * 2; 
+                }
+                
+                if (this.grounded) {
+                    this.angle *= 0.6; 
+                } else if (Math.abs(this.vx) > 2) {
+                    this.angularVelocity = this.vx * 0.03; 
+                }
+            } else {
+                if (this.grounded) {
+                    this.angularVelocity = this.vx / this.radius;
+                }
+                this.angle += this.angularVelocity;
+            }
+
+            this.x += this.vx;
+            this.y += this.vy;
+            this.grounded = false;
+
+            currentMapPlatforms.forEach(p => {
+                if (this.type === 'circle') {
+                    let testX = this.x; let testY = this.y;
+                    if (this.x < p.x) testX = p.x; else if (this.x > p.x + p.w) testX = p.x + p.w;
+                    if (this.y < p.y) testY = p.y; else if (this.y > p.y + p.h) testY = p.y + p.h;
+                    
+                    let dx = this.x - testX; let dy = this.y - testY;
+                    let dist = Math.hypot(dx, dy);
+                    
+                    if (dist < this.radius) {
+                        let overlap = this.radius - dist;
+                        let nx = 0, ny = -1;
+                        if (dist === 0) { 
+                            let dL = this.x - p.x; let dR = p.x + p.w - this.x;
+                            let dT = this.y - p.y; let dB = p.y + p.h - this.y;
+                            let min = Math.min(dL, dR, dT, dB);
+                            if (min === dT) { nx = 0; ny = -1; overlap = dT + this.radius; }
+                            else if (min === dB) { nx = 0; ny = 1; overlap = dB + this.radius; }
+                            else if (min === dL) { nx = -1; ny = 0; overlap = dL + this.radius; }
+                            else { nx = 1; ny = 0; overlap = dR + this.radius; }
+                        } else {
+                            nx = dx/dist; ny = dy/dist;
+                        }
+                        
+                        this.x += nx * overlap; this.y += ny * overlap;
+                        if (ny < -0.5) { this.grounded = true; this.vy = 0; if(p.vx) this.x += p.vx; }
+                        else if (Math.abs(nx) > 0.5) this.vx *= -0.5;
+                    }
+                } else {
+                    if (this.x < p.x + p.w && this.x + this.w > p.x && this.y < p.y + p.h && this.y + this.h > p.y) {
+                        let overlapX = Math.min(this.x + this.w - p.x, p.x + p.w - this.x);
+                        let overlapY = Math.min(this.y + this.h - p.y, p.y + p.h - this.y);
+                        if (overlapX < overlapY) {
+                            if (this.x < p.x) this.x = p.x - this.w; else this.x = p.x + p.w;
+                            this.vx *= -0.5;
+                        } else {
+                            if (this.y < p.y) { 
+                                this.y = p.y - this.h; this.vy = 0; this.grounded = true; if (p.vx) this.x += p.vx; 
+                            } else { 
+                                this.y = p.y + p.h; this.vy = 0; 
+                            }
+                        }
+                    }
+                }
+            });
+
+            jumpPads.forEach(pad => {
+                if (this.type === 'circle') {
+                    if (this.x + this.radius > pad.x && this.x - this.radius < pad.x + pad.w && this.y + this.radius > pad.y && this.y - this.radius < pad.y + pad.h) this.vy = -pad.power * 0.8;
+                } else {
+                    if (this.x < pad.x + pad.w && this.x + this.w > pad.x && this.y < pad.y + pad.h && this.y + this.h > pad.y) this.vy = -pad.power * 0.8;
+                }
+            });
+
+            if (this.type === 'circle') {
+                if (this.x - this.radius < 10) { this.x = 10 + this.radius; this.vx *= -0.8; }
+                if (this.x + this.radius > canvas.width - 10) { this.x = canvas.width - 10 - this.radius; this.vx *= -0.8; }
+            } else {
+                if (this.x < 10) { this.x = 10; this.vx *= -0.8; }
+                if (this.x + this.w > canvas.width - 10) { this.x = canvas.width - 10 - this.w; this.vx *= -0.8; }
+            }
+            
+            if (this.y > canvas.height + 200) this.active = false;
+            if (this.health <= 0) {
+                this.active = false;
+                for(let i=0; i<15; i++) particles.push(new Particle(this.x + (this.w?this.w/2:0), this.y + (this.h?this.h/2:0), (Math.random()-0.5)*15, (Math.random()-0.5)*15, '#d35400', 20, 4));
+            }
+        }
+        
+        draw(ctx) {
+            if (!this.active) return;
+            ctx.globalAlpha = Math.max(0.3, this.health / this.maxHealth);
+            ctx.save();
+            if (this.type === 'circle') {
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2);
+                ctx.fillStyle = '#8e44ad'; ctx.fill();
+                ctx.strokeStyle = '#9b59b6'; ctx.lineWidth = 4; ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(this.radius, 0); ctx.stroke();
+            } else {
+                ctx.translate(this.x + this.w/2, this.y + this.h/2);
+                ctx.rotate(this.angle);
+                ctx.fillStyle = '#d35400'; ctx.fillRect(-this.w/2, -this.h/2, this.w, this.h);
+                ctx.fillStyle = '#e67e22'; ctx.fillRect(-this.w/2 + 4, -this.h/2 + 4, this.w-8, this.h-8);
+            }
+            ctx.restore();
+            ctx.globalAlpha = 1;
+        }
+    }
+
+    class Player {
+        constructor(x, y, color, controls, id) {
+            this.id = id; this.color = color; this.controls = controls;
+            this.baseSize = 34; this.scale = 1;
+            this.maxHealth = 100; this.health = 100;
+            this.speed = 5; this.jumpPower = 13.5; this.maxJumps = 2; 
+            this.damageMult = 1; this.bulletSpeed = 15;
+            this.fireRate = 25; this.bounces = 0; this.explosive = 0;
+            this.burst = 1; this.homing = 0; 
+            this.bulletSizeMult = 1; 
+            
+            this.hasLifesteal = false; 
+            this.hasPoison = false;    
+            this.zeroGrav = false;
+
+            this.pacman = false; this.boomerang = false;
+            this.maxAmmo = 5; this.ammo = 5;
+            this.reloadTimeBase = 120; this.reloadTimeMult = 1; this.reloadTimer = 0;
+            
+            this.maxBlockCooldownBase = 300; this.blockCooldownMult = 1;
+            this.blockDurationBase = 25; this.blockDurationMult = 1;
+            this.blockDamage = 0;
+            this.blockRepulse = 0;
+            this.blockAttract = 0;
+
+            this.gunRecoil = 0; 
+            this.poisonTicks = 0; this.poisonDamagePerTick = 0; this.poisonTimer = 0;
+
+            this.aimAngle = this.id === 1 ? 0 : Math.PI;
+            this.isCrouching = false;
+            this.wallGrabDir = 0;
+            
+            this.resetPos(x, y);
+        }
+
+        get width() { return this.baseSize * this.scale; }
+        get height() { return this.isCrouching ? (this.baseSize * this.scale) / 2 : this.baseSize * this.scale; } 
+        get reloadTime() { return this.reloadTimeBase * this.reloadTimeMult; }
+        get maxBlockCooldown() { return this.maxBlockCooldownBase * this.blockCooldownMult; }
+        get blockDuration() { return this.blockDurationBase * this.blockDurationMult; }
+
+        resetPos(x, y) {
+            this.x = x; this.y = y; this.vx = 0; this.vy = 0;
+            this.health = this.maxHealth; this.ammo = this.maxAmmo;
+            this.reloadTimer = 0; this.blockCooldown = 0; this.isBlocking = false;
+            this.jumpsLeft = this.maxJumps; this.fireCooldown = 0;
+            this.gunRecoil = 0; 
+            this.poisonTicks = 0; this.poisonTimer = 0; this.poisonDamagePerTick = 0;
+            this.aimAngle = this.id === 1 ? 0 : Math.PI;
+            this.facingRight = (this.id === 1); 
+            this.isCrouching = false;
+            this.wallGrabDir = 0;
+            this.zeroGrav = false;
+        }
+
+        applyCard(card) {
+            let m = card.mods;
+            if (m.maxHealth) { this.maxHealth = Math.max(1, this.maxHealth + m.maxHealth); this.health = this.maxHealth; }
+            if (m.speed) { this.speed = Math.max(1, this.speed + m.speed); }
+            if (m.damageMult) { 
+                this.damageMult += m.damageMult; 
+                this.damageMult = Math.max(0.1, Math.min(this.damageMult, 2.5)); 
+            }
+            if (m.maxAmmo) { this.maxAmmo = Math.max(1, this.maxAmmo + m.maxAmmo); this.ammo = this.maxAmmo; }
+            if (m.bulletSpeed) { this.bulletSpeed = Math.max(5, this.bulletSpeed + m.bulletSpeed); }
+            if (m.jumpPower) this.jumpPower += m.jumpPower;
+            if (m.bounces) this.bounces += m.bounces;
+            if (m.fireRateMult) this.fireRate *= m.fireRateMult;
+            if (m.maxJumps) this.maxJumps += m.maxJumps;
+            
+            if (m.bulletSizeMult) { 
+                this.bulletSizeMult *= m.bulletSizeMult; 
+                this.bulletSizeMult = Math.max(0.2, Math.min(this.bulletSizeMult, 3.5)); 
+            }
+            
+            if (m.blockDamage) this.blockDamage += m.blockDamage;
+            if (m.blockRepulse) this.blockRepulse += m.blockRepulse;
+            if (m.blockAttract) this.blockAttract += m.blockAttract;
+
+            if (m.lifesteal) this.hasLifesteal = true;
+            if (m.poison) this.hasPoison = true;
+            if (m.zeroGrav) this.zeroGrav = true;
+            
+            if (m.burst) this.burst += m.burst;
+            if (m.homing) this.homing += m.homing;
+            if (m.explosive) this.explosive += m.explosive;
+            if (m.scale) { this.scale *= m.scale; this.scale = Math.max(0.4, Math.min(this.scale, 2.5)); this.y -= 20; }
+            if (m.reloadTimeMult) this.reloadTimeMult *= m.reloadTimeMult;
+            if (m.blockCooldownMult) this.blockCooldownMult *= m.blockCooldownMult;
+            if (m.blockDurationMult) this.blockDurationMult *= m.blockDurationMult;
+            if (m.pacman) this.pacman = true;
+            if (m.boomerang) this.boomerang = true;
+        }
+
+        applyPoison(totalPoisonDamage) {
+            this.poisonDamagePerTick = Math.min(totalPoisonDamage / 3, 20); 
+            this.poisonTicks = 3;
+            this.poisonTimer = 40; 
+        }
+
+        update() {
+            if (this.health <= 0 || gameState !== 'PLAYING') return;
+            if (p1.health <= 0 || p2.health <= 0) return; 
+
+            let doShoot = false;
+            let pressingDown = false;
+
+            if (gameMode === 'pve' && this.id === 2) {
+                let target = p1;
+                let dx = target.x - this.x;
+                let absDx = Math.abs(dx);
+                let dy = target.y - this.y;
+                let absDy = Math.abs(dy);
+                
+                let moveLeft = false, moveRight = false, doJump = false, doBlock = false;
+
+                let cx = this.x + this.width/2;
+                let cy = this.y + this.height/2;
+                let tcx = target.x + target.width/2;
+                let tcy = target.y + target.height/2;
+                this.aimAngle = Math.atan2(tcy - cy, tcx - cx);
+                this.facingRight = Math.abs(this.aimAngle) < Math.PI / 2;
+
+                let incomingBullets = bullets.filter(b => b.owner !== this.id && b.active && 
+                    ((b.vx > 0 && b.x < this.x + this.width) || (b.vx < 0 && b.x > this.x)));
+                
+                let dangerBullet = incomingBullets.find(b => 
+                    Math.hypot(b.x - this.x, b.y - this.y) < (aiDifficulty === 2 ? 400 : 150) && 
+                    b.y + b.radius > this.y - 10 && b.y - b.radius < this.y + this.height + 10
+                );
+
+                let isReloading = this.reloadTimer > 0 || this.ammo <= 0;
+                let lowHealth = this.health < 40 && this.health < target.health;
+                let fleeing = isReloading || (lowHealth && aiDifficulty === 2);
+
+                let idealDist = fleeing ? 600 : (aiDifficulty === 2 ? 250 : 150);
+
+                if (absDx < idealDist - 30) {
+                    moveLeft = dx > 0;
+                    moveRight = dx < 0;
+                } else if (absDx > idealDist + 30 && !fleeing) {
+                    moveLeft = dx < 0;
+                    moveRight = dx > 0;
+                }
+
+                let cm = maps[currentMapIndex];
+                if (cm.hazards) {
+                    for (let h of cm.hazards) {
+                        if (this.x + this.width > h.x && this.x < h.x + h.w) {
+                            if (this.y + this.height > h.y - 80) {
+                                doJump = true; 
+                                if (this.x + this.width / 2 < h.x + h.w / 2) {
+                                    moveLeft = true; moveRight = false;
+                                } else {
+                                    moveRight = true; moveLeft = false;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (this.y > canvas.height - 100 && this.vy > 0) {
+                    doJump = true;
+                }
+
+                let isStuck = (moveLeft || moveRight) && Math.abs(this.vx) < 0.5 && this.grounded;
+                
+                if (aiDifficulty === 2) {
+                    if (dangerBullet && this.blockCooldown > 0 && dangerBullet.y > this.y + this.height/2) {
+                        doJump = true;
+                    }
+                    if ((target.y < this.y - 30 && !fleeing) || isStuck) {
+                        if (Math.random() < 0.8) doJump = true;
+                    }
+                } else {
+                    if ((target.y < this.y - 50 && absDx < 200) || isStuck) {
+                        if (Math.random() < 0.1) doJump = true;
+                    }
+                }
+
+                if (dangerBullet && this.blockCooldown <= 0 && aiDifficulty > 0) {
+                    let timeToImpact = Math.abs((dangerBullet.x - this.x) / (dangerBullet.vx || 1));
+                    if (aiDifficulty === 2) {
+                        if (timeToImpact < 12) doBlock = true; 
+                    } else {
+                        if (Math.random() < 0.3) doBlock = true;
+                    }
+                }
+
+                if (!isReloading && !fleeing) {
+                    let shootChance = aiDifficulty === 0 ? 0.01 : (aiDifficulty === 1 ? 0.05 : 0.9);
+                    if (Math.random() < shootChance) doShoot = true;
+                }
+
+                keys['ArrowLeft'] = moveLeft;
+                keys['ArrowRight'] = moveRight;
+                keys['ArrowUp'] = doJump;
+                keys['ShiftRight'] = doBlock;
+            } else if (gameMode === 'pve' && this.id === 1) {
+                let cx = this.x + this.width / 2;
+                let cy = this.y + this.height / 2;
+                this.aimAngle = Math.atan2(mouseY - cy, mouseX - cx);
+                this.facingRight = Math.abs(this.aimAngle) < Math.PI / 2;
+                doShoot = isMouseDown;
+                pressingDown = keys[this.controls.down];
+            } else {
+                let aimX = 0, aimY = 0;
+                if (keys[this.controls.left]) aimX -= 1;
+                if (keys[this.controls.right]) aimX += 1;
+                if (keys[this.controls.jump]) aimY -= 1;
+                if (keys[this.controls.down]) aimY += 1;
+
+                if (aimX !== 0 || aimY !== 0) {
+                    this.aimAngle = Math.atan2(aimY, aimX);
+                    if (aimX !== 0) {
+                        this.facingRight = aimX > 0;
+                    }
+                } else if (Math.abs(this.vx) > 0.1) {
+                    this.aimAngle = this.vx > 0 ? 0 : Math.PI;
+                    this.facingRight = this.vx > 0;
+                } else {
+                    this.aimAngle = this.facingRight ? 0 : Math.PI;
+                }
+
+                doShoot = keys[this.controls.shoot];
+                pressingDown = keys[this.controls.down];
+            }
+
+            if (pressingDown && this.grounded) {
+                if (!this.isCrouching) {
+                    this.isCrouching = true;
+                    this.y += (this.baseSize * this.scale) / 2; 
+                }
+            } else {
+                if (this.isCrouching) {
+                    this.isCrouching = false;
+                    this.y -= (this.baseSize * this.scale) / 2; 
+                }
+            }
+
+            if (this.poisonTicks > 0) {
+                this.poisonTimer--;
+                if (this.poisonTimer <= 0) {
+                    this.takeDamage(this.poisonDamagePerTick);
+                    this.poisonTicks--;
+                    this.poisonTimer = 40;
+                    particles.push(new Particle(this.x+this.width/2, this.y, 0, -2, '#9b59b6', 20, 5));
+                }
+            }
+
+            if (this.reloadTimer > 0) {
+                this.reloadTimer--;
+                if (this.reloadTimer <= 0) this.ammo = this.maxAmmo;
+            } else if (this.ammo <= 0) {
+                this.reloadTimer = this.reloadTime;
+            }
+
+            if (this.gunRecoil > 0) this.gunRecoil -= 1;
+            if (this.blockCooldown > 0) this.blockCooldown--;
+            
+            if (keys[this.controls.block] && this.blockCooldown <= 0 && !this.isBlocking) {
+                this.isBlocking = true; this.blockTimer = this.blockDuration;
+                for(let i=0; i<15; i++) particles.push(new Particle(this.x+this.width/2, this.y+this.height/2, (Math.random()-0.5)*15, (Math.random()-0.5)*15, '#00d2d3', 20, 5));
+
+                let target = this.id === 1 ? p2 : p1;
+                let cx = this.x + this.width/2; 
+                let cy = this.y + this.height/2;
+                let tcx = target.x + target.width/2; 
+                let tcy = target.y + target.height/2;
+                let dx = tcx - cx; let dy = tcy - cy;
+                let dist = Math.hypot(dx, dy) || 1;
+
+                let effectRadius = 250 * this.scale;
+                
+                if (dist < effectRadius && target.health > 0) {
+                    if (this.blockDamage > 0) target.takeDamage(this.blockDamage);
+                    if (this.blockRepulse > 0 || this.blockAttract > 0) {
+                        let force = this.blockRepulse - this.blockAttract;
+                        let safeDist = Math.max(dist, 10);
+                        target.vx += (dx / safeDist) * force;
+                        target.vy += (dy / safeDist) * force;
+                    }
+                }
+
+                boxes.forEach(b => {
+                    let bx = b.type === 'circle' ? b.x : b.x + b.w/2; 
+                    let by = b.type === 'circle' ? b.y : b.y + b.h/2;
+                    let bdx = bx - cx; let bdy = by - cy;
+                    let bdist = Math.hypot(bdx, bdy) || 1;
+                    if (bdist < effectRadius) {
+                        let force = this.blockRepulse - this.blockAttract;
+                        let safeDist = Math.max(bdist, 10);
+                        b.vx += (bdx / safeDist) * force;
+                        b.vy += (bdy / safeDist) * force;
+                    }
+                });
+            }
+
+            if (this.isBlocking) {
+                this.blockTimer--;
+                if (this.blockTimer <= 0) { this.isBlocking = false; this.blockCooldown = this.maxBlockCooldown; }
+            }
+
+            let moveSpeed = this.speed;
+            if (this.isBlocking) moveSpeed *= 0.5;
+            if (this.isCrouching) moveSpeed *= 0.5;
+
+            if (keys[this.controls.left]) { this.vx -= 1.5 * (moveSpeed/this.speed); } 
+            if (keys[this.controls.right]) { this.vx += 1.5 * (moveSpeed/this.speed); } 
+
+            if (keys[this.controls.jump] && this.jumpsLeft > 0) {
+                this.vy = -this.jumpPower; 
+                this.jumpsLeft--; 
+                keys[this.controls.jump] = false;
+                
+                if (this.wallGrabDir !== 0 && !this.grounded) {
+                    this.vx = -this.wallGrabDir * this.speed * 1.5;
+                }
+                for(let i=0; i<5; i++) particles.push(new Particle(this.x+this.width/2, this.y+this.height, (Math.random()-0.5)*2, Math.random()*2, '#fff', 20, 3));
+            }
+
+            this.vy += GRAVITY; 
+            this.vx *= FRICTION;
+            this.vx = Math.max(-moveSpeed, Math.min(moveSpeed, this.vx));
+
+            this.wallGrabDir = 0;
+            this.grounded = false;
+
+            this.x += this.vx;
+            this.handleCollisions(true);
+            this.y += this.vy;
+            this.handleCollisions(false);
+
+            if (this.wallGrabDir !== 0 && !this.grounded && this.vy > 0) {
+                let holdingTowardsWall = (this.wallGrabDir === 1 && keys[this.controls.right]) || (this.wallGrabDir === -1 && keys[this.controls.left]);
+                if (holdingTowardsWall) {
+                    this.vy = Math.min(this.vy, 2); 
+                    this.jumpsLeft = Math.max(1, this.jumpsLeft); 
+                    if (Math.random() < 0.3) particles.push(new Particle(this.x + (this.wallGrabDir === 1 ? this.width : 0), this.y + this.height, 0, -1, '#fff', 15, 2));
+                }
+            }
+
+            jumpPads.forEach(pad => {
+                if (this.x < pad.x + pad.w && this.x + this.width > pad.x && this.y + this.height > pad.y && this.y < pad.y + pad.h) {
+                    this.vy = -pad.power; this.jumpsLeft = this.maxJumps;
+                }
+            });
+
+            if (this.fireCooldown > 0) this.fireCooldown--;
+            if (doShoot && this.fireCooldown <= 0 && this.ammo > 0 && this.reloadTimer <= 0) { 
+                this.shoot();
+                this.ammo--;
+                this.fireCooldown = this.fireRate;
+                this.gunRecoil = 8 * this.scale;
+            }
+
+            boxes.forEach(b => {
+                if (!b.active) return;
+                if (b.type === 'circle') {
+                    let testX = b.x; let testY = b.y;
+                    
+                    if (b.x < this.x) testX = this.x; 
+                    else if (b.x > this.x + this.width) testX = this.x + this.width;
+                    
+                    if (b.y < this.y) testY = this.y; 
+                    else if (b.y > this.y + this.height) testY = this.y + this.height;
+
+                    let dx = b.x - testX; 
+                    let dy = b.y - testY;
+                    let dist = Math.hypot(dx, dy);
+
+                    if (dist < b.radius) {
+                        let overlap = b.radius - dist;
+                        let nx = 0, ny = 1;
+                        
+                        if (dist === 0) { 
+                            let dL = b.x - this.x; 
+                            let dR = this.x + this.width - b.x;
+                            let dT = b.y - this.y; 
+                            let dB = this.y + this.height - b.y;
+                            let min = Math.min(dL, dR, dT, dB);
+                            if (min === dT) { nx = 0; ny = -1; overlap = dT + b.radius; }
+                            else if (min === dB) { nx = 0; ny = 1; overlap = dB + b.radius; }
+                            else if (min === dL) { nx = -1; ny = 0; overlap = dL + b.radius; }
+                            else { nx = 1; ny = 0; overlap = dR + b.radius; }
+                        } else {
+                            nx = dx / dist; 
+                            ny = dy / dist;
+                        }
+
+                        this.x -= nx * overlap; 
+                        this.y -= ny * overlap;
+
+                        b.vx += nx * 0.5;
+
+                        if (ny > 0.5 && this.vy >= 0) { 
+                            this.vy = b.vy || 0; 
+                            this.grounded = true; 
+                            this.jumpsLeft = this.maxJumps; 
+                        } else if (ny < -0.5 && this.vy < 0) {
+                            this.vy = 0; 
+                        } else if (Math.abs(nx) > 0.5) {
+                            this.wallGrabDir = Math.sign(nx); 
+                            this.vx = 0;
+                        }
+                    }
+                } else {
+                    let dx = (this.x + this.width/2) - (b.x + b.w/2);
+                    let dy = (this.y + this.height/2) - (b.y + b.h/2);
+                    let aw = (this.width + b.w)/2; let ah = (this.height + b.h)/2;
+
+                    if (Math.abs(dx) < aw && Math.abs(dy) < ah) {
+                        let wy = aw * dy; let hx = ah * dx;
+                        if (wy > hx) {
+                            if (wy > -hx) { 
+                                if (this.grounded) {
+                                    b.y = this.y - b.h; b.vy = 0; b.grounded = true;
+                                } else {
+                                    this.y = b.y + b.h; this.vy = 0;
+                                }
+                            } else { 
+                                this.x = b.x - this.width; this.wallGrabDir = 1;
+                                b.vx += Math.max(0.5, this.vx * 0.5); 
+                            }
+                        } else {
+                            if (wy > -hx) { 
+                                this.x = b.x + b.w; this.wallGrabDir = -1;
+                                b.vx += Math.min(-0.5, this.vx * 0.5); 
+                            } else { 
+                                this.y = b.y - this.height; this.vy = b.vy; 
+                                this.grounded = true; this.jumpsLeft = this.maxJumps;
+                            }
+                        }
+                    }
+                }
+            });
+
+            let currentMap = maps[currentMapIndex];
+            if (currentMap.hazards) {
+                currentMap.hazards.forEach(h => {
+                    if (this.x < h.x + h.w && this.x + this.width > h.x && this.y < h.y + h.h && this.y + this.height > h.y) {
+                        this.takeDamage(0.3);
+                        this.vy -= 0.5; 
+                    }
+                });
+            }
+
+            if (this.x < 10) { this.x = 10; this.vx *= -0.8; }
+            if (this.x + this.width > canvas.width - 10) { this.x = canvas.width - 10 - this.width; this.vx *= -0.8; }
+            
+            if (this.y > canvas.height + 50) this.takeDamage(9999); 
+        }
+
+        handleCollisions(isX) {
+            this.grounded = false;
+            for (let p of currentMapPlatforms) {
+                if (this.x < p.x + p.w && this.x + this.width > p.x && this.y < p.y + p.h && this.y + this.height > p.y) {
+                    if (isX) {
+                        if (this.vx > 0) { this.x = p.x - this.width; this.wallGrabDir = 1; }
+                        else if (this.vx < 0) { this.x = p.x + p.w; this.wallGrabDir = -1; }
+                        this.vx = 0;
+                    } else {
+                        if (this.vy > 0) { 
+                            this.y = p.y - this.height; 
+                            this.jumpsLeft = this.maxJumps; 
+                            this.grounded = true;
+                            if (p.vx) this.x += p.vx; 
+                        }
+                        else if (this.vy < 0) this.y = p.y + p.h;
+                        this.vy = 0;
+                    }
+                }
+            }
+        }
+
+        shoot() {
+            let cx = this.x + this.width / 2;
+            let cy = this.y + this.height / 2;
+            let barrelOffset = (this.width / 2) + 10;
+
+            for(let i = 0; i < this.burst; i++) {
+                let angleSpread = (i - Math.floor(this.burst/2)) * 0.15;
+                let finalAngle = this.aimAngle + angleSpread;
+                
+                let bx = cx + Math.cos(this.aimAngle) * barrelOffset;
+                let by = cy + Math.sin(this.aimAngle) * barrelOffset;
+                
+                let bvx = Math.cos(finalAngle) * this.bulletSpeed;
+                let bvy = Math.sin(finalAngle) * this.bulletSpeed;
+
+                VFX.sfx(this.explosive ? 'boom' : 'shoot');
+                bullets.push(new Bullet(
+                    bx, by, 
+                    bvx, bvy, 
+                    this.id, 20 * this.damageMult, this.bounces, this.homing, 
+                    this.hasLifesteal, this.pacman, this.boomerang, this.explosive, this.hasPoison, this.bulletSizeMult, this.zeroGrav
+                ));
+            }
+        }
+
+        takeDamage(amount) {
+            if (typeof p1 !== 'undefined' && typeof p2 !== 'undefined') {
+                if (p1.health <= 0 || p2.health <= 0) return; 
+            }
+            if (this.isBlocking || this.health <= 0) return;
+            
+            this.health -= Math.min(amount, 60); VFX.sfx('hit'); VFX.shake(Math.min(10, 2 + amount / 6), 160);
+
+            for(let i=0; i<15; i++) particles.push(new Particle(this.x+this.width/2, this.y+this.height/2, (Math.random()-0.5)*10, (Math.random()-0.5)*10, this.color, 30, 4));
+            updateUI();
+            
+            if (this.health <= 0) {
+                this.health = 0;
+                for(let i=0; i<50; i++) particles.push(new Particle(this.x+this.width/2, this.y+this.height/2, (Math.random()-0.5)*25, (Math.random()-0.5)*25, this.color, 50, 6));
+                VFX.sfx('boom'); VFX.shake(14, 420); VFX.flash(this.color, 400);
+                triggerRoundOver(this.id);
+            }
+        }
+
+        draw(ctx) {
+            if (this.health <= 0) return;
+            
+            let cx = this.x + this.width / 2; let cy = this.y + this.height / 2; let radius = this.width / 2;
+            let grad = ctx.createRadialGradient(cx - radius/3, cy - radius/3, radius/10, cx, cy, radius);
+            grad.addColorStop(0, '#ffffff'); grad.addColorStop(0.3, this.color); grad.addColorStop(1, '#000000');
+            ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.fill();
+
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(this.aimAngle);
+            ctx.fillStyle = '#7f8fa6';
+            let gunWidth = 24 * this.scale; let gunHeight = 8 * this.scale;
+            ctx.fillRect(radius/4 - this.gunRecoil, -gunHeight/2, gunWidth, gunHeight);
+            ctx.fillStyle = '#f5f6fa'; 
+            ctx.fillRect(radius/4 + gunWidth - 4 - this.gunRecoil, -gunHeight/2, 4, gunHeight);
+            ctx.restore();
+
+            ctx.fillStyle = '#111';
+            let visorW = 16 * this.scale; let visorH = 8 * this.scale;
+            let visorX = this.facingRight ? cx + 2 * this.scale : cx - visorW - 2 * this.scale;
+            let visorY = cy - 6 * this.scale;
+            ctx.beginPath();
+            if (this.facingRight) {
+                ctx.moveTo(visorX, visorY); ctx.lineTo(visorX + visorW, visorY + 4 * this.scale);
+                ctx.lineTo(visorX + visorW, visorY + visorH); ctx.lineTo(visorX, visorY + visorH);
+            } else {
+                ctx.moveTo(visorX + visorW, visorY); ctx.lineTo(visorX, visorY + 4 * this.scale);
+                ctx.lineTo(visorX, visorY + visorH); ctx.lineTo(visorX + visorW, visorY + visorH);
+            }
+            ctx.fill();
+
+            ctx.fillStyle = this.poisonTicks > 0 ? '#9b59b6' : '#feca57';
+            ctx.beginPath();
+            ctx.arc(this.facingRight ? visorX + 10 * this.scale : visorX + 6 * this.scale, visorY + 5 * this.scale, 3 * this.scale, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (this.isBlocking) {
+                ctx.strokeStyle = '#00d2d3'; ctx.lineWidth = 4; ctx.beginPath();
+                ctx.arc(cx, cy, radius * 1.6, 0, Math.PI * 2); ctx.stroke();
+                ctx.fillStyle = 'rgba(0, 210, 211, 0.2)'; ctx.fill();
+            }
+
+            ctx.fillStyle = 'white'; ctx.font = 'bold 12px Arial'; ctx.textAlign = 'center';
+            ctx.fillText(this.id === 2 && gameMode === 'pve' ? 'AI' : `P${this.id}`, cx, this.y - (this.isCrouching ? 15 : 25));
+            
+            if (this.reloadTimer > 0) {
+                ctx.fillStyle = '#ff9f43'; ctx.fillText("Reloading", cx, this.y - 12);
+                ctx.fillRect(this.x, this.y - 8, this.width * (1 - (this.reloadTimer / this.reloadTime)), 4);
+            } else {
+                ctx.fillStyle = '#feca57';
+                let bulletSpacing = this.width / this.maxAmmo;
+                for(let i=0; i<this.ammo; i++) ctx.fillRect(this.x + (i * bulletSpacing) + 2, this.y - 10, bulletSpacing - 4, 6);
+            }
+            if (this.blockCooldown > 0) {
+                ctx.fillStyle = 'rgba(0, 210, 211, 0.5)';
+                ctx.fillRect(this.x, cy + radius + 12 * this.scale, this.width * (1 - (this.blockCooldown / this.maxBlockCooldown)), 4);
+            } else {
+                ctx.fillStyle = '#00d2d3';
+                ctx.fillRect(this.x, cy + radius + 12 * this.scale, this.width, 4);
+            }
+        }
+    }
+
+    class Bullet {
+        constructor(x, y, vx, vy, ownerId, damage, bounces, homing, hasLifesteal, pacman, boomerang, explosive, hasPoison, sizeMult, zeroGrav) {
+            this.x = x; this.y = y; this.vx = vx; this.vy = vy;
+            this.radius = (explosive ? 8 : 5) * (sizeMult || 1); 
+            this.ownerId = ownerId; this.damage = Math.min(damage, 100); 
+            this.bounces = bounces; this.homing = homing; 
+            this.hasLifesteal = hasLifesteal; this.hasPoison = hasPoison;
+            this.pacman = pacman; this.boomerang = boomerang; this.explosive = explosive; 
+            this.zeroGrav = zeroGrav;
+            this.active = true; this.lifeTime = 0;
+            this.owner = ownerId === 1 ? p1 : p2;
+        }
+
+        applyHitEffects(target, dmg) {
+            if (p1.health <= 0 || p2.health <= 0) return; 
+            target.takeDamage(dmg);
+            if (this.hasPoison) {
+                target.applyPoison(dmg * 0.25); 
+            }
+            if (this.hasLifesteal) {
+                this.owner.health = Math.min(this.owner.maxHealth, this.owner.health + 2); 
+                for(let i=0; i<3; i++) particles.push(new Particle(this.owner.x+this.owner.width/2, this.owner.y, (Math.random()-0.5)*5, -Math.random()*5, '#2ed573', 20, 3));
+            }
+        }
+
+        explode() {
+            this.active = false;
+            let radius = 80;
+            for(let i=0; i<25; i++) particles.push(new Particle(this.x, this.y, (Math.random()-0.5)*15, (Math.random()-0.5)*15, '#ff9f43', 15, 6));
+            
+            platforms.forEach(p => {
+                if (p.destructible) {
+                    let dx = (p.x + p.w/2) - this.x; let dy = (p.y + p.h/2) - this.y;
+                    if (Math.sqrt(dx*dx + dy*dy) < radius) p.markedForDeletion = true;
+                }
+            });
+
+            if (p1.health > 0 && p2.health > 0) {
+                [p1, p2].forEach(p => {
+                    let dx = (p.x + p.width/2) - this.x; let dy = (p.y + p.height/2) - this.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy) || 1;
+                    if (dist < radius && p.health > 0) {
+                        p.vx += (dx/dist) * 15; p.vy += (dy/dist) * 15;
+                        if (p.id !== this.ownerId || dist < radius/2) {
+                            this.applyHitEffects(p, this.damage * 0.8);
+                        }
+                    }
+                });
+            }
+
+            boxes.forEach(b => {
+                let dx = (b.x + (b.type==='circle'?0:b.w/2)) - this.x; let dy = (b.y + (b.type==='circle'?0:b.h/2)) - this.y;
+                let dist = Math.sqrt(dx*dx + dy*dy) || 1;
+                if (dist < radius) {
+                    b.health -= this.damage;
+                    b.vx += (dx/dist) * 15; b.vy += (dy/dist) * 15;
+                }
+            });
+        }
+
+        update() {
+            if (!this.active) return;
+            this.lifeTime++;
+            let target = this.ownerId === 1 ? p2 : p1;
+
+            if (this.homing === 0 && !this.pacman && !this.boomerang && !this.zeroGrav) {
+                this.vy += GRAVITY * 0.1; 
+            }
+
+            if (this.homing > 0) {
+                let dx = (target.x + target.width/2) - this.x; let dy = (target.y + target.height/2) - this.y;
+                let dist = Math.sqrt(dx*dx + dy*dy) || 1;
+                if (dist > 0) {
+                    this.vx += (dx / dist) * 1.2 * this.homing; this.vy += (dy / dist) * 1.2 * this.homing;
+                    let speed = Math.sqrt(this.vx*this.vx + this.vy*this.vy) || 1;
+                    if (speed > 18) { this.vx = (this.vx/speed)*18; this.vy = (this.vy/speed)*18; }
+                }
+            }
+
+            if (this.pacman) this.vy += GRAVITY * 0.8; 
+
+            if (this.boomerang && this.lifeTime > 25) {
+                let dx = (this.owner.x + this.owner.width/2) - this.x; let dy = (this.owner.y + this.owner.height/2) - this.y;
+                let dist = Math.sqrt(dx*dx + dy*dy) || 1;
+                if (dist > 15) {
+                    this.vx += (dx / dist) * 2; this.vy += (dy / dist) * 2;
+                    let speed = Math.sqrt(this.vx*this.vx + this.vy*this.vy) || 1;
+                    if (speed > 20) { this.vx = (this.vx/speed)*20; this.vy = (this.vy/speed)*20; }
+                } else {
+                    this.active = false; this.owner.ammo = Math.min(this.owner.maxAmmo, this.owner.ammo + 1);
+                }
+            }
+
+            this.x += this.vx; this.y += this.vy;
+            let trailColor = this.explosive ? '#ff6b6b' : (this.hasPoison ? '#9b59b6' : (this.pacman ? '#feca57' : '#fff'));
+            particles.push(new Particle(this.x, this.y, 0, 0, trailColor, 5, this.explosive ? 4 : 2));
+
+            for (let i = 0; i < currentMapPlatforms.length; i++) {
+                let p = currentMapPlatforms[i];
+                if (this.x < p.x + p.w && this.x + this.radius > p.x && this.y < p.y + p.h && this.y + this.radius > p.y) {
+                    if (p.destructible) {
+                        p.markedForDeletion = true;
+                        for(let k=0; k<4; k++) particles.push(new Particle(this.x, this.y, (Math.random()-0.5)*6, (Math.random()-0.5)*6, '#555', 15, 3));
+                    }
+                    if (this.explosive) { this.explode(); return; }
+                    if (this.pacman && this.vy > 0) { this.y = p.y - this.radius; this.vy = 0; } 
+                    else if (this.bounces > 0) { 
+                        this.bounces--; 
+                        let overlapX = Math.min(Math.abs(this.x - p.x), Math.abs(this.x - (p.x + p.w)));
+                        let overlapY = Math.min(Math.abs(this.y - p.y), Math.abs(this.y - (p.y + p.h)));
+                        if (overlapX < overlapY) this.vx *= -1; else this.vy *= -1;
+                    } 
+                    else { this.active = false; }
+                    for(let k=0; k<3; k++) particles.push(new Particle(this.x, this.y, (Math.random()-0.5)*5, (Math.random()-0.5)*5, trailColor, 10, 2));
+                }
+            }
+
+            boxes.forEach(b => {
+                let isHit = false;
+                if (b.type === 'circle') {
+                    let dist = Math.hypot(this.x - b.x, this.y - b.y);
+                    if (dist < this.radius + b.radius) isHit = true;
+                } else {
+                    if (this.x + this.radius > b.x && this.x - this.radius < b.x + b.w && this.y + this.radius > b.y && this.y - this.radius < b.y + b.h) isHit = true;
+                }
+
+                if (isHit) {
+                    b.health -= this.damage;
+                    if (this.explosive) { this.explode(); return; }
+                    if (this.pacman && this.vy > 0) { this.y = b.y - this.radius; this.vy = 0; } 
+                    else if (this.bounces > 0) { this.bounces--; this.vy *= -1; this.vx *= -1; } 
+                    else { this.active = false; }
+                    
+                    let dx = this.x - (b.type === 'circle' ? b.x : b.x + b.w/2);
+                    let dy = this.y - (b.type === 'circle' ? b.y : b.y + b.h/2);
+                    let dist = Math.hypot(dx, dy) || 1;
+                    b.vx -= (dx/dist) * this.damage * 0.2; 
+                    b.vy -= (dy/dist) * this.damage * 0.2;
+                    
+                    for(let i=0; i<3; i++) particles.push(new Particle(this.x, this.y, (Math.random()-0.5)*5, (Math.random()-0.5)*5, trailColor, 10, 2));
+                }
+            });
+
+            if (this.active && p1.health > 0 && p2.health > 0 && target.health > 0 && this.x > target.x && this.x < target.x + target.width && this.y > target.y && this.y < target.y + target.height) {
+                if (target.isBlocking) {
+                    this.vx *= -1.5; this.vy *= -1.5; this.ownerId = target.id; this.owner = target;
+                    for(let i=0; i<6; i++) particles.push(new Particle(this.x, this.y, (Math.random()-0.5)*8, (Math.random()-0.5)*8, '#00d2d3', 15, 3));
+                } else {
+                    if (this.explosive) {
+                        this.explode();
+                    } else {
+                        this.applyHitEffects(target, this.damage);
+                        this.active = false;
+                    }
+                }
+            }
+            if (this.x < 10 + this.radius || this.x > canvas.width - 10 - this.radius) {
+                if (this.bounces > 0) {
+                    this.bounces--;
+                    this.vx *= -1;
+                    this.x = this.x < 10 + this.radius ? 10 + this.radius : canvas.width - 10 - this.radius;
+                } else {
+                    this.active = false;
+                }
+            }
+            if (this.y > canvas.height) this.active = false;
+        }
+
+        draw() {
+            if (!this.active) return;
+            ctx.fillStyle = this.explosive ? '#ff4757' : (this.hasPoison ? '#9b59b6' : (this.pacman ? '#feca57' : (this.homing > 0 ? '#ff9ff3' : '#fff')));
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
+            if (this.explosive) {
+                ctx.fillStyle = '#feca57'; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius/2, 0, Math.PI*2); ctx.fill();
+            }
+        }
+    }
+
+    const cardDeck = [
+        { title: "Sniper Rifle", desc: "Straight, fast, and heavy.", statsHTML: "+100% Bullet Speed<br>+15% Damage<br>Zero Gravity<br><span class='negative-stat'>-2 Max Ammo</span>", mods: { bulletSpeed: 15, damageMult: 0.15, maxAmmo: -2, zeroGrav: true } },
+        { title: "Aerodynamic", desc: "Faster bullets, no drop.", statsHTML: "+20% Bullet Speed<br>Zero Gravity", mods: { bulletSpeed: 3, zeroGrav: true } },
+        { title: "Pinpoint", desc: "Surgical precision.", statsHTML: "-50% Bullet Size<br>+200% Bullet Speed<br>Zero Gravity<br><span class='neutral-stat'>+15% Damage</span>", mods: { bulletSizeMult: 0.5, bulletSpeed: 15, damageMult: 0.15, zeroGrav: true } },
+        { title: "Burst Shot", desc: "Fire 3 bullets at once.", statsHTML: "+2 Bullets per shot<br><span class='negative-stat'>-10% Damage</span>", mods: { burst: 2, damageMult: -0.1 } },
+        { title: "Machine Gun", desc: "Shoot incredibly fast.", statsHTML: "+250% Fire Rate<br><span class='negative-stat'>-15% Damage</span>", mods: { fireRateMult: 0.25, damageMult: -0.15 } },
+        { title: "Glass Cannon", desc: "Insane damage, fragile body.", statsHTML: "+65% Damage<br><span class='negative-stat'>-60 Health</span>", mods: { damageMult: 0.65, maxHealth: -60 } },
+        { title: "Explosive Rounds", desc: "Bullets explode on impact.", statsHTML: "AoE Explosions<br><span class='negative-stat'>-10% Damage</span>", mods: { explosive: 1, damageMult: -0.1 } },
+        { title: "Poison Tipped", desc: "Deals dmg over time.", statsHTML: "Applies Poison<br><span class='negative-stat'>-5% Damage</span>", mods: { poison: true, damageMult: -0.05 } },
+        { title: "Gatling", desc: "A true bullet hose.", statsHTML: "+15 Max Ammo<br>-70% Fire Rate<br><span class='negative-stat'>-20% Damage</span>", mods: { fireRateMult: 0.3, maxAmmo: 15, damageMult: -0.2 } },
+        { title: "Agility", desc: "Move faster, jump higher.", statsHTML: "+3 Speed<br>+4 Jump Power", mods: { speed: 3, jumpPower: 4 } },
+        { title: "Double Jump", desc: "Defy gravity an extra time.", statsHTML: "+1 Max Jumps", mods: { maxJumps: 1 } },
+        { title: "Sprinter", desc: "Run like the wind.", statsHTML: "+6 Speed<br><span class='negative-stat'>-30 Health</span>", mods: { speed: 6, maxHealth: -30 } },
+        { title: "Juggernaut", desc: "Become an absolute tank.", statsHTML: "+150 Max Health<br><span class='negative-stat'>-2 Speed</span>", mods: { maxHealth: 150, speed: -2 } },
+        { title: "Flight", desc: "Take to the skies.", statsHTML: "+5 Max Jumps<br><span class='negative-stat'>-10% Damage</span>", mods: { maxJumps: 5, damageMult: -0.1 } },
+        { title: "Colossus", desc: "Huge size, huge health.", statsHTML: "+50% Hitbox Size<br>+200 Max Health<br><span class='negative-stat'>-3 Speed</span>", mods: { scale: 1.5, maxHealth: 200, speed: -3 } },
+        { title: "Tiny Terror", desc: "Hard to hit, incredibly fast.", statsHTML: "-40% Hitbox Size<br>+2 Speed<br><span class='negative-stat'>-40 Max Health</span>", mods: { scale: 0.6, speed: 2, maxHealth: -40 } },
+        { title: "Trickster", desc: "Bullets bounce off walls.", statsHTML: "+3 Bounces", mods: { bounces: 3 } },
+        { title: "Homing Missiles", desc: "Bullets magically curve.", statsHTML: "Homing Bullets<br><span class='negative-stat'>-10% Damage</span>", mods: { homing: 1, damageMult: -0.1 } },
+        { title: "Pacman", desc: "Bullets hug the floor and slide.", statsHTML: "Gravity Bullets<br><span class='neutral-stat'>Floor Sliding</span>", mods: { pacman: true } },
+        { title: "Boomerang", desc: "Bullets fly back to you.", statsHTML: "Returning Bullets<br><span class='neutral-stat'>Ammo Refund on catch</span>", mods: { boomerang: true } },
+        { title: "Bottomless Clip", desc: "Never stop shooting.", statsHTML: "+10 Max Ammo<br><span class='negative-stat'>-10% Damage</span>", mods: { maxAmmo: 10, damageMult: -0.1 } },
+        { title: "Sleight of Hand", desc: "Blink and you've reloaded.", statsHTML: "-60% Reload Time", mods: { reloadTimeMult: 0.4 } },
+        { title: "Titanium Shield", desc: "A block that lasts longer.", statsHTML: "+100% Block Duration<br>-30% Block Cooldown", mods: { blockDurationMult: 2, blockCooldownMult: 0.7 } },
+        { title: "Vampire", desc: "Heal +2 HP on every hit.", statsHTML: "Adds Lifesteal<br><span class='negative-stat'>-20% Max Health</span>", mods: { lifesteal: true, maxHealth: -20 } },
+        { title: "Scavenger", desc: "More bullets, faster reload.", statsHTML: "+5 Max Ammo<br>-30% Reload Time", mods: { maxAmmo: 5, reloadTimeMult: 0.7 } },
+        { title: "Shield Wall", desc: "Almost permanent protection.", statsHTML: "+300% Block Duration<br><span class='negative-stat'>+50% Block Cooldown</span>", mods: { blockDurationMult: 4, blockCooldownMult: 1.5 } },
+        { title: "Toxic Cloud", desc: "Heavy poison, slow reload.", statsHTML: "Applies Poison<br><span class='negative-stat'>+50% Reload Time</span>", mods: { poison: true, reloadTimeMult: 1.5 } },
+        { title: "Quick Draw", desc: "Instant reloads, tiny clips.", statsHTML: "-80% Reload Time<br><span class='negative-stat'>-3 Max Ammo</span>", mods: { reloadTimeMult: 0.2, maxAmmo: -3 } },
+        { title: "Flubber", desc: "Total chaos bounces.", statsHTML: "+8 Bounces<br><span class='negative-stat'>-5% Damage</span>", mods: { bounces: 8, damageMult: -0.05 } },
+        { title: "Trench Gun", desc: "Wall of lead.", statsHTML: "+4 Bullets per shot<br>-15% Damage<br><span class='negative-stat'>+100% Reload Time</span>", mods: { burst: 4, damageMult: -0.15, reloadTimeMult: 2 } },
+        { title: "Ninja", desc: "Swift, elusive, and agile.", statsHTML: "+4 Speed<br>+2 Max Jumps<br><span class='negative-stat'>-20 Max Health</span>", mods: { speed: 4, maxJumps: 2, maxHealth: -20 } },
+        { title: "Defender", desc: "Hold the line at all costs.", statsHTML: "+50% Block Duration<br>+50 Max Health", mods: { blockDurationMult: 1.5, maxHealth: 50 } },
+        { title: "Chaos", desc: "Unpredictable bouncing bombs.", statsHTML: "+5 Bounces<br>Explosive Rounds<br><span class='negative-stat'>-15% Damage</span>", mods: { bounces: 5, explosive: 1, damageMult: -0.15 } },
+        { title: "Micro", desc: "Tiny target with quick hands.", statsHTML: "-50% Hitbox Size<br>-40% Reload Time<br><span class='negative-stat'>-10% Damage</span>", mods: { scale: 0.5, reloadTimeMult: 0.6, damageMult: -0.1 } },
+        { title: "Voodoo", desc: "Aggressive life drain.", statsHTML: "Adds Lifesteal<br><span class='negative-stat'>-40 Max Health</span>", mods: { lifesteal: true, maxHealth: -40 } },
+        { title: "Heavy Duty", desc: "Slow, massive, unyielding.", statsHTML: "+200 Max Health<br>+30% Hitbox Size<br><span class='negative-stat'>-4 Speed</span>", mods: { maxHealth: 200, scale: 1.3, speed: -4 } },
+        { title: "Swarm", desc: "Unleash a horde of bullets.", statsHTML: "+3 Bullets per shot<br>Homing Rounds<br><span class='negative-stat'>-20% Damage</span>", mods: { burst: 3, homing: 1, damageMult: -0.2 } },
+        { title: "Sonic", desc: "Gotta go fast.", statsHTML: "+8 Speed<br><span class='negative-stat'>-50 Max Health</span>", mods: { speed: 8, maxHealth: -50 } },
+        { title: "Leech", desc: "Toxic and vampiric.", statsHTML: "Applies Poison<br>Adds Lifesteal<br><span class='negative-stat'>-2 Max Ammo</span>", mods: { poison: true, lifesteal: true, maxAmmo: -2 } },
+        { title: "Plague Doctor", desc: "Infects enemies, steals life.", statsHTML: "Applies Poison<br>Adds Lifesteal<br><span class='negative-stat'>-30 Max Health</span>", mods: { poison: true, lifesteal: true, maxHealth: -30 } },
+        { title: "Shotgun", desc: "Close range devastation.", statsHTML: "+4 Bullets per shot<br>-50% Bullet Speed<br><span class='negative-stat'>-15% Damage</span>", mods: { burst: 4, bulletSpeed: -8, damageMult: -0.15 } },
+        { title: "Bouncy Castle", desc: "Your bullets never stop.", statsHTML: "+10 Bounces<br>Floor Sliding<br><span class='negative-stat'>-2 Speed</span>", mods: { bounces: 10, pacman: true, speed: -2 } },
+        { title: "Turtle Shell", desc: "Slow but incredibly well defended.", statsHTML: "+200% Block Duration<br>-40% Reload Time<br><span class='negative-stat'>-4 Speed</span>", mods: { blockDurationMult: 3, reloadTimeMult: 0.6, speed: -4 } },
+        { title: "Mosquito", desc: "Annoying, flying, and bites.", statsHTML: "+4 Max Jumps<br>Adds Lifesteal<br><span class='negative-stat'>-15% Damage</span>", mods: { maxJumps: 4, lifesteal: true, damageMult: -0.15 } },
+        { title: "Cursed Ammo", desc: "Seeks out the enemy brutally.", statsHTML: "+15% Damage<br>Homing Bullets<br><span class='negative-stat'>-50 Max Health</span>", mods: { damageMult: 0.15, homing: 1, maxHealth: -50 } },
+        { title: "Phantom", desc: "Incredibly elusive.", statsHTML: "-60% Hitbox Size<br>+4 Speed<br><span class='negative-stat'>0 Jumps (Grounded)</span>", mods: { scale: 0.4, speed: 4, maxJumps: -100 } },
+        { title: "Anvil", desc: "Drop fast and hit hard.", statsHTML: "+150 Max Health<br>+35% Damage<br><span class='negative-stat'>-80% Jump Power</span>", mods: { maxHealth: 150, damageMult: 0.35, jumpPower: -10 } },
+        { title: "Hailstorm", desc: "A rapid flurry of weak shots.", statsHTML: "+300% Fire Rate<br>+10 Max Ammo<br><span class='negative-stat'>-25% Damage</span>", mods: { fireRateMult: 0.2, maxAmmo: 10, damageMult: -0.25 } },
+        { title: "Mad Scientist", desc: "A terrifying combination.", statsHTML: "Explosive Rounds<br>Applies Poison<br><span class='neutral-stat'>+3 Bounces</span>", mods: { explosive: 1, poison: true, bounces: 3 } },
+        { title: "Steel Bones", desc: "Harder to kill, slower to walk.", statsHTML: "+80 Max Health<br><span class='negative-stat'>-1 Speed</span>", mods: { maxHealth: 80, speed: -1 } },
+        { title: "Paper Mache", desc: "A light breeze could kill you.", statsHTML: "+4 Speed<br><span class='negative-stat'>-60 Max Health</span>", mods: { speed: 4, maxHealth: -60 } },
+        { title: "Hollow Points", desc: "High impact, slow travel.", statsHTML: "+20% Damage<br><span class='negative-stat'>-40% Bullet Speed</span>", mods: { damageMult: 0.2, bulletSpeed: -6 } },
+        { title: "FMJ", desc: "Fast and deadly.", statsHTML: "+50% Bullet Speed<br>+10% Damage", mods: { bulletSpeed: 8, damageMult: 0.1 } },
+        { title: "Laser Sight", desc: "They can't hide.", statsHTML: "+2 Homing<br><span class='negative-stat'>-20% Fire Rate</span>", mods: { homing: 2, fireRateMult: 1.2 } },
+        { title: "Extended Mags", desc: "More bullets before reloading.", statsHTML: "+8 Max Ammo<br><span class='negative-stat'>+20% Reload Time</span>", mods: { maxAmmo: 8, reloadTimeMult: 1.2 } },
+        { title: "Speedloader", desc: "In and out quickly.", statsHTML: "-50% Reload Time<br><span class='negative-stat'>-2 Max Ammo</span>", mods: { reloadTimeMult: 0.5, maxAmmo: -2 } },
+        { title: "Flak Jacket", desc: "Blast protection.", statsHTML: "+80% Block Duration<br><span class='negative-stat'>-1 Speed</span>", mods: { blockDurationMult: 1.8, speed: -1 } },
+        { title: "Spring Shoes", desc: "Boing.", statsHTML: "+5 Jump Power<br><span class='negative-stat'>-10 Max Health</span>", mods: { jumpPower: 5, maxHealth: -10 } },
+        { title: "Lead Boots", desc: "You aren't going anywhere.", statsHTML: "+100 Max Health<br><span class='negative-stat'>-5 Jump Power</span>", mods: { maxHealth: 100, jumpPower: -5 } },
+        { title: "Pocket Sand", desc: "A tiny annoyance.", statsHTML: "+1 Burst<br><span class='negative-stat'>-5% Damage</span>", mods: { burst: 1, damageMult: -0.05 } },
+        { title: "Rubber Bullets", desc: "Bounce everywhere.", statsHTML: "+5 Bounces<br><span class='negative-stat'>-20% Bullet Speed</span>", mods: { bounces: 5, bulletSpeed: -3 } },
+        { title: "Bullet Hell", desc: "Fill the screen.", statsHTML: "+5 Burst<br>-30% Damage<br><span class='negative-stat'>+100% Reload Time</span>", mods: { burst: 5, damageMult: -0.3, reloadTimeMult: 2 } },
+        { title: "Caffeinated", desc: "Jitters everywhere.", statsHTML: "+2 Speed<br>+20% Fire Rate", mods: { speed: 2, fireRateMult: 0.8 } },
+        { title: "Sluggish", desc: "Slow mind, strong body.", statsHTML: "+120 Max Health<br><span class='negative-stat'>-30% Fire Rate</span>", mods: { maxHealth: 120, fireRateMult: 1.3 } },
+        { title: "Giant", desc: "Look at the size of this lad.", statsHTML: "+80% Hitbox Size<br>+300 Max Health<br><span class='negative-stat'>-5 Speed</span>", mods: { scale: 1.8, maxHealth: 300, speed: -5 } },
+        { title: "Dwarf", desc: "Sneaky little guy.", statsHTML: "-70% Hitbox Size<br>+1 Speed<br><span class='negative-stat'>-60 Max Health</span>", mods: { scale: 0.3, speed: 1, maxHealth: -60 } },
+        { title: "Toxic Waste", desc: "Pure venom.", statsHTML: "Applies Poison<br>+10% Damage", mods: { poison: true, damageMult: 0.1 } },
+        { title: "Vampiric Touch", desc: "Drink their health.", statsHTML: "Adds Lifesteal<br>+5% Damage", mods: { lifesteal: true, damageMult: 0.05 } },
+        { title: "Grenadier", desc: "Big booms.", statsHTML: "Explosive Rounds<br>+15% Damage<br><span class='negative-stat'>-2 Max Ammo</span>", mods: { explosive: 1, damageMult: 0.15, maxAmmo: -2 } },
+        { title: "Ghost", desc: "You aren't even there.", statsHTML: "-40% Hitbox Size<br>+2 Max Jumps", mods: { scale: 0.6, maxJumps: 2 } },
+        { title: "Ninja Training", desc: "Master of movement.", statsHTML: "+3 Speed<br>+1 Max Jump", mods: { speed: 3, maxJumps: 1 } },
+        { title: "Samurai", desc: "Master of defense.", statsHTML: "-40% Block Cooldown<br>+20% Block Duration", mods: { blockCooldownMult: 0.6, blockDurationMult: 1.2 } },
+        { title: "Pogo Stick", desc: "Never stop jumping.", statsHTML: "+8 Jump Power<br>+2 Max Jumps<br><span class='negative-stat'>-1 Speed</span>", mods: { jumpPower: 8, maxJumps: 2, speed: -1 } },
+        { title: "Heavy Barrel", desc: "Hits like a truck.", statsHTML: "+25% Damage<br><span class='negative-stat'>-30% Fire Rate</span>", mods: { damageMult: 0.25, fireRateMult: 1.3 } },
+        { title: "Lightweight Frame", desc: "Easy to carry.", statsHTML: "+3 Speed<br>+30% Fire Rate", mods: { speed: 3, fireRateMult: 0.7 } },
+        { title: "Akimbo", desc: "Two guns are better.", statsHTML: "+1 Burst<br>+5 Max Ammo", mods: { burst: 1, maxAmmo: 5 } },
+        { title: "Riot Shield", desc: "Block forever.", statsHTML: "+200% Block Duration<br>-20% Block Cooldown<br><span class='negative-stat'>-2 Speed</span>", mods: { blockDurationMult: 3, blockCooldownMult: 0.8, speed: -2 } },
+        { title: "Hurricane", desc: "A storm of lead.", statsHTML: "+3 Burst<br>+5 Bounces<br><span class='negative-stat'>-20% Damage</span>", mods: { burst: 3, bounces: 5, damageMult: -0.2 } },
+        
+        { title: "Fat Rounds", desc: "Big bullets hurt more.", statsHTML: "+50% Bullet Size<br>+10% Damage<br><span class='negative-stat'>-10% Bullet Speed</span>", mods: { bulletSizeMult: 1.5, damageMult: 0.1, bulletSpeed: -2 } },
+        { title: "Cannonball", desc: "Massive and slow.", statsHTML: "+100% Bullet Size<br>+15% Damage<br><span class='negative-stat'>-30% Bullet Speed</span>", mods: { bulletSizeMult: 2.0, damageMult: 0.15, bulletSpeed: -4 } },
+        { title: "Bowling Ball", desc: "Rolls through them.", statsHTML: "+150% Bullet Size<br>+2 Bounces<br><span class='negative-stat'>-10% Damage</span>", mods: { bulletSizeMult: 2.5, bounces: 2, damageMult: -0.1 } },
+        { title: "Needles", desc: "Tiny, fast, and deadly.", statsHTML: "-50% Bullet Size<br>+100% Bullet Speed<br><span class='neutral-stat'>+10% Damage</span>", mods: { bulletSizeMult: 0.5, bulletSpeed: 8, damageMult: 0.1 } },
+        { title: "Micro-Missiles", desc: "Small trackers.", statsHTML: "-30% Bullet Size<br>Homing Bullets<br><span class='neutral-stat'>+30% Fire Rate</span>", mods: { bulletSizeMult: 0.7, homing: 1, fireRateMult: 0.7 } },
+        { title: "Pancake", desc: "Thick and heavy.", statsHTML: "+80% Bullet Size<br>+100 Max Health<br><span class='negative-stat'>-2 Speed</span>", mods: { bulletSizeMult: 1.8, maxHealth: 100, speed: -2 } },
+        { title: "Dense Ammo", desc: "Hit hard, shoot less.", statsHTML: "+40% Bullet Size<br>+15% Damage<br><span class='negative-stat'>-1 Max Ammo</span>", mods: { bulletSizeMult: 1.4, damageMult: 0.15, maxAmmo: -1 } },
+        { title: "Expanding Foam", desc: "Giant but weak.", statsHTML: "+120% Bullet Size<br><span class='negative-stat'>-15% Damage</span>", mods: { bulletSizeMult: 2.2, damageMult: -0.15 } },
+        { title: "Tiny But Fierce", desc: "Small package, big punch.", statsHTML: "-40% Bullet Size<br>+25% Damage", mods: { bulletSizeMult: 0.6, damageMult: 0.25 } },
+        { title: "Pellets", desc: "A handful of dust.", statsHTML: "-60% Bullet Size<br>+3 Burst<br><span class='negative-stat'>-15% Damage</span>", mods: { bulletSizeMult: 0.4, burst: 3, damageMult: -0.15 } },
+        { title: "Beach Ball", desc: "Absurdly large.", statsHTML: "+200% Bullet Size<br><span class='negative-stat'>-50% Bullet Speed</span>", mods: { bulletSizeMult: 3.0, bulletSpeed: -5 } },
+        { title: "Water Balloon", desc: "Bounces everywhere.", statsHTML: "+150% Bullet Size<br>+5 Bounces<br><span class='negative-stat'>-20% Damage</span>", mods: { bulletSizeMult: 2.5, bounces: 5, damageMult: -0.2 } },
+        { title: "Thick Skull", desc: "Bigger head, bigger bullets.", statsHTML: "+100 Max Health<br>+10% Bullet Size<br><span class='negative-stat'>-1 Speed</span>", mods: { maxHealth: 100, bulletSizeMult: 1.1, speed: -1 } },
+        { title: "Bloodsucker", desc: "Drain them.", statsHTML: "Adds Lifesteal<br>+50 Max Health<br><span class='negative-stat'>-5% Damage</span>", mods: { lifesteal: true, maxHealth: 50, damageMult: -0.05 } },
+        { title: "Vampire Bats", desc: "They seek blood.", statsHTML: "Adds Lifesteal<br>Homing Bullets<br><span class='negative-stat'>-10% Damage</span>", mods: { lifesteal: true, homing: 1, damageMult: -0.1 } },
+        { title: "Frog Legs", desc: "Jump really high.", statsHTML: "+6 Jump Power<br>+1 Max Jumps<br><span class='negative-stat'>-20 Max Health</span>", mods: { jumpPower: 6, maxJumps: 1, maxHealth: -20 } },
+        { title: "Kangaroo", desc: "Spring loaded.", statsHTML: "+8 Jump Power<br><span class='negative-stat'>-10% Bullet Size</span>", mods: { jumpPower: 8, bulletSizeMult: 0.9 } },
+        { title: "Heavy Artillery", desc: "Devastating payload.", statsHTML: "+25% Damage<br>+40% Bullet Size<br><span class='negative-stat'>-40% Fire Rate</span>", mods: { damageMult: 0.25, bulletSizeMult: 1.4, fireRateMult: 1.4 } },
+        { title: "Flak Cannon", desc: "Shrapnel everywhere.", statsHTML: "Explosive Rounds<br>+2 Burst<br><span class='negative-stat'>-20% Damage</span>", mods: { explosive: 1, burst: 2, damageMult: -0.2 } },
+        { title: "Grenade Launcher", desc: "Massive explosions.", statsHTML: "Explosive Rounds<br>+100% Bullet Size<br><span class='negative-stat'>-1 Max Ammo</span>", mods: { explosive: 1, bulletSizeMult: 2.0, maxAmmo: -1 } },
+        { title: "Poison Dart", desc: "Quick and toxic.", statsHTML: "Applies Poison<br>-40% Bullet Size<br><span class='neutral-stat'>+50% Bullet Speed</span>", mods: { poison: true, bulletSizeMult: 0.6, bulletSpeed: 5 } },
+        { title: "Toxic Sludge", desc: "Giant puddle of gross.", statsHTML: "Applies Poison<br>+100% Bullet Size<br><span class='negative-stat'>-30% Bullet Speed</span>", mods: { poison: true, bulletSizeMult: 2.0, bulletSpeed: -3 } },
+        { title: "Bigger is Better", desc: "Size matters.", statsHTML: "+60% Bullet Size<br>+60 Max Health<br><span class='negative-stat'>-1 Speed</span>", mods: { bulletSizeMult: 1.6, maxHealth: 60, speed: -1 } },
+        { title: "Grape Shot", desc: "Scatter them.", statsHTML: "+5 Burst<br>-60% Bullet Size<br><span class='negative-stat'>-25% Damage</span>", mods: { burst: 5, bulletSizeMult: 0.4, damageMult: -0.25 } },
+        { title: "Lead Balloon", desc: "Heavy floater.", statsHTML: "+80% Bullet Size<br>Floor Sliding<br><span class='negative-stat'>-10% Damage</span>", mods: { bulletSizeMult: 1.8, pacman: true, damageMult: -0.1 } },
+        { title: "Boomerang Toss", desc: "Big return trip.", statsHTML: "Returning Bullets<br>+50% Bullet Size<br><span class='negative-stat'>-20% Bullet Speed</span>", mods: { boomerang: true, bulletSizeMult: 1.5, bulletSpeed: -2 } },
+        { title: "Puffball", desc: "Floats on air.", statsHTML: "+100% Bullet Size<br>+4 Max Jumps<br><span class='negative-stat'>-15% Damage</span>", mods: { bulletSizeMult: 2.0, maxJumps: 4, damageMult: -0.15 } },
+        { title: "Meteorite", desc: "Wipe out the dinosaurs.", statsHTML: "+150% Bullet Size<br>Explosive Rounds<br><span class='negative-stat'>-50% Fire Rate</span>", mods: { bulletSizeMult: 2.5, explosive: 1, fireRateMult: 1.5 } },
+        
+        { title: "Spike Shield", desc: "Block deals damage around you.", statsHTML: "+30 Block Damage<br><span class='negative-stat'>-20% Block Duration</span>", mods: { blockDamage: 30, blockDurationMult: 0.8 } },
+        { title: "Repulsor", desc: "Block blasts enemies away.", statsHTML: "Huge Block Knockback<br><span class='negative-stat'>+20% Block Cooldown</span>", mods: { blockRepulse: 25, blockCooldownMult: 1.2 } },
+        { title: "Gravity Well", desc: "Block pulls enemies in.", statsHTML: "Block Attracts Enemies<br>+50 Max Health", mods: { blockAttract: 15, maxHealth: 50 } },
+        { title: "Shockwave", desc: "Devastating block explosion.", statsHTML: "Massive Repulse<br>+20 Block Damage<br><span class='negative-stat'>+50% Block Cooldown</span>", mods: { blockRepulse: 40, blockDamage: 20, blockCooldownMult: 1.5 } },
+        { title: "Black Hole", desc: "Inescapable pull.", statsHTML: "Massive Block Attract<br>+30 Block Damage<br><span class='negative-stat'>-2 Speed</span>", mods: { blockAttract: 35, blockDamage: 30, speed: -2 } },
+        { title: "Deflector", desc: "Spam your shield.", statsHTML: "-40% Block Cooldown<br>+10 Block Repulse", mods: { blockCooldownMult: 0.6, blockRepulse: 10 } },
+
+        ...Array.from({length: 100}, (_, i) => {
+            const effects = [
+                { title: "Vitamin G", desc: "Green and healthy.", statsHTML: "+30 Max Health", mods: { maxHealth: 30 } },
+                { title: "Sugar Rush", desc: "Can't stop shaking.", statsHTML: "+2 Speed<br>+10% Fire Rate", mods: { speed: 2, fireRateMult: 0.9 } },
+                { title: "Sharpened", desc: "A little more sting.", statsHTML: "+5% Damage", mods: { damageMult: 0.05 } },
+                { title: "Extra Mag", desc: "One more clip.", statsHTML: "+2 Max Ammo", mods: { maxAmmo: 2 } },
+                { title: "Wall Bounce", desc: "Ping pong.", statsHTML: "+1 Bounce", mods: { bounces: 1 } },
+                { title: "Quick Hands", desc: "Faster reloading.", statsHTML: "-15% Reload Time", mods: { reloadTimeMult: 0.85 } },
+                { title: "Shield battery", desc: "More shielding.", statsHTML: "+20% Block Duration", mods: { blockDurationMult: 1.2 } },
+                { title: "Repel Mod", desc: "Push them back.", statsHTML: "+5 Block Repulse", mods: { blockRepulse: 5 } },
+                { title: "Magnet Mod", desc: "Pull them in.", statsHTML: "+5 Block Attract", mods: { blockAttract: 5 } },
+                { title: "Spike Mod", desc: "Hurt on block.", statsHTML: "+10 Block Damage", mods: { blockDamage: 10 } },
+                { title: "Growth Spurt", desc: "Get big.", statsHTML: "+20% Hitbox Size<br>+50 Health", mods: { scale: 1.2, maxHealth: 50 } },
+                { title: "Diet", desc: "Get small.", statsHTML: "-20% Hitbox Size<br>-20 Health", mods: { scale: 0.8, maxHealth: -20 } },
+                { title: "Toxic Vial", desc: "Add poison.", statsHTML: "Applies Poison", mods: { poison: true } },
+                { title: "Leech Tooth", desc: "Add lifesteal.", statsHTML: "Adds Lifesteal", mods: { lifesteal: true } },
+                { title: "Boom Powder", desc: "Add explosions.", statsHTML: "Explosive Rounds", mods: { explosive: 1 } },
+                { title: "Tracker", desc: "Add homing.", statsHTML: "Homing Bullets", mods: { homing: 1 } },
+                { title: "Splitter", desc: "Add burst.", statsHTML: "+1 Burst", mods: { burst: 1 } },
+                { title: "Curveball", desc: "Bullets return.", statsHTML: "Returning Bullets", mods: { boomerang: true } },
+                { title: "Heavy Metal", desc: "Bullets roll on floor.", statsHTML: "Gravity Bullets", mods: { pacman: true } },
+                { title: "Big Bullets", desc: "Increase bullet size.", statsHTML: "+30% Bullet Size", mods: { bulletSizeMult: 1.3 } },
+                { title: "Small Bullets", desc: "Decrease bullet size.", statsHTML: "-30% Bullet Size", mods: { bulletSizeMult: 0.7 } },
+                { title: "Jumper", desc: "One more jump.", statsHTML: "+1 Max Jumps", mods: { maxJumps: 1 } },
+                { title: "Titan", desc: "Absolute unit.", statsHTML: "+300 Max Health<br>+50% Hitbox Size<br><span class='negative-stat'>-3 Speed</span>", mods: { maxHealth: 300, scale: 1.5, speed: -3 } },
+                { title: "Atom", desc: "Basically invisible.", statsHTML: "-60% Hitbox Size<br><span class='negative-stat'>-80 Max Health</span>", mods: { scale: 0.4, maxHealth: -80 } },
+                { title: "Cheetah", desc: "Blur of motion.", statsHTML: "+10 Speed<br><span class='negative-stat'>-50 Max Health</span>", mods: { speed: 10, maxHealth: -50 } },
+                { title: "Snail", desc: "Moving target.", statsHTML: "-4 Speed<br>+150 Max Health", mods: { speed: -4, maxHealth: 150 } },
+                { title: "One Shot", desc: "Make it count.", statsHTML: "1 Max Ammo<br>+50% Damage<br>+100% Bullet Speed", mods: { maxAmmo: -100, damageMult: 0.5, bulletSpeed: 10 } },
+                { title: "Infinite", desc: "Never stop.", statsHTML: "+20 Max Ammo<br>-50% Reload Time<br><span class='negative-stat'>-20% Damage</span>", mods: { maxAmmo: 20, reloadTimeMult: 0.5, damageMult: -0.2 } },
+                { title: "Bullet Storm", desc: "So many bullets.", statsHTML: "+5 Burst<br>-80% Fire Rate<br><span class='negative-stat'>-20% Damage</span>", mods: { burst: 5, fireRateMult: 0.2, damageMult: -0.2 } },
+                { title: "Bouncy Castle II", desc: "More bounces.", statsHTML: "+10 Bounces", mods: { bounces: 10 } },
+                { title: "Swarm II", desc: "Intense tracking.", statsHTML: "+3 Homing<br><span class='negative-stat'>-10% Damage</span>", mods: { homing: 3, damageMult: -0.1 } },
+                { title: "Nuke", desc: "Giant explosion.", statsHTML: "Explosive Rounds<br>+100% Bullet Size<br><span class='negative-stat'>-50% Fire Rate</span>", mods: { explosive: 1, bulletSizeMult: 2.0, fireRateMult: 1.5 } },
+                { title: "Toxic Rain", desc: "Poison from above.", statsHTML: "Applies Poison<br>Gravity Bullets<br>+3 Burst", mods: { poison: true, pacman: true, burst: 3 } },
+                { title: "Vampiric Swarm", desc: "Bloodsucking bugs.", statsHTML: "Adds Lifesteal<br>Homing Bullets<br>+2 Burst", mods: { lifesteal: true, homing: 1, burst: 2 } },
+                { title: "Insta-Block", desc: "Always blocking.", statsHTML: "-80% Block Cooldown<br>-80% Block Duration", mods: { blockCooldownMult: 0.2, blockDurationMult: 0.2 } },
+                { title: "Eternity Block", desc: "Never stop blocking.", statsHTML: "+400% Block Duration<br><span class='negative-stat'>+200% Block Cooldown</span>", mods: { blockDurationMult: 5, blockCooldownMult: 3 } },
+                { title: "Porcupine", desc: "Hurts to touch.", statsHTML: "+50 Block Damage<br>+20 Block Repulse", mods: { blockDamage: 50, blockRepulse: 20 } },
+                { title: "Singularity", desc: "Inescapable.", statsHTML: "+60 Block Attract<br><span class='negative-stat'>-3 Speed</span>", mods: { blockAttract: 60, speed: -3 } },
+                { title: "Supernova", desc: "Massive blast.", statsHTML: "+80 Block Repulse<br><span class='negative-stat'>+50% Block Cooldown</span>", mods: { blockRepulse: 80, blockCooldownMult: 1.5 } },
+                { title: "Moon Boots", desc: "Low gravity jumps.", statsHTML: "+15 Jump Power<br><span class='negative-stat'>-2 Speed</span>", mods: { jumpPower: 15, speed: -2 } },
+                { title: "Concrete Shoes", desc: "Can't jump.", statsHTML: "0 Jumps<br>+200 Max Health", mods: { maxJumps: -100, maxHealth: 200 } },
+                { title: "Glass Bullet", desc: "Breaks easily.", statsHTML: "+50% Damage<br><span class='negative-stat'>-80% Bullet Size</span>", mods: { damageMult: 0.5, bulletSizeMult: 0.2 } },
+                { title: "Pillow", desc: "Soft and giant.", statsHTML: "+300% Bullet Size<br><span class='negative-stat'>-30% Damage</span>", mods: { bulletSizeMult: 4.0, damageMult: -0.3 } },
+                { title: "Hyperdrive", desc: "Everything is fast.", statsHTML: "+5 Speed<br>-50% Reload Time<br>-50% Block Cooldown", mods: { speed: 5, reloadTimeMult: 0.5, blockCooldownMult: 0.5 } },
+                { title: "Lethargy", desc: "Everything is slow.", statsHTML: "-3 Speed<br>+100% Reload Time<br>+200 Max Health", mods: { speed: -3, reloadTimeMult: 2, maxHealth: 200 } }
+            ];
+            return effects[i % effects.length];
+        })
+    ];
+
+    function triggerRoundOver(loserId) {
+        if (gameState === 'UPGRADING' || gameState === 'GAMEOVER') return;
+        
+        loserIndex = loserId === 1 ? p1 : p2;
+        savedLoserId = loserId;
+        if (loserId === 1) p2Score++; else p1Score++;
+        
+        document.getElementById('scoreP1').innerText = p1Score;
+        document.getElementById('scoreP2').innerText = p2Score;
+        
+        if ((p1Score >= WIN_SCORE || p2Score >= WIN_SCORE) && !isEndless) {
+            gameState = 'GAMEOVER';
+            setTimeout(() => {
+                let winner = p1Score > p2Score ? 1 : 2;
+                document.getElementById('winTitle').innerText = p1Score > p2Score ? "Player 1 Wins!" : (gameMode === 'pve' ? "AI Wins!" : "Player 2 Wins!");
+                document.getElementById('winTitle').style.color = winner === 1 ? '#ff4757' : '#1e90ff';
+                document.getElementById('winScreen').style.display = 'flex';
+            }, 1000);
+            return;
+        }
+
+        setTimeout(() => {
+            startUpgradePhase(loserId);
+        }, 1000);
+    }
+
+    function startUpgradePhase(loserId) {
+        gameState = 'UPGRADING';
+        const container = document.getElementById('cardsContainer');
+        container.innerHTML = '';
+        
+        let isAiPicking = (loserId === 2 && gameMode === 'pve');
+
+        if (isAiPicking) {
+            document.getElementById('upgradeTitle').innerText = `AI is selecting an upgrade...`;
+        } else {
+            document.getElementById('upgradeTitle').innerText = `Player ${loserId} Defeated! Pick Your Revenge.`;
+        }
+        
+        document.getElementById('upgradeScreen').style.display = 'flex';
+        
+        let shuffled = [...cardDeck].sort(() => 0.5 - Math.random());
+        let choices = shuffled.slice(0, 4);
+        
+        choices.forEach(card => {
+            let cardEl = document.createElement('div'); cardEl.className = 'card';
+            cardEl.innerHTML = `<div class="card-title">${card.title}</div><div class="card-desc">${card.desc}</div><div class="card-stats">${card.statsHTML}</div>`;
+            
+            if (isAiPicking) {
+                cardEl.style.cursor = 'default';
+            } else {
+                cardEl.onclick = () => {
+                    loserIndex.applyCard(card);
+                    document.getElementById('upgradeScreen').style.display = 'none';
+                    resetRound();
+                };
+            }
+            container.appendChild(cardEl);
+        });
+
+        if (isAiPicking) {
+            setTimeout(() => {
+                let randomAiCard = choices[Math.floor(Math.random() * choices.length)];
+                loserIndex.applyCard(randomAiCard);
+                document.getElementById('upgradeScreen').style.display = 'none';
+                resetRound();
+            }, 2500);
+        }
+    }
+
+    function continueEndless() {
+        isEndless = true;
+        document.getElementById('winScreen').style.display = 'none';
+        startUpgradePhase(savedLoserId);
+    }
+
+    const p1 = new Player(100, 100, '#ff4757', { left: 'KeyA', right: 'KeyD', jump: 'KeyW', down: 'KeyS', shoot: 'Space', block: 'ShiftLeft' }, 1);
+    const p2 = new Player(800, 100, '#1e90ff', { left: 'ArrowLeft', right: 'ArrowRight', jump: 'ArrowUp', down: 'ArrowDown', shoot: 'Enter', block: 'ShiftRight' }, 2);
+
+    function resetRound() {
+        let mapSelection = document.getElementById('mapSelect').value;
+        if (mapSelection === 'random') {
+            currentMapIndex = Math.floor(Math.random() * maps.length);
+        } else {
+            currentMapIndex = parseInt(mapSelection);
+        }
+        
+        let m = maps[currentMapIndex];
+        canvas.style.backgroundColor = m.color;
+        platforms = JSON.parse(JSON.stringify(m.platforms));
+        movingPlatforms = m.moving ? JSON.parse(JSON.stringify(m.moving)) : [];
+        swingingPlatforms = m.swinging ? JSON.parse(JSON.stringify(m.swinging)) : [];
+        jumpPads = m.jumpPads ? JSON.parse(JSON.stringify(m.jumpPads)) : [];
+        
+        boxes = m.boxes ? m.boxes.map(b => new Box(b)) : [];
+
+        let p1X = m.p1Spawn ? m.p1Spawn.x : 100;
+        let p1Y = m.p1Spawn ? m.p1Spawn.y : 100;
+        let p2X = m.p2Spawn ? m.p2Spawn.x : 800;
+        let p2Y = m.p2Spawn ? m.p2Spawn.y : 100;
+
+        p1.resetPos(p1X, p1Y); 
+        p2.resetPos(p2X, p2Y);
+        
+        bullets = []; particles = []; 
+        if (gameState !== 'MAIN_MENU') gameState = 'PLAYING';
+        updateUI();
+    }
+
+    function updateUI() {
+        ['p1', 'p2'].forEach(p => {
+            let player = p === 'p1' ? p1 : p2;
+            let hpPercent = Math.max(0, (player.health / player.maxHealth) * 100);
+            document.getElementById(`${p}Health`).style.width = `${hpPercent}%`;
+            document.getElementById(`${p}HealthText`).innerText = `${Math.max(0, Math.ceil(player.health))} / ${player.maxHealth}`;
+        });
+        document.getElementById('scoreP1').innerText = p1Score;
+        document.getElementById('scoreP2').innerText = p2Score;
+    }
+    function shadeHex(hex, amt) {
+        let c = parseInt(hex.slice(1), 16), r = c >> 16, g = (c >> 8) & 255, b = c & 255;
+        const f = amt < 0 ? 0 : 255, k = Math.abs(amt);
+        return 'rgb(' + Math.round((f - r) * k + r) + ',' + Math.round((f - g) * k + g) + ',' + Math.round((f - b) * k + b) + ')';
+    }
+    const bgCache = {};
+    function mapBackdrop(col) {
+        if (bgCache[col]) return bgCache[col];
+        const c = document.createElement('canvas'); c.width = canvas.width; c.height = canvas.height; const x = c.getContext('2d');
+        const g = x.createLinearGradient(0, 0, 0, c.height); g.addColorStop(0, '#07070d'); g.addColorStop(0.6, shadeHex(col, -0.55)); g.addColorStop(1, shadeHex(col, -0.25));
+        x.fillStyle = g; x.fillRect(0, 0, c.width, c.height);
+        const glow = x.createRadialGradient(c.width / 2, c.height * 0.85, 40, c.width / 2, c.height * 0.85, c.width * 0.7); glow.addColorStop(0, shadeHex(col, 0.15).replace('rgb', 'rgba').replace(')', ',0.35)')); glow.addColorStop(1, 'rgba(0,0,0,0)');
+        x.fillStyle = glow; x.fillRect(0, 0, c.width, c.height);
+        for (let layer = 0; layer < 2; layer++) {
+            x.fillStyle = layer ? shadeHex(col, -0.45) : shadeHex(col, -0.62);
+            let px = 0; x.beginPath(); x.moveTo(0, c.height);
+            while (px < c.width) { const w = 30 + Math.random() * 60, h = (layer ? 90 : 170) + Math.random() * (layer ? 90 : 140); x.lineTo(px, c.height - h); x.lineTo(px + w, c.height - h); px += w + Math.random() * 8; }
+            x.lineTo(c.width, c.height); x.closePath(); x.fill();
+            if (!layer) { x.fillStyle = 'rgba(255,220,150,0.25)'; for (let i = 0; i < 90; i++) x.fillRect(Math.random() * c.width, c.height - 40 - Math.random() * 260, 2, 3); }
+        }
+        x.strokeStyle = 'rgba(255,255,255,0.035)'; x.lineWidth = 1;
+        for (let i = 0; i < c.width; i += 40) { x.beginPath(); x.moveTo(i + 0.5, 0); x.lineTo(i + 0.5, c.height); x.stroke(); }
+        for (let i = 0; i < c.height; i += 40) { x.beginPath(); x.moveTo(0, i + 0.5); x.lineTo(c.width, i + 0.5); x.stroke(); }
+        return (bgCache[col] = c);
+    }
+    const motes = Array.from({ length: 40 }, () => ({ x: Math.random() * 1024, y: Math.random() * 576, s: 0.2 + Math.random() * 0.6, r: 1 + Math.random() * 2.5 }));
+    let mapT = 0;
+    function slab(px, py, w, h, base, edge) {
+        const g = ctx.createLinearGradient(0, py, 0, py + h); g.addColorStop(0, shadeHex(base, 0.12)); g.addColorStop(1, shadeHex(base, -0.35));
+        ctx.fillStyle = g; ctx.fillRect(px, py, w, h);
+        ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(px, py + h - 3, w, 3);
+        ctx.shadowColor = edge; ctx.shadowBlur = 12; ctx.fillStyle = edge; ctx.fillRect(px, py, w, 3); ctx.shadowBlur = 0;
+    }
+    function drawMap() {
+        mapT++;
+        const currentMapColor = maps[currentMapIndex].color || '#2f3542';
+        const edge = shadeHex(currentMapColor, 0.55);
+        ctx.drawImage(mapBackdrop(currentMapColor), 0, 0);
+        ctx.fillStyle = 'rgba(255,255,255,0.18)';
+        for (const m of motes) { m.y -= m.s; if (m.y < -5) { m.y = canvas.height + 5; m.x = Math.random() * canvas.width; } ctx.beginPath(); ctx.arc(m.x + Math.sin(mapT * 0.01 + m.y * 0.02) * 6, m.y, m.r, 0, Math.PI * 2); ctx.fill(); }
+        ctx.fillStyle = currentMapColor; ctx.fillRect(0, 0, 10, canvas.height); ctx.fillRect(canvas.width - 10, 0, 10, canvas.height);
+        ctx.fillStyle = edge; ctx.fillRect(9, 0, 1, canvas.height); ctx.fillRect(canvas.width - 10, 0, 1, canvas.height);
+        platforms.forEach(p => {
+            if (p.destructible) {
+                const g = ctx.createLinearGradient(0, p.y, 0, p.y + p.h); g.addColorStop(0, '#9aa7b8'); g.addColorStop(1, '#5a6578');
+                ctx.fillStyle = g; ctx.fillRect(p.x, p.y, p.w, p.h);
+                ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 2; ctx.strokeRect(p.x + 2, p.y + 2, p.w - 4, p.h - 4); ctx.lineWidth = 1;
+                ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fillRect(p.x, p.y, p.w, 2);
+            } else slab(p.x, p.y, p.w, p.h, currentMapColor, edge);
+        });
+        movingPlatforms.forEach(p => {
+            slab(p.x, p.y, p.w, p.h, '#56657d', '#ffd34f');
+            ctx.fillStyle = 'rgba(255,211,79,0.8)'; const d = p.vx > 0 ? 1 : -1;
+            for (let k = 0; k < 3; k++) { const ax = p.x + p.w / 2 + (k - 1) * 12; ctx.beginPath(); ctx.moveTo(ax + d * 4, p.y + p.h / 2 + 1); ctx.lineTo(ax - d * 3, p.y + p.h / 2 - 4); ctx.lineTo(ax - d * 3, p.y + p.h / 2 + 6); ctx.fill(); }
+        });
+        swingingPlatforms.forEach(p => {
+            p.time++;
+            let currentAngle = p.baseAngle + Math.sin(p.time * p.speed) * p.swingArc;
+            p.x = p.pivotX + Math.cos(currentAngle) * p.radius - p.w/2;
+            p.y = p.pivotY + Math.sin(currentAngle) * p.radius - p.h/2;
+            const ex = p.x + p.w / 2, ey = p.y, n = 12;
+            ctx.fillStyle = '#c9c4ff';
+            for (let k = 0; k <= n; k++) { ctx.beginPath(); ctx.arc(p.pivotX + (ex - p.pivotX) * k / n, p.pivotY + (ey - p.pivotY) * k / n, 2, 0, Math.PI * 2); ctx.fill(); }
+            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(p.pivotX, p.pivotY, 5, 0, Math.PI * 2); ctx.fill();
+            slab(p.x, p.y, p.w, p.h, '#6c5ce7', '#c9c4ff');
+        });
+        jumpPads.forEach(p => {
+            const g = ctx.createLinearGradient(0, p.y, 0, p.y + p.h); g.addColorStop(0, '#5ff6ff'); g.addColorStop(1, '#008c94');
+            ctx.shadowColor = '#00d2d3'; ctx.shadowBlur = 18; ctx.fillStyle = g; ctx.fillRect(p.x, p.y, p.w, p.h); ctx.shadowBlur = 0;
+            ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 2.5;
+            for (let k = 0; k < 3; k++) { const yy = p.y - 6 - ((mapT * 0.8 + k * 10) % 30); ctx.globalAlpha = 1 - ((mapT * 0.8 + k * 10) % 30) / 30; ctx.beginPath(); ctx.moveTo(p.x + p.w / 2 - 8, yy + 6); ctx.lineTo(p.x + p.w / 2, yy); ctx.lineTo(p.x + p.w / 2 + 8, yy + 6); ctx.stroke(); }
+            ctx.globalAlpha = 1; ctx.lineWidth = 1;
+        });
+        if (maps[currentMapIndex].hazards) {
+            maps[currentMapIndex].hazards.forEach(h => {
+                const g = ctx.createLinearGradient(0, h.y, 0, h.y + h.h); g.addColorStop(0, '#ffcf5a'); g.addColorStop(0.25, '#ff6a2a'); g.addColorStop(1, '#8a1a08');
+                ctx.shadowColor = '#ff6a2a'; ctx.shadowBlur = 22; ctx.fillStyle = g; ctx.fillRect(h.x, h.y, h.w, h.h); ctx.shadowBlur = 0;
+                ctx.fillStyle = '#fff2b0';
+                for (let k = 0; k < h.w; k += 16) { const yy = h.y + 2 + Math.sin(mapT * 0.08 + k * 0.3) * 2; ctx.beginPath(); ctx.arc(h.x + k + 8, yy, 2.5, 0, Math.PI * 2); ctx.fill(); }
+            });
+        }
+    }
+
+    function gameLoop(now) {
+        if (!VFX.tick60(now)) { requestAnimationFrame(gameLoop); return; }
+        currentMapPlatforms = platforms.concat(movingPlatforms).concat(swingingPlatforms);
+
+        if (gameState === 'PLAYING') {
+            movingPlatforms.forEach(p => {
+                p.x += p.vx;
+                if (p.x < p.minX || p.x + p.w > p.maxX) p.vx *= -1;
+            });
+
+            for(let i = 0; i < boxes.length; i++) {
+                let b1 = boxes[i];
+                if (!b1.active) continue;
+                for(let j = i + 1; j < boxes.length; j++) {
+                    let b2 = boxes[j];
+                    if (!b2.active) continue;
+
+                    if (b1.type === 'circle' && b2.type === 'circle') {
+                        let dx = b1.x - b2.x; let dy = b1.y - b2.y;
+                        let dist = Math.hypot(dx, dy) || 1;
+                        let minDist = b1.radius + b2.radius;
+                        if (dist < minDist) {
+                            let overlap = minDist - dist;
+                            let nx = dx/dist; let ny = dy/dist;
+                            b1.x += nx * overlap/2; b1.y += ny * overlap/2;
+                            b2.x -= nx * overlap/2; b2.y -= ny * overlap/2;
+                            let tx = b1.vx; let ty = b1.vy;
+                            b1.vx = b2.vx*0.9; b1.vy = b2.vy*0.9;
+                            b2.vx = tx*0.9; b2.vy = ty*0.9;
+                            if(ny < -0.5) b1.grounded = true;
+                            if(ny > 0.5) b2.grounded = true;
+                        }
+                    } else if (b1.type === 'box' && b2.type === 'box') {
+                        let dx = (b1.x + b1.w/2) - (b2.x + b2.w/2);
+                        let dy = (b1.y + b1.h/2) - (b2.y + b2.h/2);
+                        let aw = (b1.w + b2.w)/2; let ah = (b1.h + b2.h)/2;
+                        if (Math.abs(dx) < aw && Math.abs(dy) < ah) {
+                            let wy = aw * dy; let hx = ah * dx;
+                            if (wy > hx) {
+                                if (wy > -hx) { 
+                                    b1.y += (ah - dy)/2; b2.y -= (ah - dy)/2;
+                                    b1.vy = Math.min(0, b1.vy);
+                                    if(Math.abs(b2.vy)<0.5) b2.vy = 0;
+                                    b2.grounded = true;
+                                } else { 
+                                    b1.x -= (aw + dx)/2; b2.x += (aw + dx)/2;
+                                    let tx = b1.vx; b1.vx = b2.vx*0.8; b2.vx = tx*0.8;
+                                }
+                            } else {
+                                if (wy > -hx) { 
+                                    b1.x += (aw - dx)/2; b2.x -= (aw - dx)/2;
+                                    let tx = b1.vx; b1.vx = b2.vx*0.8; b2.vx = tx*0.8;
+                                } else { 
+                                    b1.y -= (ah + dy)/2; b2.y += (ah + dy)/2;
+                                    b1.vy = Math.min(0, b1.vy);
+                                    if(Math.abs(b2.vy)<0.5) b2.vy = 0;
+                                    b1.grounded = true;
+                                }
+                            }
+                        }
+                    } else {
+                        let c = b1.type === 'circle' ? b1 : b2;
+                        let r = b1.type === 'box' ? b1 : b2;
+                        let testX = c.x; let testY = c.y;
+                        if (c.x < r.x) testX = r.x; else if (c.x > r.x + r.w) testX = r.x + r.w;
+                        if (c.y < r.y) testY = r.y; else if (c.y > r.y + r.h) testY = r.y + r.h;
+                        
+                        let dx = c.x - testX; let dy = c.y - testY;
+                        let dist = Math.hypot(dx, dy);
+                        if (dist < c.radius) {
+                            let overlap = c.radius - dist;
+                            let nx = 0, ny = -1;
+                            if (dist === 0) { 
+                                let dL = c.x - r.x; let dR = r.x + r.w - c.x;
+                                let dT = c.y - r.y; let dB = r.y + r.h - c.y;
+                                let min = Math.min(dL, dR, dT, dB);
+                                if (min === dT) { nx = 0; ny = -1; overlap = dT + c.radius; }
+                                else if (min === dB) { nx = 0; ny = 1; overlap = dB + c.radius; }
+                                else if (min === dL) { nx = -1; ny = 0; overlap = dL + c.radius; }
+                                else { nx = 1; ny = 0; overlap = dR + c.radius; }
+                            } else {
+                                nx = dx/dist; ny = dy/dist;
+                            }
+                            c.x += nx * overlap/2; c.y += ny * overlap/2;
+                            r.x -= nx * overlap/2; r.y -= ny * overlap/2;
+                            
+                            let tx = c.vx; let ty = c.vy;
+                            c.vx = r.vx*0.8; c.vy = r.vy*0.8;
+                            r.vx = tx*0.8; r.vy = ty*0.8;
+                            if(ny < -0.5) c.grounded = true;
+                            if(ny > 0.5) r.grounded = true;
+                        }
+                    }
+                }
+            }
+
+            p1.update(); p2.update();
+            
+            // Player-to-Player Collision
+            if (p1.health > 0 && p2.health > 0) {
+                let dx = (p1.x + p1.width/2) - (p2.x + p2.width/2);
+                let dy = (p1.y + p1.height/2) - (p2.y + p2.height/2);
+                let aw = (p1.width + p2.width)/2;
+                let ah = (p1.height + p2.height)/2;
+
+                if (Math.abs(dx) < aw && Math.abs(dy) < ah) {
+                    let overlapX = aw - Math.abs(dx);
+                    let overlapY = ah - Math.abs(dy);
+                    
+                    if (overlapX < overlapY) {
+                        let push = overlapX / 2;
+                        if (p1.x < p2.x) { p1.x -= push; p2.x += push; }
+                        else { p1.x += push; p2.x -= push; }
+                        
+                        let p1vx = p1.vx;
+                        p1.vx = p2.vx * 0.5 + p1.vx * 0.5;
+                        p2.vx = p1vx * 0.5 + p2.vx * 0.5;
+                    } else {
+                        if (p1.y < p2.y) { 
+                            p1.y -= overlapY; 
+                            if (p1.vy >= 0) {
+                                p1.vy = p2.vy;
+                                p1.grounded = true;
+                                p1.jumpsLeft = p1.maxJumps;
+                            }
+                        } else { 
+                            p2.y -= overlapY; 
+                            if (p2.vy >= 0) {
+                                p2.vy = p1.vy;
+                                p2.grounded = true;
+                                p2.jumpsLeft = p2.maxJumps;
+                            }
+                        }
+                    }
+                }
+            }
+
+            boxes.forEach(b => b.update());
+            bullets.forEach(b => b.update());
+            
+            platforms = platforms.filter(p => !p.markedForDeletion);
+            bullets = bullets.filter(b => b.active);
+            boxes = boxes.filter(b => b.active && b.health > 0);
+        }
+
+        drawMap();
+        boxes.forEach(b => b.draw(ctx));
+        
+        if (gameState === 'PLAYING') {
+             particles.forEach(p => p.update());
+             particles = particles.filter(p => p.life > 0);
+        }
+        particles.forEach(p => p.draw(ctx));
+
+        if (gameState === 'PLAYING' || gameState === 'UPGRADING' || gameState === 'GAMEOVER' || gameState === 'PAUSED') {
+            p1.draw(ctx); 
+            p2.draw(ctx);
+            bullets.forEach(b => b.draw(ctx));
+        }
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    window.focus();
+    updateUI(); gameLoop();
+</script>
+</body>
+</html>

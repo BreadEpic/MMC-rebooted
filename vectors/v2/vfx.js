@@ -242,5 +242,18 @@
     if (document.body) go(); else document.addEventListener("DOMContentLoaded", go);
   }
 
-  window.VFX = { init: init, bloom: addBloom, shake: shake, flash: flash, sfx: sfx, tone: tone, noise: noise, settings: S, onFrame: onFrame };
+  // For games that update once per animation frame: returns true about 60 times a second,
+  // so they run at the same speed on 60Hz, 75Hz, 120Hz and 144Hz screens.
+  var gateAcc = 0, gateLast = 0;
+  function tick60(now) {
+    now = now || performance.now();
+    if (!gateLast) { gateLast = now; return true; }
+    gateAcc += Math.min(100, now - gateLast); gateLast = now;
+    if (gateAcc < 1000 / 61) return false;
+    gateAcc = Math.min(gateAcc - 1000 / 60, 1000 / 60);
+    if (gateAcc < 0) gateAcc = 0;
+    return true;
+  }
+
+  window.VFX = { tick60: tick60, init: init, bloom: addBloom, shake: shake, flash: flash, sfx: sfx, tone: tone, noise: noise, settings: S, onFrame: onFrame };
 })();
