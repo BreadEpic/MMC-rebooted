@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zombie Survival 2.0</title>
+    <link rel="stylesheet" href="v2/fonts.css">
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #2c3e50; color: white; font-family: Rajdhani, Inter, sans-serif; font-weight: 600; user-select: none; }
+        canvas { display: block; }
+        #ui { position: absolute; top: 10px; left: 10px; pointer-events: none; width: 100%; text-shadow: 1px 1px 0 #000; z-index: 10; display: none; gap: 20px;}
+        .status-container { width: 250px; background: rgba(0,0,0,0.6); padding: 5px; border-radius: 5px; border: 2px solid #555; pointer-events: auto; }
+        .bar-bg { width: 100%; height: 15px; background: #222; border-radius: 3px; overflow: hidden; margin-bottom: 5px; position: relative;}
+        .bar-fill { height: 100%; transition: width 0.2s; }
+        .bar-label { position: absolute; top: -2px; left: 5px; font-size: 12px; font-weight: bold; }
+        #healthFill { background: #e74c3c; width: 100%; } #foodFill { background: #8B4513; width: 100%; } #waterFill { background: #3498db; width: 100%; }
+        
+        #timeUI { position: absolute; top: 10px; right: 20px; font-size: 24px; font-weight: bold; color: #f1c40f; text-shadow: 2px 2px #000; z-index: 10; display: none;}
+
+        #hotbar { display: none; gap: 5px; margin-top: 10px; pointer-events: auto; position: absolute; top: 80px; left: 10px;}
+        .slot { width: 55px; height: 55px; border: 3px solid #555; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; text-align: center; position: relative; cursor: grab; }
+        .slot:hover { background: rgba(50,50,50,0.9); }
+        .active { border-color: #f1c40f; background: rgba(241, 196, 15, 0.2); }
+        .icon { font-size: 24px; line-height: 1; margin-bottom: 2px; }
+        .count { position: absolute; bottom: 2px; right: 4px; font-size: 12px; color: #f1c40f; }
+
+        .prompt { font-size: 18px; color: #f1c40f; display: none; text-shadow: 2px 2px 0 #000; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; height: 30px; line-height: 30px;}
+        #miningBar { display: none; position: absolute; top: 65%; left: 50%; transform: translate(-50%, 0); width: 200px; height: 20px; background: #222; border: 3px solid #7f8c8d; border-radius: 5px; overflow: hidden; z-index: 10;}
+        #miningFill { width: 0%; height: 100%; background: #f1c40f; }
+
+        .menu-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(44, 62, 80, 0.95); border: 4px solid #2ecc71; padding: 20px; border-radius: 10px; display: none; text-align: center; box-shadow: 0 0 20px #000; pointer-events: auto; z-index: 20; }
+        .menu-overlay h2 { margin-top: 0; color: #2ecc71; text-shadow: 2px 2px 0 #000; }
+        .btn { background: #27ae60; color: white; border: 2px solid #1e8449; padding: 10px 20px; margin: 10px; font-family: inherit; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 5px; transition: 0.2s; }
+        .btn:hover { background: #2ecc71; transform: scale(1.05); }
+        .btn:disabled { background: #7f8c8d; border-color: #95a5a6; cursor: not-allowed; }
+        .close-btn { background: #e74c3c; border-color: #c0392b; } .close-btn:hover { background: #ff4d4d; }
+
+        #mainMenu { display: flex; flex-direction: column; width: 300px; }
+        #mainMenu h1 { color: #e74c3c; margin-top: 0; font: 400 44px 'Black Ops One', sans-serif; letter-spacing: 2px; margin-bottom: 5px; text-shadow: 0 4px 0 #400, 0 0 24px rgba(231,76,60,.6); }
+        .menu-overlay { border-radius: 16px !important; background: linear-gradient(170deg, rgba(30,44,40,.96), rgba(12,18,16,.96)) !important; box-shadow: 0 30px 80px rgba(0,0,0,.7), 0 0 40px rgba(46,204,113,.15); }
+        .btn { border-radius: 10px !important; font-family: Rajdhani, sans-serif !important; font-weight: 700 !important; letter-spacing: 1px; box-shadow: 0 4px 0 rgba(0,0,0,.35); }
+        #mainMenu p { margin-bottom: 20px; color: #bdc3c7; }
+
+        #fishContainer { width: 250px; height: 30px; background: #555; border: 2px solid #222; margin: 20px auto; position: relative; border-radius: 5px; overflow: hidden; }
+        #fishTarget { position: absolute; width: 50px; height: 100%; background: #2ecc71; left: 100px; }
+        #fishCursor { position: absolute; width: 10px; height: 100%; background: #e74c3c; left: 0; box-shadow: 0 0 5px #000; }
+
+        #inventoryScreen { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(30, 30, 30, 0.95); border: 4px solid #555; padding: 20px; border-radius: 10px; display: none; z-index: 15; pointer-events: auto; display: flex; gap: 20px; }
+        .inv-section { display: flex; flex-direction: column; }
+        .inv-grid { display: grid; grid-template-columns: repeat(8, 60px); gap: 5px; margin-top: 10px; }
+        .craft-grid { display: grid; grid-template-columns: repeat(3, 60px); gap: 5px; margin-top: 10px; }
+        .craft-output { display: flex; align-items: center; justify-content: center; margin-top: 20px; }
+        .arrow { font-size: 30px; margin: 0 15px; color: #f1c40f; }
+        h3 { margin: 0 0 5px 0; color: #f1c40f; text-shadow: 1px 1px #000; }
+        
+        .wp-input { width: 100px; background: #222; color: #fff; border: 1px solid #555; font-size: 11px; padding: 2px; }
+        .wp-btn { background: #e74c3c; border: none; color: white; cursor: pointer; padding: 3px 6px; margin-left: 5px; border-radius: 3px; font-weight: bold; }
+        .wp-btn:hover { background: #ff4d4d; }
+
+        #dragIcon { display:none; position:absolute; pointer-events:none; z-index:9999; width:55px; height:55px; border:2px solid #3498db; background:rgba(0,0,0,0.9); display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:11px; font-weight:bold; text-align:center; box-shadow: 0 0 15px rgba(52, 152, 219, 0.8); border-radius: 5px;}
+        
+        #mapMenu { border-color: #9b59b6; z-index: 30; flex-direction: column; align-items: center; gap: 10px; }
+        #minimapCanvas { background: #2c3e50; border: 2px solid #7f8c8d; cursor: crosshair; border-radius: 5px; }
+        #mapLayout { display: flex; gap: 20px; align-items: flex-start; }
+    </style>
+</head>
+<body>
+    <div id="mainMenu" class="menu-overlay">
+        <h1>SURVIVAL</h1>
+        <p>Select your starting difficulty:</p>
+        <button class="btn" onclick="startGame('easy')">Easy (Less Zombies, Low Dmg)</button>
+        <button class="btn" onclick="startGame('normal')" style="border-color: #f1c40f;">Normal (Standard Game)</button>
+        <button class="btn" onclick="startGame('hard')" style="background: #e74c3c; border-color: #c0392b;">Hard (More Zombies, High Dmg)</button>
+    </div>
+
+    <div id="ui">
+        <div class="status-container">
+            <div class="bar-bg"><div id="healthFill" class="bar-fill"></div><span class="bar-label">Health</span></div>
+            <div class="bar-bg"><div id="foodFill" class="bar-fill"></div><span class="bar-label">Food</span></div>
+            <div class="bar-bg"><div id="waterFill" class="bar-fill"></div><span class="bar-label">Water</span></div>
+        </div>
+        <div id="actionPrompt" class="prompt">Press '0' to Interact</div>
+    </div>
+    <div id="timeUI">Daytime</div>
+    <div id="hotbar"></div>
+    
+    <div id="miningBar"><div id="miningFill"></div></div>
+    <div id="dragIcon" style="display:none;"></div>
+
+    <div id="inventoryScreen" style="display: none;">
+        <div class="inv-section" style="width: 520px;">
+            <h3>Inventory (Hotbar Top Row) (Press 'I' to close)</h3>
+            <div id="mainInvGrid" class="inv-grid"></div>
+        </div>
+        <div class="inv-section">
+            <h3>Equipment</h3>
+            <div id="armorGrid" class="inv-grid" style="grid-template-columns: 60px; justify-content: center; margin-bottom: 20px;"></div>
+            <h3>Crafting</h3>
+            <div id="craftGrid" class="craft-grid"></div>
+            <div class="craft-output"><span class="arrow">⬇️</span></div>
+            <div style="display:flex; justify-content:center;" id="craftOutputContainer"></div>
+        </div>
+    </div>
+
+    <div id="augmentMenu" class="menu-overlay">
+        <h2>WEAPON AUGMENTATION</h2>
+        <p id="augStatus">Equipped: None</p>
+        <p>Cost: 10 Iron per Upgrade</p>
+        <button class="btn" id="btnDmg" onclick="applyAugment('damage')">+ Damage</button>
+        <button class="btn" id="btnSpd" onclick="applyAugment('speed')">+ Fire Rate</button><br><br>
+        <button class="btn close-btn" onclick="closeMenu('augmentMenu')">Close & Resume</button>
+    </div>
+
+    <div id="fishingMenu" class="menu-overlay">
+        <h2>FISHING</h2>
+        <p id="fishStatus">Press SPACE to cast & catch!</p>
+        <div id="fishContainer">
+            <div id="fishTarget"></div>
+            <div id="fishCursor"></div>
+        </div>
+        <button class="btn close-btn" onclick="closeMenu('fishingMenu')">Leave</button>
+    </div>
+
+    <div id="mapMenu" class="menu-overlay">
+        <h2 style="color: #9b59b6; margin-bottom: 5px;">MINIMAP & FAST TRAVEL</h2>
+        <p style="margin-top: 0;">Click a purple waypoint on the map to fast travel instantly!</p>
+        <div id="mapLayout">
+            <canvas id="minimapCanvas" width="500" height="500"></canvas>
+            <div style="text-align: left; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; min-width: 200px;">
+                <h3 style="color: #9b59b6; border-bottom: 1px solid #555; padding-bottom: 5px;">Waypoints (Press P)</h3>
+                <div id="waypointsList" style="overflow-y:auto; max-height: 430px; margin-top: 10px;"></div>
+            </div>
+        </div>
+        <button class="btn close-btn" onclick="toggleMap()">Close Map (M)</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+<script src="v2/vfx.js"></script>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+VFX.init({ canvas: canvas, bloom: 0.35, title: 'Zombie Survival' });
+canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+
+let camera = { x: 0, y: 0 };
+let keys = {};
+let mouse = { x: 0, y: 0, worldX: 0, worldY: 0, leftDown: false, clicked: false };
+
+let isStarted = false;
+let isPaused = false;
+let invOpen = false;
+let mapOpen = false;
+let timeOfDay = 0.25; 
+let devMode = false;
+
+let diffDmgMult = 1;
+let diffSpawnRate = 0.04;
+
+function startGame(difficulty) {
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('ui').style.display = 'flex';
+    document.getElementById('hotbar').style.display = 'flex';
+    document.getElementById('timeUI').style.display = 'block';
+
+    if (difficulty === 'easy') { diffDmgMult = 0.5; diffSpawnRate = 0.02; }
+    else if (difficulty === 'normal') { diffDmgMult = 1; diffSpawnRate = 0.04; }
+    else if (difficulty === 'hard') { diffDmgMult = 2; diffSpawnRate = 0.08; }
+
+    isStarted = true;
+}
+
+window.addEventListener('keydown', e => { 
+    if(!isStarted) return;
+    keys[e.key.toLowerCase()] = true; 
+    if(e.code==='Space') keys['space'] = true; 
+    
+    if(e.key === '?') {
+        devMode = true;
+        player.health = 99999;
+        ['Wood', 'Iron', 'Stone', 'Metal Block', 'Steel Block', 'Cloth'].forEach(m => player.giveItem(m, 'Material', 100));
+        console.log("DEV MODE ACTIVATED");
+    }
+
+    if(e.key.toLowerCase() === 'p' && !invOpen && !mapOpen) {
+        world.waypoints.push({ x: player.x, y: player.y, name: `WP ${world.waypoints.length + 1}` });
+        renderWaypoints();
+    }
+    
+    if(e.key.toLowerCase() === 'm' && !invOpen) toggleMap();
+
+    if(e.key.toLowerCase() === 'd') {
+        let nearLake = world.lakes.some(l => dist(player.x, player.y, l.x, l.y) < l.r + 40);
+        if (nearLake && !player.driving) player.thirst = Math.min(100, player.thirst + 20);
+    }
+    if(e.key.toLowerCase() === 'f' && !invOpen && !isPaused && !mapOpen && !player.driving) {
+        let onRoad = world.roads.some(r => rectIntersect(player.x, player.y, 1, 1, r.x, r.y, r.w, r.h));
+        let onLake = world.lakes.some(l => dist(player.x, player.y, l.x, l.y) < l.r);
+        let onHouse = world.houses.some(h => rectIntersect(player.x, player.y, 1, 1, h.x, h.y, h.w, h.h));
+        if(!onRoad && !onLake && !onHouse) {
+            world.farms.push({x: player.x - 20, y: player.y - 20, w: 40, h: 40, state: 'empty', timer: 0});
+        }
+    }
+});
+window.addEventListener('keyup', e => { 
+    if(!isStarted) return;
+    keys[e.key.toLowerCase()] = false; if(e.code==='Space') keys['space'] = false; 
+    if(e.key.toLowerCase() === 'i' && !mapOpen) toggleInventory();
+});
+window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; moveDragIcon(e.clientX, e.clientY); });
+window.addEventListener('mousedown', e => { if (e.button === 0) { mouse.leftDown = true; mouse.clicked = true; } });
+
+window.addEventListener('mouseup', e => { 
+    if (e.button === 0) mouse.leftDown = false; 
+    if (dragItem) {
+        let overUI = e.target.closest('#inventoryScreen') || e.target.closest('#hotbar');
+        
+        if (!overUI) {
+            world.drops.push({
+                x: player.x + (Math.random() * 40 - 20),
+                y: player.y + (Math.random() * 40 - 20),
+                name: dragItem.name,
+                type: dragItem.type,
+                count: dragItem.count
+            });
+        } else {
+            let sourceArr = dragSource.type === 'inv' ? player.inventory : (dragSource.type === 'craft' ? craftGrid : player.armorSlot);
+            if (!sourceArr[dragSource.idx]) sourceArr[dragSource.idx] = dragItem;
+            else if (sourceArr[dragSource.idx].name === dragItem.name) sourceArr[dragSource.idx].count += dragItem.count;
+            else player.giveItem(dragItem.name, dragItem.type, dragItem.count);
+        }
+        clearDrag(); checkRecipes(); renderInventory();
+    }
+});
+window.addEventListener('contextmenu', e => e.preventDefault());
+
+function dist(x1, y1, x2, y2) { return Math.hypot(x2 - x1, y2 - y1); }
+function rectIntersect(x1, y1, w1, h1, x2, y2, w2, h2) { return x2 < x1 + w1 && x2 + w2 > x1 && y2 < y1 + h1 && y2 + h2 > y1; }
+
+const ICONS = {
+    'Pistol':'🔫', 'Shotgun':'💥', 'Rifle':'🎯', 'SMG':'📠', 'Sniper':'🔭',
+    'Wood':'🪵', 'Iron':'🔩', 'Stone':'🪨', 'Stick':'🥢', 'Cloth':'🧵',
+    'Wood Block':'🟫', 'Metal Block':'⬜', 'Steel Block':'⬛',
+    'Wood Door':'🚪', 'Metal Door':'🚪', 'Steel Door':'🚪',
+    'Sapling':'🌱', 'Food':'🍖', 'Water':'💧', 'Backpack':'🎒', 'Carrot':'🥕', 'Fish':'🐟', 'Bandage':'🩹',
+    'Wood Pickaxe':'⛏️', 'Stone Pickaxe':'⛏️', 'Iron Pickaxe':'⛏️',
+    'Wood Axe':'🪓', 'Stone Axe':'🪓', 'Iron Axe':'🪓',
+    'Wood Sword':'🗡️', 'Stone Sword':'🗡️', 'Iron Sword':'🗡️', 'Hammer':'🔨',
+    'Sleeping Bag':'🛌', 'Wood Armor':'🦺', 'Metal Armor':'🛡️'
+};
+
+const MAX_STACK = 100;
+
+class Player {
+    constructor() {
+        this.x = 0; this.y = 0; this.radius = 15; this.speed = 4;
+        this.health = 100; this.hunger = 100; this.thirst = 100;
+        this.invSlots = 8 + 24; 
+        
+        this.inventory = new Array(this.invSlots).fill(null);
+        this.armorSlot = [null]; // New Armor Slot
+        this.activeSlot = 0; 
+        
+        this.cooldown = 0; this.inHouse = false; this.swingAngle = 0; this.isSwinging = false;
+        this.miningTarget = null; this.miningTimer = 0;
+        this.driving = null; // Holds the car object if driving
+    }
+
+    giveItem(name, type, count) {
+        for(let i=0; i<this.inventory.length; i++) {
+            if (this.inventory[i] && this.inventory[i].name === name && this.inventory[i].count < MAX_STACK && type !== 'Gun' && type !== 'Tool' && type !== 'Armor') {
+                let space = MAX_STACK - this.inventory[i].count;
+                let add = Math.min(space, count);
+                this.inventory[i].count += add; count -= add;
+                if (count <= 0) { renderInventory(); return true; }
+            }
+        }
+        for(let i=0; i<this.inventory.length; i++) {
+            if (!this.inventory[i]) {
+                this.inventory[i] = { name, type, count, dmgMod:0, spdMod:0 };
+                renderInventory(); return true;
+            }
+        }
+        return false;
+    }
+
+    update() {
+        if (invOpen || mapOpen) return;
+
+        let dx = 0, dy = 0;
+        let currentSpeed = this.driving ? 10 : this.speed;
+        let collisionRadius = this.driving ? 25 : this.radius;
+
+        if (keys['w']) dy -= currentSpeed; if (keys['s']) dy += currentSpeed;
+        if (keys['a']) dx -= currentSpeed; if (keys['d']) dx += currentSpeed;
+
+        let nextX = this.x + dx, nextY = this.y + dy, collision = false;
+        let onBridge = world.walls.some(w => w.material === 'bridge' && rectIntersect(nextX - collisionRadius, nextY - collisionRadius, collisionRadius*2, collisionRadius*2, w.x, w.y, w.w, w.h));
+
+        for (let w of world.walls) {
+            if (w.material !== 'door' && w.material !== 'steel_door' && w.material !== 'bridge' && w.material !== 'sapling' && rectIntersect(nextX - collisionRadius, nextY - collisionRadius, collisionRadius*2, collisionRadius*2, w.x, w.y, w.w, w.h)) { 
+                collision = true; break; 
+            }
+        }
+
+        if (!collision) {
+            let inLake = world.lakes.some(l => dist(nextX, nextY, l.x, l.y) < l.r);
+            if (inLake && !onBridge) collision = true;
+        }
+
+        if (!collision) { this.x = nextX; this.y = nextY; }
+
+        for(let i=1; i<=8; i++) {
+            if (keys[i.toString()]) { this.activeSlot = i-1; renderInventory(); }
+        }
+
+        let activeItem = this.inventory[this.activeSlot];
+
+        if (mouse.leftDown && this.cooldown <= 0 && !isPaused && !dragItem && !this.driving) {
+            let clickedFarm = world.farms.find(f => rectIntersect(mouse.worldX, mouse.worldY, 1, 1, f.x, f.y, f.w, f.h));
+            if (clickedFarm && mouse.clicked) {
+                if (clickedFarm.state === 'empty' && activeItem && activeItem.name === 'Carrot') {
+                    clickedFarm.state = 'growing'; clickedFarm.timer = 3600;
+                    activeItem.count--; if(activeItem.count<=0) this.inventory[this.activeSlot] = null;
+                    renderInventory(); mouse.clicked = false; return;
+                } else if (clickedFarm.state === 'grown') {
+                    this.giveItem('Carrot', 'Consumable', Math.floor(Math.random()*3)+2);
+                    clickedFarm.state = 'empty'; mouse.clicked = false; return;
+                }
+            }
+
+            if (activeItem) {
+                if (activeItem.type === 'Gun' || activeItem.type === 'Tool' || activeItem.name.includes('Sword') || activeItem.name === 'Hammer') {
+                    this.attack(activeItem);
+                } else if (activeItem.type === 'Consumable' && mouse.clicked) {
+                    if (activeItem.name === 'Food' || activeItem.name === 'Fish') this.hunger = Math.min(100, this.hunger + 30);
+                    if (activeItem.name === 'Carrot') this.hunger = Math.min(100, this.hunger + 15);
+                    if (activeItem.name === 'Water') this.thirst = Math.min(100, this.thirst + 30);
+                    if (activeItem.name === 'Bandage') this.health = Math.min(100, this.health + 30);
+                    activeItem.count--; this.cooldown = 30;
+                    if(activeItem.count <= 0) this.inventory[this.activeSlot] = null;
+                    renderInventory();
+                } else if (activeItem.name === 'Backpack' && mouse.clicked) {
+                    this.invSlots += 8; 
+                    let newArr = new Array(this.invSlots).fill(null);
+                    for(let i=0; i<this.inventory.length; i++) newArr[i] = this.inventory[i];
+                    this.inventory = newArr;
+                    this.inventory[this.activeSlot] = null;
+                    renderInventory();
+                }
+            } else {
+                this.attack({name: 'Fists', type: 'Tool'});
+            }
+        }
+
+        if (mouse.clicked && activeItem && !isPaused && !dragItem && !this.driving) this.buildWall(activeItem);
+
+        if (this.cooldown > 0) this.cooldown--;
+        if (this.isSwinging) { this.swingAngle += 0.4; if (this.swingAngle > Math.PI) this.isSwinging = false; }
+
+        this.inHouse = world.houses.some(h => rectIntersect(this.x, this.y, 1, 1, h.x, h.y, h.w, h.h));
+        this.updateBars();
+        mouse.clicked = false;
+    }
+
+    attack(weapon) {
+        let angle = Math.atan2(mouse.worldY - this.y, mouse.worldX - this.x);
+        if (weapon.type === 'Gun') {
+            let spread = weapon.name === 'Shotgun' ? 5 : (weapon.name === 'SMG' ? 1 : 1);
+            let dmgBase = weapon.name === 'Pistol'?30:(weapon.name === 'Shotgun'?25:(weapon.name === 'Rifle'?40:(weapon.name==='SMG'?15:150)));
+            let spdBase = weapon.name === 'Pistol'?20:(weapon.name === 'Shotgun'?45:(weapon.name === 'Rifle'?10:(weapon.name==='SMG'?5:60)));
+            
+            VFX.sfx(weapon.name === 'Shotgun' || weapon.name === 'Sniper' ? 'boom' : 'shoot'); this.flash = 4;
+            if(weapon.name==='Shotgun') {
+                for(let i=-2;i<=2;i++) world.bullets.push(new Bullet(this.x, this.y, angle+(i*0.12), 14, dmgBase+(weapon.dmgMod*8)));
+            } else {
+                world.bullets.push(new Bullet(this.x, this.y, angle+(Math.random()-0.5)*(weapon.name==='SMG'?0.2:0), weapon.name==='Sniper'?35:18, dmgBase+(weapon.dmgMod*10)));
+            }
+            this.cooldown = Math.max(3, spdBase - (weapon.spdMod * 3));
+        } else {
+            this.isSwinging = true; this.swingAngle = -Math.PI/2; this.cooldown = 25;
+            let dmg = 15;
+            if(weapon.name.includes('Wood')) dmg = 35;
+            if(weapon.name.includes('Stone')) dmg = 50;
+            if(weapon.name.includes('Iron')) dmg = 75;
+            if(weapon.name.includes('Sword')) dmg += 15;
+
+            world.zombies.forEach(z => {
+                if (dist(this.x, this.y, z.x, z.y) < 65) {
+                    let dirToZ = Math.atan2(z.y - this.y, z.x - this.x);
+                    if (Math.abs(angle - dirToZ) < Math.PI/2) z.health -= dmg;
+                }
+            });
+
+            if (weapon.name.includes('Axe') || weapon.name === 'Fists') {
+                world.walls.forEach(w => {
+                    if (dist(this.x, this.y, w.x + w.w/2, w.y + w.h/2) < 65 && w.material !== 'bridge') {
+                        let dirToW = Math.atan2(w.y + w.h/2 - this.y, w.x + w.w/2 - this.x);
+                        if (Math.abs(angle - dirToW) < Math.PI/2) {
+                            let structuralDamage = weapon.name === 'Fists' ? 10 : Math.ceil(w.maxHealth / 2); 
+                            if (w.material === 'wood' || w.material === 'door' || w.material === 'tree') w.health -= structuralDamage;
+                            else if (w.material === 'metal' || w.material === 'metal_door') w.health -= Math.ceil(w.maxHealth / (weapon.name==='Fists'?20:5));
+                            else if (w.material === 'steel' || w.material === 'steel_door') w.health -= Math.ceil(w.maxHealth / (weapon.name==='Fists'?40:10));
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    buildWall(item) {
+        let gridSize = 40, bx = Math.floor(mouse.worldX / gridSize) * gridSize, by = Math.floor(mouse.worldY / gridSize) * gridSize;
+        let inLake = world.lakes.some(l => dist(bx+20, by+20, l.x, l.y) < l.r);
+        let nearLake = world.lakes.some(l => dist(bx+20, by+20, l.x, l.y) < l.r + 60);
+        
+        let existingWall = world.walls.find(w => rectIntersect(bx, by, gridSize, gridSize, w.x, w.y, w.w, w.h));
+
+        if (dist(bx + 20, by + 20, this.x, this.y) > 40 && (!existingWall || existingWall.material === 'bridge')) {
+            let placed = false;
+
+            if (item.name === 'Wood Block' && item.count >= 1) { 
+                if (nearLake && !existingWall) { world.walls.push(new Wall(bx, by, gridSize, gridSize, false, 'bridge')); placed = true; }
+                else if (!inLake || existingWall) { world.walls.push(new Wall(bx, by, gridSize, gridSize, false, 'wood')); placed = true; }
+            }
+            else if (!inLake || existingWall) {
+                if (item.name === 'Metal Block' && item.count >= 1) { world.walls.push(new Wall(bx, by, gridSize, gridSize, false, 'metal')); placed = true; }
+                else if (item.name === 'Steel Block' && item.count >= 1) { world.walls.push(new Wall(bx, by, gridSize, gridSize, true, 'steel')); placed = true; }
+                else if (item.name === 'Wood Door' && item.count >= 1) { world.walls.push(new Wall(bx, by, gridSize, gridSize, false, 'door')); placed = true; }
+                else if (item.name === 'Metal Door' && item.count >= 1) { world.walls.push(new Wall(bx, by, gridSize, gridSize, false, 'metal_door')); placed = true; }
+                else if (item.name === 'Steel Door' && item.count >= 1) { world.walls.push(new Wall(bx, by, gridSize, gridSize, true, 'steel_door')); placed = true; }
+                else if (item.name === 'Sapling' && item.count >= 1) { world.walls.push(new Wall(bx + 15, by + 15, 10, 10, false, 'sapling')); placed = true; }
+                else if (item.name === 'Sleeping Bag' && item.count >= 1) { 
+                    world.interactables.push({x: bx, y: by, w: 40, h: 60, type: 'Bed', color: '#2980b9', scavenged: false}); placed = true; 
+                }
+            }
+            
+            if (placed) {
+                item.count -= 1; 
+                if(item.count <= 0) this.inventory[this.activeSlot] = null;
+                renderInventory();
+                return;
+            }
+
+            if (item.name === 'Wood' && item.count >= 10 && nearLake && !existingWall) { 
+                world.walls.push(new Wall(bx, by, gridSize, gridSize, false, 'bridge')); 
+                item.count -= 10; 
+                if(item.count <= 0) this.inventory[this.activeSlot] = null;
+                renderInventory();
+            }
+        }
+    }
+
+    updateBars() {
+        if(devMode) this.health = 100;
+        document.getElementById('healthFill').style.width = `${Math.max(0, this.health)}%`;
+        document.getElementById('foodFill').style.width = `${Math.max(0, this.hunger)}%`;
+        document.getElementById('waterFill').style.width = `${Math.max(0, this.thirst)}%`;
+    }
+
+    draw() {
+        ctx.save(); 
+        ctx.translate(this.x, this.y);
+        ctx.rotate(Math.atan2(mouse.worldY - this.y, mouse.worldX - this.x));
+        
+        if (this.driving) {
+            ctx.fillStyle = this.driving.color;
+            ctx.fillRect(-45, -25, 90, 50);
+            ctx.fillStyle = '#111';
+            ctx.fillRect(-35, -25, 70, 15);
+            ctx.fillRect(-35, 10, 70, 15);
+            ctx.restore();
+            return;
+        }
+
+        ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.arc(3, 4, this.radius + 2, 0, Math.PI * 2); ctx.fill();
+        { const g = ctx.createRadialGradient(-5, -5, 2, 0, 0, this.radius); g.addColorStop(0, '#9fd8ff'); g.addColorStop(0.5, '#3498db'); g.addColorStop(1, '#1b4f7a');
+          ctx.fillStyle = g; ctx.strokeStyle = '#0d2438'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.lineWidth = 1;
+          ctx.fillStyle = '#20384f'; ctx.beginPath(); ctx.arc(-3, 0, this.radius * 0.55, 0, Math.PI * 2); ctx.fill(); }
+        if (this.flash > 0) { this.flash--; ctx.fillStyle = '#ffe28a'; ctx.shadowColor = '#ffb030'; ctx.shadowBlur = 20; ctx.beginPath(); ctx.moveTo(this.radius + 18, 0); ctx.lineTo(this.radius + 40, -7); ctx.lineTo(this.radius + 46, 0); ctx.lineTo(this.radius + 40, 7); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0; }
+        
+        let item = this.inventory[this.activeSlot];
+        if (item) {
+            if (item.type === 'Gun') {
+                let gunLen = item.name === 'Pistol' ? 16 : (item.name === 'Sniper' ? 35 : (item.name === 'SMG' ? 20 : 28));
+                ctx.fillStyle = '#2c3e50'; ctx.fillRect(this.radius - 2, -4, gunLen, 8);
+            } else if (item.type === 'Tool' || item.name.includes('Sword') || item.name === 'Hammer') {
+                ctx.save(); if (this.isSwinging) ctx.rotate(this.swingAngle);
+                let handleColor = '#8B4513'; let headColor = item.name.includes('Wood')?'#D2B48C':(item.name.includes('Stone')?'#7f8c8d':'#bdc3c7');
+                ctx.fillStyle = handleColor; ctx.fillRect(this.radius - 5, -3, 30, 6);
+                ctx.fillStyle = headColor;
+                if (item.name.includes('Pickaxe')) { ctx.beginPath(); ctx.moveTo(this.radius+15, -15); ctx.lineTo(this.radius+25, 0); ctx.lineTo(this.radius+15, 15); ctx.lineTo(this.radius+10, 0); ctx.fill(); }
+                else if (item.name.includes('Axe')) { ctx.beginPath(); ctx.moveTo(this.radius+20, -12); ctx.lineTo(this.radius+30, 0); ctx.lineTo(this.radius+20, 12); ctx.fill(); }
+                else if (item.name.includes('Sword')) { ctx.fillRect(this.radius+15, -10, 4, 20); ctx.fillRect(this.radius+19, -3, 25, 6); }
+                else if (item.name === 'Hammer') { ctx.fillRect(this.radius + 20, -10, 15, 20); }
+                ctx.restore();
+            }
+        } else {
+            ctx.save(); if (this.isSwinging) ctx.rotate(this.swingAngle);
+            ctx.fillStyle = '#f1c27d';
+            ctx.beginPath(); ctx.arc(this.radius + 2, -8, 6, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.arc(this.radius + 2, 8, 6, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            ctx.restore();
+        }
+        ctx.restore();
+    }
+}
+
+class Wall {
+    constructor(x, y, w, h, isIndestructible = true, material = 'house') {
+        this.x = x; this.y = y; this.w = w; this.h = h; this.isIndestructible = isIndestructible; this.material = material;
+        if (material === 'wood' || material === 'tree') { this.maxHealth = 100; this.color = material==='tree'?'#004d00':'#8B4513'; }
+        else if (material === 'bridge') { this.maxHealth = 80; this.color = '#deb887'; this.isIndestructible = false;}
+        else if (material === 'metal') { this.maxHealth = 500; this.color = '#95a5a6'; }
+        else if (material === 'steel') { this.maxHealth = 99999; this.color = '#222'; this.isIndestructible = true; }
+        else if (material === 'door') { this.maxHealth = 150; this.color = '#cd853f'; this.isIndestructible = false; }
+        else if (material === 'metal_door') { this.maxHealth = 500; this.color = '#7f8c8d'; this.isIndestructible = false; }
+        else if (material === 'steel_door') { this.maxHealth = 99999; this.color = '#111'; this.isIndestructible = true; }
+        else if (material === 'sapling') { this.maxHealth = 10; this.color = '#27ae60'; this.growth = 0; }
+        else { this.maxHealth = 9999; this.color = '#7f8c8d'; }
+        this.health = this.maxHealth;
+    }
+    draw() {
+        if (this.material === 'tree') {
+            const cx = this.x + this.w / 2, cy = this.y + this.h / 2, r = this.w / 2;
+            ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.arc(cx + 8, cy + 10, r, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#0b3d12'; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#17621f'; ctx.beginPath(); ctx.arc(cx - r * 0.18, cy - r * 0.18, r * 0.75, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#2c8a33'; ctx.beginPath(); ctx.arc(cx - r * 0.3, cy - r * 0.32, r * 0.42, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = 'rgba(160,230,120,0.35)'; ctx.beginPath(); ctx.arc(cx - r * 0.4, cy - r * 0.42, r * 0.16, 0, Math.PI * 2); ctx.fill();
+        } else if (this.material === 'sapling') {
+            ctx.fillStyle = '#5c3a21'; ctx.fillRect(this.x + this.w/2 - 2, this.y + this.h/2, 4, 10);
+            ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x + this.w/2, this.y + this.h/2, 6, 0, Math.PI*2); ctx.fill();
+        } else if (this.material === 'bridge') {
+            ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.w, this.h);
+            ctx.strokeStyle = '#8B4513'; ctx.lineWidth = 1;
+            for(let p=10; p<this.w; p+=10) { ctx.beginPath(); ctx.moveTo(this.x+p, this.y); ctx.lineTo(this.x+p, this.y+this.h); ctx.stroke(); }
+        } else if (this.material.includes('door')) {
+            ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.w, this.h);
+            ctx.fillStyle = '#f1c40f'; ctx.beginPath(); ctx.arc(this.x + this.w - 10, this.y + this.h/2, 4, 0, Math.PI*2); ctx.fill(); 
+        } else {
+            ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.w, this.h);
+            ctx.strokeStyle = '#1a252f'; ctx.lineWidth = 2; ctx.strokeRect(this.x, this.y, this.w, this.h); ctx.lineWidth = 1;
+        }
+        if (!this.isIndestructible && this.health < this.maxHealth && this.material !== 'sapling') {
+            ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(this.x, this.y - 10, this.w, 6);
+            ctx.fillStyle = '#2ecc71'; ctx.fillRect(this.x, this.y - 10, this.w * (this.health / this.maxHealth), 6);
+        }
+    }
+}
+class Bullet {
+    constructor(x, y, angle, speed, damage) { this.x = x; this.y = y; this.vx = Math.cos(angle)*speed; this.vy = Math.sin(angle)*speed; this.damage = damage; this.life = 80; }
+    update() { this.x += this.vx; this.y += this.vy; this.life--; }
+    draw() { ctx.strokeStyle = 'rgba(255,220,120,0.55)'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(this.x, this.y); ctx.lineTo(this.x - this.vx * 1.2, this.y - this.vy * 1.2); ctx.stroke(); ctx.lineWidth = 1; ctx.fillStyle = '#fff6c8'; ctx.beginPath(); ctx.arc(this.x, this.y, 3, 0, Math.PI * 2); ctx.fill(); }
+}
+
+class Zombie {
+    constructor(x, y) {
+        this.x = x; this.y = y; 
+        
+        let r = Math.random(); 
+        this.type = r < 0.05 ? 'boss' : (r < 0.25 ? 'runner' : (r < 0.35 ? 'tank' : 'standard'));
+        
+        this.radius = this.type==='boss'?35:(this.type==='runner'?12:(this.type==='tank'?25:15));
+        this.speed = this.type==='boss'?1.8:(this.type==='runner'?3.5:(this.type==='tank'?0.8:1.5));
+        this.maxHealth = this.type==='boss'?800:(this.type==='runner'?30:(this.type==='tank'?180:60));
+        this.color = this.type==='boss'?'#8e44ad':(this.type==='runner'?'#e74c3c':(this.type==='tank'?'#1e8449':'#2ecc71'));
+        this.health = this.maxHealth;
+    }
+    update() {
+        let angle = Math.atan2(player.y - this.y, player.x - this.x);
+        let nextX = this.x + Math.cos(angle) * this.speed, nextY = this.y + Math.sin(angle) * this.speed, col = false;
+        let onBridge = world.walls.some(w => w.material === 'bridge' && rectIntersect(nextX - this.radius, nextY - this.radius, this.radius*2, this.radius*2, w.x, w.y, w.w, w.h));
+
+        for (let w of world.walls) {
+            if (w.material !== 'bridge' && w.material !== 'sapling' && rectIntersect(nextX - this.radius, nextY - this.radius, this.radius*2, this.radius*2, w.x, w.y, w.w, w.h)) { 
+                col = true; 
+                if(!w.isIndestructible) w.health -= (this.type==='boss'?15:(this.type==='tank'?3:0.5)); 
+                break; 
+            }
+        }
+        if (!col) {
+            let inLake = world.lakes.some(l => dist(nextX, nextY, l.x, l.y) < l.r);
+            if (inLake && !onBridge) col = true;
+        }
+        if (!col) { this.x = nextX; this.y = nextY; }
+        
+        // Damage Logic (Updated for Vehicles and Armor)
+        let playerHitRadius = player.driving ? 35 : player.radius;
+        if (dist(this.x, this.y, player.x, player.y) < this.radius + playerHitRadius) {
+            if (player.driving) {
+                if (keys['w'] || keys['s'] || keys['a'] || keys['d']) {
+                    this.health -= 250; 
+                }
+            } else if (!devMode) {
+                let damageBase = (this.type==='boss'?4:(this.type==='tank'?1.5:0.5)) * diffDmgMult;
+                let armorReduc = 0;
+                if (player.armorSlot[0]) {
+                    if (player.armorSlot[0].name === 'Wood Armor') armorReduc = 0.3;
+                    if (player.armorSlot[0].name === 'Metal Armor') armorReduc = 0.6;
+                }
+                player.health -= damageBase * (1 - armorReduc);
+            }
+        }
+    }
+    draw() {
+        const R = this.radius, t = (performance.now() / 120 + this.x * 0.01);
+        ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.arc(this.x + 3, this.y + 5, R + 2, 0, Math.PI * 2); ctx.fill();
+        ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(Math.atan2(player.y - this.y, player.x - this.x));
+        const reach = Math.sin(t) * 3;
+        ctx.fillStyle = this.type === 'boss' ? '#4a1f5c' : '#1f4d3a';
+        ctx.beginPath(); ctx.roundRect(R * 0.4, -R * 0.95, R * 0.9 + reach, R * 0.42, R * 0.2); ctx.roundRect(R * 0.4, R * 0.53, R * 0.9 - reach, R * 0.42, R * 0.2); ctx.fill();
+        const g = ctx.createRadialGradient(-R * 0.3, -R * 0.3, 1, 0, 0, R); g.addColorStop(0, '#ffffff'); g.addColorStop(0.08, this.color); g.addColorStop(1, 'rgba(0,0,0,0.65)');
+        ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = g; ctx.globalAlpha = 0.6; ctx.fill(); ctx.globalAlpha = 1;
+        ctx.strokeStyle = 'rgba(0,0,0,0.6)'; ctx.lineWidth = 2; ctx.stroke(); ctx.lineWidth = 1;
+        ctx.fillStyle = '#ff3b2f'; ctx.shadowColor = '#ff2010'; ctx.shadowBlur = 10;
+        ctx.beginPath(); ctx.arc(R * 0.45, -R * 0.3, R * 0.14 + 1, 0, Math.PI * 2); ctx.arc(R * 0.45, R * 0.3, R * 0.14 + 1, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+        if (this.type === 'boss') { ctx.strokeStyle = '#d0a0ff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, R + 4 + Math.sin(t) * 2, 0, Math.PI * 2); ctx.stroke(); ctx.lineWidth = 1; }
+        ctx.restore();
+        if (this.health < this.maxHealth) {
+            const bw = Math.max(30, R * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.beginPath(); ctx.roundRect(this.x - bw / 2 - 1, this.y - R - 13, bw + 2, 7, 3); ctx.fill();
+            ctx.fillStyle = '#e74c3c'; ctx.beginPath(); ctx.roundRect(this.x - bw / 2, this.y - R - 12, bw * Math.max(0, this.health / this.maxHealth), 5, 2); ctx.fill();
+        }
+    }
+}
+
+const CHUNK_SIZE = 2000;
+const _ground = {};
+function groundPattern(kind) {
+    if (_ground[kind]) return _ground[kind];
+    const S = kind === 'road' || kind === 'path' ? 64 : 256, c = document.createElement('canvas'); c.width = c.height = S; const x = c.getContext('2d');
+    const base = { grass: ['#2e7a44', '#35874c', '#256638'], forest: ['#1d5e30', '#236b37', '#164a25'], mine: ['#5e5e5e', '#6b6b6b', '#4c4c4c'], road: ['#2f3a46', '#36424f', '#28323c'], path: ['#9aa3a8', '#a8b0b4', '#8a9398'] }[kind];
+    x.fillStyle = base[0]; x.fillRect(0, 0, S, S);
+    for (let i = 0; i < S * S / 18; i++) { x.fillStyle = Math.random() < 0.5 ? base[1] : base[2]; const r = Math.random() * 2 + 0.5; x.fillRect(Math.random() * S, Math.random() * S, r, r); }
+    if (kind === 'grass' || kind === 'forest') { for (let i = 0; i < 260; i++) { const bx = Math.random() * S, by = Math.random() * S; x.strokeStyle = Math.random() < 0.5 ? 'rgba(160,255,140,0.25)' : 'rgba(0,40,10,0.25)'; x.beginPath(); x.moveTo(bx, by); x.lineTo(bx + (Math.random() - 0.5) * 4, by - 4 - Math.random() * 4); x.stroke(); }
+        for (let i = 0; i < 12; i++) { x.fillStyle = ['#ffe36b', '#ffffff', '#ff9fd0'][i % 3]; x.beginPath(); x.arc(Math.random() * S, Math.random() * S, 1.6, 0, 6.28); x.fill(); } }
+    if (kind === 'mine') for (let i = 0; i < 30; i++) { x.fillStyle = 'rgba(0,0,0,0.25)'; x.beginPath(); x.arc(Math.random() * S, Math.random() * S, 2 + Math.random() * 5, 0, 6.28); x.fill(); }
+    if (kind === 'path') { x.strokeStyle = 'rgba(0,0,0,0.18)'; x.lineWidth = 2; x.strokeRect(0, 0, 32, 32); x.strokeRect(32, 32, 32, 32); x.strokeRect(32, 0, 32, 32); x.strokeRect(0, 32, 32, 32); }
+    return (_ground[kind] = ctx.createPattern(c, 'repeat'));
+}
+const world = { chunks: new Set(), walls: [], houses: [], roads: [], footpaths: [], lakes: [], farms: [], interactables: [], zombies: [], bullets: [], waypoints: [], drops: [] };
+
+function generateChunk(cx, cy) {
+    world.chunks.add(`${cx},${cy}`);
+    let startX = cx * CHUNK_SIZE, startY = cy * CHUNK_SIZE;
+    let hash = Math.abs(Math.sin(cx * 12.9898 + cy * 78.233)) * 43758.5453;
+    let biomeVal = hash % 1;
+    let biome = biomeVal > 0.65 ? 'suburb' : (biomeVal > 0.4 ? 'forest' : (biomeVal > 0.2 ? 'lake' : 'mine'));
+
+    for(let i=0; i<8; i++) {
+        let ox = startX + Math.random()*CHUNK_SIZE, oy = startY + Math.random()*CHUNK_SIZE;
+        if (biome !== 'lake') {
+            let isStone = Math.random() > 0.5;
+            world.interactables.push({x: ox, y: oy, w: 40, h: 40, type: isStone?'Stone':'Iron', color: isStone?'#444':'#d35400', scavenged: false});
+        }
+    }
+    
+    for(let i=0; i<5; i++) {
+        if (biome !== 'lake') world.interactables.push({x: startX + Math.random()*CHUNK_SIZE, y: startY + Math.random()*CHUNK_SIZE, w: 20, h: 20, type: 'CarrotNode', color: '#e67e22', scavenged: false});
+    }
+
+    if (biome === 'mine') {
+        for(let i=0; i<40; i++) {
+            let ox = startX + Math.random()*CHUNK_SIZE, oy = startY + Math.random()*CHUNK_SIZE;
+            let isStone = Math.random() > 0.3;
+            world.interactables.push({x: ox, y: oy, w: 40, h: 40, type: isStone?'Stone':'Iron', color: isStone?'#444':'#d35400', scavenged: false});
+        }
+    } else if (biome === 'suburb') {
+        world.roads.push({ x: startX, y: startY + 800, w: CHUNK_SIZE, h: 120 });
+        world.roads.push({ x: startX + 800, y: startY, w: 120, h: CHUNK_SIZE });
+        world.footpaths.push({ x: startX, y: startY + 750, w: CHUNK_SIZE, h: 50 });
+        world.footpaths.push({ x: startX, y: startY + 920, w: CHUNK_SIZE, h: 50 });
+        
+        for(let i=0; i<3; i++) {
+            let hw = 200 + Math.random()*100, hh = 200 + Math.random()*100;
+            let hx = startX + 150 + (i * 600), hy = startY + 750 - hh;
+            let doorSize = 60;
+            let porch = { x: hx + hw/2 - doorSize/2 - 10, y: hy + hh, w: doorSize + 20, h: 40 };
+            world.houses.push({ x: hx, y: hy, w: hw, h: hh, porch: porch });
+            world.walls.push(new Wall(hx, hy, hw, 15)); world.walls.push(new Wall(hx, hy+hh-15, hw/2-doorSize/2, 15)); 
+            world.walls.push(new Wall(hx+hw/2+doorSize/2, hy+hh-15, hw/2-doorSize/2, 15)); 
+            world.walls.push(new Wall(hx, hy, 15, hh)); world.walls.push(new Wall(hx+hw-15, hy, 15, hh)); 
+
+            if(Math.random()>0.3) world.interactables.push({x: hx+20, y: hy+20, w: 40, h: 40, type: 'Fridge', color: '#ecf0f1', scavenged: false});
+            if(Math.random()>0.3) world.interactables.push({x: hx+hw-60, y: hy+20, w: 40, h: 40, type: 'Cupboard', color: '#8B4513', scavenged: false});
+            if(Math.random() < 0.20) world.interactables.push({x: hx+hw/2-20, y: hy+hh/2-20, w: 40, h: 40, type: 'Bench', color: '#2ecc71', scavenged: false});
+        }
+        
+        for(let i=0; i<4; i++) {
+            let cx = startX + Math.random() * CHUNK_SIZE, cy = startY + 820 + Math.random()*60;
+            world.walls.push(new Wall(cx, cy, 90, 50, true, 'car'));
+            world.interactables.push({x: cx, y: cy, w: 90, h: 50, type: 'Car', color: ['#e74c3c', '#3498db', '#95a5a6'][Math.floor(Math.random()*3)], scavenged: false});
+        }
+    } else if (biome === 'forest') {
+        for(let i=0; i<40; world.walls.push(new Wall(startX + Math.random()*CHUNK_SIZE, startY + Math.random()*CHUNK_SIZE, 60, 60, false, 'tree')), i++);
+    } else if (biome === 'lake') {
+        world.lakes.push({ x: startX + CHUNK_SIZE/2, y: startY + CHUNK_SIZE/2, r: 400 + Math.random() * 300 });
+        for(let i=0; i<15; i++) {
+            let tx = startX + Math.random()*CHUNK_SIZE, ty = startY + Math.random()*CHUNK_SIZE;
+            if (dist(tx, ty, startX + CHUNK_SIZE/2, startY + CHUNK_SIZE/2) > 700) world.walls.push(new Wall(tx, ty, 60, 60, false, 'tree'));
+        }
+    }
+}
+
+function updateWorldChunks() {
+    let px = Math.floor(player.x / CHUNK_SIZE), py = Math.floor(player.y / CHUNK_SIZE);
+    for (let x = px - 2; x <= px + 2; x++) for (let y = py - 2; y <= py + 2; y++) if (!world.chunks.has(`${x},${y}`)) generateChunk(x, y);
+    
+    let isNight = timeOfDay > 0.45 && timeOfDay < 0.95;
+    if (isNight && Math.random() < diffSpawnRate && world.zombies.length < 50) {
+        let angle = Math.random() * Math.PI * 2, dist = Math.max(canvas.width, canvas.height)/2 + 200;
+        world.zombies.push(new Zombie(player.x + Math.cos(angle)*dist, player.y + Math.sin(angle)*dist));
+    }
+}
+
+let craftGrid = new Array(9).fill(null);
+let craftOutputObj = null;
+let dragItem = null; let dragSource = null;
+
+function renderWaypoints() {
+    let html = '';
+    world.waypoints.forEach((wp, i) => {
+        html += `<div style="margin-bottom: 5px; display:flex;">
+            <input type="text" class="wp-input" value="${wp.name}" onchange="world.waypoints[${i}].name = this.value">
+            <button class="wp-btn" onclick="world.waypoints.splice(${i}, 1); renderWaypoints(); drawMinimap();">X</button>
+        </div>`;
+    });
+    document.getElementById('waypointsList').innerHTML = html;
+}
+
+function renderInventory() {
+    let hotbarHtml = '';
+    for(let i=0; i<8; i++) hotbarHtml += createSlotHtml('inv', i, player.inventory[i], i === player.activeSlot);
+    document.getElementById('hotbar').innerHTML = hotbarHtml;
+
+    if (invOpen) {
+        let mainHtml = '';
+        for(let i=0; i<player.inventory.length; i++) mainHtml += createSlotHtml('inv', i, player.inventory[i], i === player.activeSlot);
+        document.getElementById('mainInvGrid').innerHTML = mainHtml;
+
+        let craftHtml = '';
+        for(let i=0; i<9; i++) craftHtml += createSlotHtml('craft', i, craftGrid[i], false);
+        document.getElementById('craftGrid').innerHTML = craftHtml;
+
+        document.getElementById('craftOutputContainer').innerHTML = createSlotHtml('out', 0, craftOutputObj, false);
+        
+        // Render Armor Slot
+        document.getElementById('armorGrid').innerHTML = createSlotHtml('armor', 0, player.armorSlot[0], false);
+    }
+}
+
+function createSlotHtml(arrType, index, item, isActive) {
+    let classes = `slot ${isActive ? 'active' : ''}`;
+    let inner = '';
+    if (item) {
+        let icon = ICONS[item.name] || '📦';
+        inner = `<div class="icon">${icon}</div><div style="font-size:10px; line-height:1.1;">${item.name}</div>${item.count > 1 ? `<div class="count">${item.count}</div>` : ''}`;
+    }
+    if (arrType === 'out') return `<div class="${classes}" onclick="claimCraft()" oncontextmenu="return false;" style="cursor:pointer;">${inner}</div>`;
+    return `<div class="${classes}" onmousedown="startDrag(event, '${arrType}', ${index})" onmouseup="dropDrag(event, '${arrType}', ${index})" oncontextmenu="return false;">${inner}</div>`;
+}
+
+function startDrag(e, type, idx) {
+    if (e.button !== 0 && e.button !== 2) return;
+    let arr = type === 'inv' ? player.inventory : (type === 'craft' ? craftGrid : player.armorSlot);
+    let item = arr[idx]; if (!item) return;
+
+    if (e.button === 2 && item.count > 1) {
+        let half = Math.floor(item.count / 2); dragItem = { ...item, count: half }; item.count -= half;
+    } else { dragItem = { ...item }; arr[idx] = null; }
+    
+    dragSource = { type, idx }; updateDragVisual(); moveDragIcon(e.clientX, e.clientY); renderInventory();
+}
+
+function dropDrag(e, type, idx) {
+    if (!dragItem) return;
+    
+    // Check constraints for armor slot
+    if (type === 'armor' && dragItem.type !== 'Armor') {
+        let sourceArr = dragSource.type === 'inv' ? player.inventory : (dragSource.type === 'craft' ? craftGrid : player.armorSlot);
+        if (!sourceArr[dragSource.idx]) sourceArr[dragSource.idx] = dragItem;
+        else player.giveItem(dragItem.name, dragItem.type, dragItem.count);
+        clearDrag(); renderInventory(); return;
+    }
+
+    let arr = type === 'inv' ? player.inventory : (type === 'craft' ? craftGrid : player.armorSlot);
+    let targetItem = arr[idx];
+
+    if (targetItem && targetItem.name === dragItem.name && targetItem.type !== 'Gun' && targetItem.type !== 'Tool' && targetItem.type !== 'Armor') {
+        let space = MAX_STACK - targetItem.count; let amountToMove = Math.min(space, dragItem.count);
+        targetItem.count += amountToMove; dragItem.count -= amountToMove;
+        if (dragItem.count > 0) {
+            let sourceArr = dragSource.type === 'inv' ? player.inventory : (dragSource.type === 'craft' ? craftGrid : player.armorSlot);
+            if (!sourceArr[dragSource.idx]) sourceArr[dragSource.idx] = dragItem;
+            else player.giveItem(dragItem.name, dragItem.type, dragItem.count);
+        }
+    } else {
+        let sourceArr = dragSource.type === 'inv' ? player.inventory : (dragSource.type === 'craft' ? craftGrid : player.armorSlot);
+        arr[idx] = dragItem;
+        if (targetItem) {
+            if (!sourceArr[dragSource.idx]) sourceArr[dragSource.idx] = targetItem;
+            else player.giveItem(targetItem.name, targetItem.type, targetItem.count);
+        }
+    }
+    clearDrag(); checkRecipes(); renderInventory(); e.stopPropagation();
+}
+
+function updateDragVisual() {
+    let dragEl = document.getElementById('dragIcon');
+    if (dragItem) {
+        dragEl.style.display = 'flex'; let icon = ICONS[dragItem.name] || '📦';
+        dragEl.innerHTML = `<div class="icon">${icon}</div><div class="count" style="position:relative; right:auto; bottom:auto;">${dragItem.count>1?dragItem.count:''}</div>`;
+    } else { dragEl.style.display = 'none'; }
+}
+
+function clearDrag() { dragItem = null; updateDragVisual(); }
+function moveDragIcon(x, y) {
+    let el = document.getElementById('dragIcon');
+    if (dragItem && el.style.display !== 'none') { el.style.left = (x - 27) + 'px'; el.style.top = (y - 27) + 'px'; }
+}
+
+function checkRecipes() {
+    let g = craftGrid.map(i => i ? i.name : null);
+    craftOutputObj = null;
+
+    let match = (p) => {
+        for(let i=0; i<9; i++) {
+            if (p[i] === '*') { if(!g[i]) return false; } 
+            else if (p[i] !== g[i]) return false;
+        }
+        return true;
+    };
+    let findMat = () => { for(let i of g) if(i==='Wood'||i==='Stone'||i==='Iron') return i; return null; }
+
+    let bPatterns = [[0,1,3,4],[1,2,4,5],[3,4,6,7],[4,5,7,8]];
+    let checkBlock = (mat) => {
+        for(let p of bPatterns) {
+            let valid = true;
+            for(let i=0; i<9; i++) {
+                if (p.includes(i)) { if(g[i]!==mat) valid=false; }
+                else { if(g[i]) valid=false; }
+            }
+            if(valid) return true;
+        }
+        return false;
+    }
+
+    if (checkBlock('Wood')) craftOutputObj = { name: 'Wood Block', type: 'Material', count: 4 };
+    else if (checkBlock('Iron')) craftOutputObj = { name: 'Metal Block', type: 'Material', count: 1 };
+    else if (checkBlock('Metal Block')) craftOutputObj = { name: 'Steel Block', type: 'Material', count: 4 };
+
+    // Armor Crafting
+    else if (match(['Wood','Wood','Wood', 'Wood','Cloth','Wood', 'Wood','Wood','Wood'])) {
+        craftOutputObj = { name: 'Wood Armor', type: 'Armor', count: 1 };
+    }
+    else if (match(['Iron','Iron','Iron', 'Iron','Cloth','Iron', 'Iron','Iron','Iron'])) {
+        craftOutputObj = { name: 'Metal Armor', type: 'Armor', count: 1 };
+    }
+
+    else if ((g[0]==='Wood Block'&&g[3]==='Wood Block' && !g[1]&&!g[2]&&!g[4]&&!g[5]&&!g[6]&&!g[7]&&!g[8]) || (g[1]==='Wood Block'&&g[4]==='Wood Block' && !g[0]&&!g[2]&&!g[3]&&!g[5]&&!g[6]&&!g[7]&&!g[8]) || (g[2]==='Wood Block'&&g[5]==='Wood Block' && !g[0]&&!g[1]&&!g[3]&&!g[4]&&!g[6]&&!g[7]&&!g[8]) || (g[3]==='Wood Block'&&g[6]==='Wood Block' && !g[0]&&!g[1]&&!g[2]&&!g[4]&&!g[5]&&!g[7]&&!g[8]) || (g[4]==='Wood Block'&&g[7]==='Wood Block' && !g[0]&&!g[1]&&!g[2]&&!g[3]&&!g[5]&&!g[6]&&!g[8]) || (g[5]==='Wood Block'&&g[8]==='Wood Block' && !g[0]&&!g[1]&&!g[2]&&!g[3]&&!g[4]&&!g[6]&&!g[7])) {
+        craftOutputObj = { name: 'Wood Door', type: 'Material', count: 1 };
+    }
+    else if ((g[0]==='Metal Block'&&g[3]==='Metal Block' && !g[1]&&!g[2]&&!g[4]&&!g[5]&&!g[6]&&!g[7]&&!g[8]) || (g[1]==='Metal Block'&&g[4]==='Metal Block' && !g[0]&&!g[2]&&!g[3]&&!g[5]&&!g[6]&&!g[7]&&!g[8]) || (g[2]==='Metal Block'&&g[5]==='Metal Block' && !g[0]&&!g[1]&&!g[3]&&!g[4]&&!g[6]&&!g[7]&&!g[8]) || (g[3]==='Metal Block'&&g[6]==='Metal Block' && !g[0]&&!g[1]&&!g[2]&&!g[4]&&!g[5]&&!g[7]&&!g[8]) || (g[4]==='Metal Block'&&g[7]==='Metal Block' && !g[0]&&!g[1]&&!g[2]&&!g[3]&&!g[5]&&!g[6]&&!g[8]) || (g[5]==='Metal Block'&&g[8]==='Metal Block' && !g[0]&&!g[1]&&!g[2]&&!g[3]&&!g[4]&&!g[6]&&!g[7])) {
+        craftOutputObj = { name: 'Metal Door', type: 'Material', count: 1 };
+    }
+    else if ((g[0]==='Steel Block'&&g[3]==='Steel Block' && !g[1]&&!g[2]&&!g[4]&&!g[5]&&!g[6]&&!g[7]&&!g[8]) || (g[1]==='Steel Block'&&g[4]==='Steel Block' && !g[0]&&!g[2]&&!g[3]&&!g[5]&&!g[6]&&!g[7]&&!g[8]) || (g[2]==='Steel Block'&&g[5]==='Steel Block' && !g[0]&&!g[1]&&!g[3]&&!g[4]&&!g[6]&&!g[7]&&!g[8]) || (g[3]==='Steel Block'&&g[6]==='Steel Block' && !g[0]&&!g[1]&&!g[2]&&!g[4]&&!g[5]&&!g[7]&&!g[8]) || (g[4]==='Steel Block'&&g[7]==='Steel Block' && !g[0]&&!g[1]&&!g[2]&&!g[3]&&!g[5]&&!g[6]&&!g[8]) || (g[5]==='Steel Block'&&g[8]==='Steel Block' && !g[0]&&!g[1]&&!g[2]&&!g[3]&&!g[4]&&!g[6]&&!g[7])) {
+        craftOutputObj = { name: 'Steel Door', type: 'Material', count: 1 };
+    }
+
+    else if ((g[0]==='Wood'&&g[3]==='Wood' && !g[1]&&!g[2]&&!g[4]&&!g[5]&&!g[6]&&!g[7]&&!g[8]) || (g[1]==='Wood'&&g[4]==='Wood' && !g[0]&&!g[2]&&!g[3]&&!g[5]&&!g[6]&&!g[7]&&!g[8]) || (g[2]==='Wood'&&g[5]==='Wood' && !g[0]&&!g[1]&&!g[3]&&!g[4]&&!g[6]&&!g[7]&&!g[8]) || (g[3]==='Wood'&&g[6]==='Wood' && !g[0]&&!g[1]&&!g[2]&&!g[4]&&!g[5]&&!g[7]&&!g[8]) || (g[4]==='Wood'&&g[7]==='Wood' && !g[0]&&!g[1]&&!g[2]&&!g[3]&&!g[5]&&!g[6]&&!g[8]) || (g[5]==='Wood'&&g[8]==='Wood' && !g[0]&&!g[1]&&!g[2]&&!g[3]&&!g[4]&&!g[6]&&!g[7])) {
+        craftOutputObj = { name: 'Stick', type: 'Material', count: 4 };
+    }
+    
+    else if (match(['Cloth','Cloth',null, null,null,null, null,null,null]) || match([null,'Cloth','Cloth', null,null,null, null,null,null]) || match([null,null,null, 'Cloth','Cloth',null, null,null,null]) || match([null,null,null, null,'Cloth','Cloth', null,null,null]) || match([null,null,null, null,null,null, 'Cloth','Cloth',null]) || match([null,null,null, null,null,null, null,'Cloth','Cloth'])) {
+        craftOutputObj = { name: 'Bandage', type: 'Consumable', count: 1 };
+    }
+
+    else if (match(['Wood','Wood','Wood', null,null,null, null,null,null]) || match([null,null,null, 'Wood','Wood','Wood', null,null,null]) || match([null,null,null, null,null,null, 'Wood','Wood','Wood'])) {
+        craftOutputObj = { name: 'Sleeping Bag', type: 'Item', count: 1 };
+    }
+
+    else {
+        let mat = findMat();
+        if (mat) {
+            if (match([mat,mat,mat, null,'Stick',null, null,'Stick',null])) craftOutputObj = {name: `${mat} Pickaxe`, type: 'Tool', count: 1};
+            else if (match([mat,mat,null, mat,'Stick',null, null,'Stick',null])) craftOutputObj = {name: `${mat} Axe`, type: 'Tool', count: 1};
+            else if (match([null,mat,null, null,mat,null, null,'Stick',null])) craftOutputObj = {name: `${mat} Sword`, type: 'Tool', count: 1};
+        }
+    }
+}
+
+function claimCraft() {
+    if (!craftOutputObj) return;
+    if (player.giveItem(craftOutputObj.name, craftOutputObj.type, craftOutputObj.count)) {
+        for(let i=0; i<9; i++) {
+            if (craftGrid[i]) {
+                craftGrid[i].count--;
+                if (craftGrid[i].count <= 0) craftGrid[i] = null;
+            }
+        }
+        checkRecipes(); renderInventory();
+    }
+}
+
+function toggleInventory() {
+    invOpen = !invOpen; isPaused = invOpen || mapOpen;
+    document.getElementById('inventoryScreen').style.display = invOpen ? 'flex' : 'none';
+    if (!invOpen) {
+        if (dragItem) { player.giveItem(dragItem.name, dragItem.type, dragItem.count); clearDrag(); }
+        for(let i=0; i<9; i++) {
+            if (craftGrid[i]) { player.giveItem(craftGrid[i].name, craftGrid[i].type, craftGrid[i].count); craftGrid[i] = null; }
+        }
+        checkRecipes();
+    }
+    renderInventory();
+}
+
+function toggleMap() {
+    mapOpen = !mapOpen;
+    isPaused = mapOpen || invOpen || fishState.active || document.getElementById('augmentMenu').style.display === 'block';
+    document.getElementById('mapMenu').style.display = mapOpen ? 'flex' : 'none';
+    if (mapOpen) { drawMinimap(); renderWaypoints(); }
+}
+
+function drawMinimap() {
+    let mCanvas = document.getElementById('minimapCanvas');
+    let mCtx = mCanvas.getContext('2d');
+    
+    mCtx.fillStyle = '#2c3e50';
+    mCtx.fillRect(0, 0, mCanvas.width, mCanvas.height);
+    
+    let scale = 0.05;
+    mCtx.save();
+    mCtx.translate(mCanvas.width/2, mCanvas.height/2);
+    mCtx.scale(scale, scale);
+    mCtx.translate(-player.x, -player.y);
+
+    mCtx.fillStyle = '#2980b9';
+    world.lakes.forEach(l => { mCtx.beginPath(); mCtx.arc(l.x, l.y, l.r, 0, Math.PI*2); mCtx.fill(); });
+    
+    mCtx.fillStyle = '#34495e'; world.roads.forEach(r => mCtx.fillRect(r.x, r.y, r.w, r.h));
+    mCtx.fillStyle = '#95a5a6'; world.footpaths.forEach(f => mCtx.fillRect(f.x, f.y, f.w, f.h));
+    mCtx.fillStyle = '#bdc3c7'; world.houses.forEach(h => mCtx.fillRect(h.x, h.y, h.w, h.h));
+
+    mCtx.lineWidth = 40; 
+    world.waypoints.forEach(wp => {
+        mCtx.fillStyle = '#9b59b6'; mCtx.strokeStyle = '#fff';
+        mCtx.beginPath(); mCtx.arc(wp.x, wp.y, 250, 0, Math.PI*2); mCtx.fill(); mCtx.stroke();
+        mCtx.fillStyle = '#fff'; mCtx.font = 'bold 250px Courier New';
+        mCtx.fillText(wp.name, wp.x - 150, wp.y - 350);
+    });
+
+    mCtx.fillStyle = '#f1c40f';
+    mCtx.beginPath(); mCtx.arc(player.x, player.y, 150, 0, Math.PI*2); mCtx.fill();
+
+    mCtx.restore();
+}
+
+document.getElementById('minimapCanvas').addEventListener('mousedown', e => {
+    if (!mapOpen || player.driving) return;
+    let rect = e.target.getBoundingClientRect();
+    let mx = e.clientX - rect.left;
+    let my = e.clientY - rect.top;
+    
+    let scale = 0.05;
+    let worldX = (mx - 250) / scale + player.x;
+    let worldY = (my - 250) / scale + player.y;
+
+    for (let wp of world.waypoints) {
+        if (dist(worldX, worldY, wp.x, wp.y) < 500) { 
+            player.x = wp.x; player.y = wp.y;
+            toggleMap();
+            break;
+        }
+    }
+});
+
+function closeMenu(id) { isPaused = false; fishState.active = false; document.getElementById(id).style.display = 'none'; }
+function openAugmentMenu() {
+    isPaused = true; document.getElementById('augmentMenu').style.display = 'block';
+    let wpn = player.inventory[player.activeSlot];
+    let ironSlot = player.inventory.find(i => i && i.name === 'Iron');
+    let ironCount = ironSlot ? ironSlot.count : 0;
+    
+    if (wpn && wpn.type === 'Gun') {
+        document.getElementById('augStatus').innerText = `Equipped: ${wpn.name} | Dmg: +${wpn.dmgMod} | Spd: +${wpn.spdMod}\nIron: ${ironCount}`;
+        document.getElementById('btnDmg').disabled = ironCount < 10; document.getElementById('btnSpd').disabled = ironCount < 10;
+    } else {
+        document.getElementById('augStatus').innerText = `Equipped: ${wpn?wpn.name:'None'} (Cannot Augment)`;
+        document.getElementById('btnDmg').disabled = true; document.getElementById('btnSpd').disabled = true;
+    }
+}
+
+function applyAugment(stat) {
+    let wpn = player.inventory[player.activeSlot]; let ironSlot = player.inventory.find(i => i && i.name === 'Iron');
+    if (ironSlot && ironSlot.count >= 10 && wpn && wpn.type === 'Gun') {
+        ironSlot.count -= 10; if(ironSlot.count <= 0) player.inventory[player.inventory.indexOf(ironSlot)] = null;
+        if (stat === 'damage') wpn.dmgMod += 1; if (stat === 'speed') wpn.spdMod += 1;
+        openAugmentMenu(); renderInventory();
+    }
+}
+
+let fishState = { active: false, cx: 0, dir: 1, spd: 4 };
+function openFishing() { isPaused = true; fishState.active = true; fishState.cx = 0; document.getElementById('fishingMenu').style.display = 'block'; document.getElementById('fishStatus').innerText = "Press SPACE to cast & catch!"; }
+
+let player = new Player();
+let canInteract = null;
+renderInventory(); renderWaypoints();
+
+window.addEventListener('keydown', e => {
+    if (!isStarted) return;
+    
+    // Vehicle Exit
+    if (e.key === '0' && player.driving && !isPaused && !invOpen && !mapOpen) {
+        player.driving.x = player.x - 45;
+        player.driving.y = player.y - 25;
+        world.interactables.push(player.driving);
+        world.walls.push(new Wall(player.driving.x, player.driving.y, 90, 50, true, 'car'));
+        player.driving = null;
+        return;
+    }
+
+    if (e.code === 'Space' && fishState.active) {
+        fishState.active = false;
+        if (fishState.cx >= 100 && fishState.cx <= 150) {
+            player.giveItem('Fish', 'Consumable', 1);
+            document.getElementById('fishStatus').innerText = "CAUGHT A FISH! +1 Fish";
+        } else { document.getElementById('fishStatus').innerText = "ESCAPED! Missed the green zone."; }
+        setTimeout(() => closeMenu('fishingMenu'), 1500);
+    }
+
+    if (e.key === '0' && canInteract && !isPaused && !invOpen && !mapOpen && !player.driving) {
+        
+        // Entering a scavenged vehicle
+        if (canInteract.type === 'Car' && canInteract.scavenged) {
+            player.driving = canInteract;
+            world.interactables = world.interactables.filter(i => i !== canInteract);
+            world.walls = world.walls.filter(w => !(w.material === 'car' && Math.abs(w.x - canInteract.x) < 5 && Math.abs(w.y - canInteract.y) < 5));
+            canInteract = null;
+            return;
+        }
+
+        if (canInteract.type === 'Bed') {
+            let isNight = timeOfDay > 0.45 && timeOfDay < 0.95;
+            if (isNight) { timeOfDay = 0.95; }
+            return;
+        }
+
+        if (canInteract.type === 'Bench') { openAugmentMenu(); return; }
+        if (canInteract.type === 'Lake') { openFishing(); return; }
+        
+        let activeItem = player.inventory[player.activeSlot];
+        if (canInteract.type === 'Stone' || canInteract.type === 'Iron') {
+            if (!activeItem || !activeItem.name.includes('Pickaxe')) return; 
+            if (canInteract.type === 'Iron' && activeItem.name === 'Wood Pickaxe') return; 
+            if (!player.miningTarget) { player.miningTarget = canInteract; player.miningTimer = 600; return; }
+        }
+        
+        if (canInteract.scavenged === false) {
+            canInteract.scavenged = true;
+            if (canInteract.type === 'Fridge') { player.giveItem('Food','Consumable',2); player.giveItem('Water','Consumable',2); }
+            else if (canInteract.type === 'Cupboard') {
+                if (Math.random() > 0.6) {
+                    let wpns = ['Shotgun', 'Hammer', 'Rifle', 'SMG', 'Sniper'];
+                    player.giveItem(wpns[Math.floor(Math.random()*wpns.length)], 'Gun', 1);
+                } else { player.giveItem('Wood','Material', 10); player.giveItem('Iron','Material', 5); player.giveItem('Cloth','Material', 2); }
+            }
+            else if (canInteract.type === 'Car') { 
+                player.giveItem('Iron','Material',5); 
+                if(Math.random()>0.8) player.giveItem('SMG','Gun',1); 
+                if(Math.random()>0.9) player.giveItem('Backpack','Item',1);
+            }
+            else if (canInteract.type === 'CarrotNode') {
+                player.giveItem('Carrot','Consumable', 1);
+            }
+        }
+    }
+});
+
+function loop() {
+    if (!isStarted) {
+        requestAnimationFrame(loop);
+        return;
+    }
+
+    if (!isPaused && !invOpen && !mapOpen) {
+        
+        timeOfDay += 0.00003;
+        if (timeOfDay >= 1) timeOfDay = 0;
+        
+        let timeText = "Daytime";
+        if (timeOfDay > 0.45 && timeOfDay <= 0.55) timeText = "Dusk";
+        else if (timeOfDay > 0.55 && timeOfDay <= 0.9) timeText = "Nighttime";
+        else if (timeOfDay > 0.9) timeText = "Dawn";
+        document.getElementById('timeUI').innerText = timeText;
+
+        mouse.worldX = mouse.x + camera.x; mouse.worldY = mouse.y + camera.y;
+
+        if (player.health > 0) {
+            player.update(); updateWorldChunks();
+            if (!devMode) {
+                if (Math.random() < 0.005) player.hunger -= 0.5;
+                if (Math.random() < 0.008) player.thirst -= 0.5;
+                if (player.hunger <= 0 || player.thirst <= 0) player.health -= 0.1;
+            }
+        }
+
+        if (!player.driving) {
+            for (let i = world.drops.length - 1; i >= 0; i--) {
+                let d = world.drops[i];
+                if (dist(player.x, player.y, d.x, d.y) < player.radius + 15) {
+                    if (player.giveItem(d.name, d.type, d.count)) world.drops.splice(i, 1);
+                }
+            }
+        }
+
+        world.zombies.forEach((z, i) => { 
+            z.update(); 
+            if (z.health <= 0) {
+                if (z.type === 'boss') {
+                    world.drops.push({x: z.x - 20, y: z.y, name: 'Sniper', type: 'Gun', count: 1});
+                    world.drops.push({x: z.x + 20, y: z.y, name: 'Backpack', type: 'Item', count: 1});
+                    world.drops.push({x: z.x, y: z.y - 20, name: 'Steel Block', type: 'Material', count: 5});
+                    world.drops.push({x: z.x, y: z.y + 20, name: 'Bandage', type: 'Consumable', count: 3});
+                } else if (Math.random() < 0.50) { 
+                    let lootRnd = Math.random();
+                    if (lootRnd < 0.3) world.drops.push({x: z.x, y: z.y, name: 'Food', type: 'Consumable', count: 1});
+                    else if (lootRnd < 0.6) world.drops.push({x: z.x, y: z.y, name: 'Water', type: 'Consumable', count: 1});
+                    else if (lootRnd < 0.9) world.drops.push({x: z.x, y: z.y, name: 'Cloth', type: 'Material', count: 1});
+                    else world.drops.push({x: z.x, y: z.y, name: 'Shotgun', type: 'Gun', count: 1});
+                }
+                world.zombies.splice(i, 1); VFX.sfx(z.type === 'boss' ? 'boom' : 'hit'); if (z.type === 'boss') VFX.shake(12, 350);
+            }
+        });
+        
+        world.bullets.forEach((b, i) => {
+            b.update(); let hit = false;
+            world.zombies.forEach(z => { if(dist(b.x, b.y, z.x, z.y) < z.radius) { z.health -= b.damage; hit = true; } });
+            world.walls.forEach(w => { if(w.material !== 'sapling' && rectIntersect(b.x, b.y, 1, 1, w.x, w.y, w.w, w.h)) hit = true; });
+            if (hit || b.life <= 0) world.bullets.splice(i, 1);
+        });
+
+        world.farms.forEach(f => {
+            if (f.state === 'growing') {
+                f.timer--;
+                if (f.timer <= 0) f.state = 'grown';
+            }
+        });
+
+        world.walls = world.walls.filter(w => {
+            let activeItem = player.inventory[player.activeSlot];
+            if (w.health <= 0) {
+                if (w.material === 'tree') {
+                    world.drops.push({x: w.x + w.w/2 - 10, y: w.y + w.h/2, name: 'Wood', type: 'Material', count: Math.floor(Math.random()*4)+2});
+                    world.drops.push({x: w.x + w.w/2 + 10, y: w.y + w.h/2, name: 'Sapling', type: 'Material', count: Math.floor(Math.random()*3)+1});
+                } else {
+                    let dName = null;
+                    if(w.material === 'wood' || w.material === 'bridge') dName = 'Wood Block';
+                    if(w.material === 'metal') dName = 'Metal Block';
+                    if(w.material === 'steel') dName = 'Steel Block';
+                    if(w.material === 'door') dName = 'Wood Door';
+                    if(w.material === 'metal_door') dName = 'Metal Door';
+                    if(w.material === 'steel_door') dName = 'Steel Door';
+                    if (dName) world.drops.push({x: w.x + w.w/2, y: w.y + w.h/2, name: dName, type: 'Material', count: 1});
+                }
+                return false;
+            }
+            if (w.material === 'tree' && player.isSwinging && activeItem && activeItem.name.includes('Axe') && !player.driving) {
+                if (dist(player.x, player.y, w.x+w.w/2, w.y+w.h/2) < 60) w.health -= 50; 
+            }
+            if (w.material === 'sapling') {
+                w.growth++;
+                if (w.growth > 600) { w.material = 'tree'; w.w = 60; w.h = 60; w.x -= 25; w.y -= 25; w.health = 100; w.maxHealth = 100; w.color = '#004d00'; }
+            }
+            return true;
+        });
+
+        if (player.miningTarget) {
+            let mBar = document.getElementById('miningBar');
+            if (keys['w'] || keys['a'] || keys['s'] || keys['d'] || dist(player.x, player.y, player.miningTarget.x+20, player.miningTarget.y+20) > 80 || player.driving) {
+                player.miningTarget = null; mBar.style.display = 'none'; 
+            } else {
+                mBar.style.display = 'block'; player.miningTimer--;
+                document.getElementById('miningFill').style.width = ((600 - player.miningTimer)/6) + '%';
+                if (player.miningTimer <= 0) {
+                    world.drops.push({x: player.miningTarget.x + 20, y: player.miningTarget.y + 20, name: player.miningTarget.type, type: 'Material', count: 5});
+                    player.miningTarget.scavenged = true; 
+                    player.miningTarget = null; 
+                    mBar.style.display = 'none';
+                }
+            }
+        } else { document.getElementById('miningBar').style.display = 'none'; }
+
+        canInteract = world.interactables.find(i => (!i.scavenged || i.type === 'Bench' || i.type === 'Bed' || i.type === 'Car') && rectIntersect(player.x-20, player.y-20, 40, 40, i.x-20, i.y-20, i.w+40, i.h+40));
+        if (!canInteract && !player.driving) { let nearLake = world.lakes.find(l => dist(player.x, player.y, l.x, l.y) < l.r + 30); if (nearLake) canInteract = { type: 'Lake' }; }
+
+        let promptEl = document.getElementById('actionPrompt');
+        if (player.driving) {
+            promptEl.style.display = 'block';
+            promptEl.innerText = "Press '0' to Exit Vehicle";
+        } else if (canInteract) {
+            promptEl.style.display = 'block';
+            if (canInteract.type === 'Bench') promptEl.innerText = "Press '0' to Augment Gun";
+            else if (canInteract.type === 'Lake') promptEl.innerText = "Press '0' to Fish | 'D' to Drink";
+            else if (canInteract.type === 'Bed') {
+                let isNight = timeOfDay > 0.45 && timeOfDay < 0.95;
+                promptEl.innerText = isNight ? "Press '0' to Sleep until Dawn" : "You can only sleep at night";
+            }
+            else if (canInteract.type === 'Stone' || canInteract.type === 'Iron') {
+                let activeItem = player.inventory[player.activeSlot];
+                if (!activeItem || !activeItem.name.includes('Pickaxe')) promptEl.innerText = `Requires Pickaxe for ${canInteract.type}`;
+                else if (canInteract.type === 'Iron' && activeItem.name === 'Wood Pickaxe') promptEl.innerText = "Requires Stone Pickaxe+";
+                else promptEl.innerText = player.miningTarget ? "Mining..." : `Press '0' to Mine ${canInteract.type}`;
+            }
+            else if (canInteract.type === 'Car' && canInteract.scavenged) promptEl.innerText = "Press '0' to Drive Car";
+            else promptEl.innerText = "Press '0' to Scavenge";
+        } else { promptEl.style.display = 'none'; }
+
+    } else if (fishState.active) {
+        fishState.cx += fishState.dir * fishState.spd;
+        if (fishState.cx >= 240 || fishState.cx <= 0) fishState.dir *= -1;
+        document.getElementById('fishCursor').style.left = fishState.cx + 'px';
+    }
+
+    camera.x = player.x - canvas.width / 2; camera.y = player.y - canvas.height / 2;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save(); ctx.translate(-camera.x, -camera.y);
+
+    for (let chunkStr of world.chunks) {
+        let coords = chunkStr.split(',');
+        let cx = parseInt(coords[0]), cy = parseInt(coords[1]);
+        let startX = cx * CHUNK_SIZE, startY = cy * CHUNK_SIZE;
+        
+        if (startX + CHUNK_SIZE > camera.x && startX < camera.x + canvas.width &&
+            startY + CHUNK_SIZE > camera.y && startY < camera.y + canvas.height) {
+            
+            let hash = Math.abs(Math.sin(cx * 12.9898 + cy * 78.233)) * 43758.5453; 
+            let biomeVal = hash % 1;
+            let isMine = biomeVal <= 0.2; 
+            ctx.fillStyle = groundPattern(isMine ? 'mine' : ((biomeVal > 0.4 && biomeVal <= 0.65) ? 'forest' : 'grass'));
+            ctx.fillRect(startX, startY, CHUNK_SIZE, CHUNK_SIZE);
+        }
+    }
+
+    const wt = performance.now() / 1000;
+    world.lakes.forEach(l => {
+        ctx.fillStyle = '#c9b67a'; ctx.beginPath(); ctx.arc(l.x, l.y, l.r + 10, 0, Math.PI*2); ctx.fill();
+        const g = ctx.createRadialGradient(l.x - l.r * 0.3, l.y - l.r * 0.3, l.r * 0.1, l.x, l.y, l.r); g.addColorStop(0, '#4fb3e8'); g.addColorStop(0.7, '#2378b5'); g.addColorStop(1, '#1a5a8a');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(l.x, l.y, l.r, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 2;
+        for (let k = 0; k < 3; k++) { const rr = ((wt * 18 + k * l.r / 3) % l.r); ctx.globalAlpha = 1 - rr / l.r; ctx.beginPath(); ctx.arc(l.x, l.y, rr, 0, Math.PI * 2); ctx.stroke(); }
+        ctx.globalAlpha = 1; ctx.lineWidth = 1;
+    });
+    ctx.fillStyle = groundPattern('path'); world.footpaths.forEach(f => ctx.fillRect(f.x, f.y, f.w, f.h));
+    ctx.fillStyle = groundPattern('road'); world.roads.forEach(r => ctx.fillRect(r.x, r.y, r.w, r.h));
+    ctx.strokeStyle = 'rgba(255,214,90,0.7)'; ctx.lineWidth = 3; ctx.setLineDash([26, 22]);
+    world.roads.forEach(r => { ctx.beginPath(); if (r.w > r.h) { ctx.moveTo(r.x, r.y + r.h / 2); ctx.lineTo(r.x + r.w, r.y + r.h / 2); } else { ctx.moveTo(r.x + r.w / 2, r.y); ctx.lineTo(r.x + r.w / 2, r.y + r.h); } ctx.stroke(); });
+    ctx.setLineDash([]); ctx.lineWidth = 1;
+    
+    world.farms.forEach(f => {
+        ctx.fillStyle = '#5c3a21'; ctx.fillRect(f.x, f.y, f.w, f.h);
+        if (f.state === 'growing') { ctx.fillStyle = '#2ecc71'; ctx.fillRect(f.x+15, f.y+15, 10, 10); }
+        if (f.state === 'grown') { ctx.fillStyle = '#e67e22'; ctx.beginPath(); ctx.arc(f.x+20, f.y+20, 8, 0, Math.PI*2); ctx.fill(); }
+    });
+
+    world.houses.forEach(h => {
+        ctx.fillStyle = '#D2B48C'; ctx.fillRect(h.porch.x, h.porch.y, h.porch.w, h.porch.h);
+        ctx.strokeStyle = '#8B4513'; ctx.strokeRect(h.porch.x, h.porch.y, h.porch.w, h.porch.h);
+        ctx.fillStyle = '#bdc3c7'; ctx.fillRect(h.x, h.y, h.w, h.h);
+    });
+
+    world.interactables.forEach(i => {
+        if (!i.scavenged && (i.type === 'Stone' || i.type === 'Iron')) {
+            ctx.fillStyle = i.color; ctx.beginPath(); ctx.arc(i.x+20, i.y+20, 20, 0, Math.PI*2); ctx.fill(); 
+            ctx.fillStyle = i.type==='Stone'?'#222':'#a04000'; ctx.beginPath(); ctx.arc(i.x+15, i.y+15, 5, 0, Math.PI*2); ctx.fill(); 
+        } else if (i.type === 'CarrotNode' && !i.scavenged) {
+            ctx.fillStyle = '#e67e22'; ctx.beginPath(); ctx.arc(i.x+10, i.y+10, 6, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#2ecc71'; ctx.fillRect(i.x+8, i.y+2, 4, 6);
+        } else if (i.type === 'Bed') {
+            ctx.fillStyle = i.color; ctx.fillRect(i.x, i.y, i.w, i.h);
+            ctx.fillStyle = '#ecf0f1'; ctx.fillRect(i.x + 5, i.y + 5, i.w - 10, 15);
+            ctx.shadowBlur = 10; ctx.shadowColor = 'yellow'; ctx.strokeStyle = 'rgba(255,255,0,0.5)'; ctx.strokeRect(i.x-2, i.y-2, i.w+4, i.h+4); ctx.shadowBlur = 0;
+        } else if (!i.scavenged || i.type === 'Bench' || i.type === 'Car') {
+            ctx.fillStyle = i.color; ctx.fillRect(i.x, i.y, i.w, i.h);
+            if (i.type === 'Car') { ctx.fillStyle = '#111'; ctx.fillRect(i.x+10, i.y+10, i.w-20, 15); ctx.fillRect(i.x+10, i.y+i.h-25, i.w-20, 15); }
+            if (i.type === 'Bench') { ctx.fillStyle = '#1e8449'; ctx.fillRect(i.x+5, i.y+5, i.w-10, i.h-10); } 
+            if (!i.scavenged && i.type !== 'Bench') { ctx.shadowBlur = 10; ctx.shadowColor = 'yellow'; ctx.strokeStyle = 'rgba(255,255,0,0.5)'; ctx.strokeRect(i.x-2, i.y-2, i.w+4, i.h+4); ctx.shadowBlur = 0; }
+        }
+    });
+
+    world.walls.forEach(w => { if (w.material !== 'car') w.draw(); }); 
+    
+    ctx.fillStyle = '#9b59b6';
+    world.waypoints.forEach(wp => {
+        ctx.beginPath(); ctx.arc(wp.x, wp.y, 8, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.stroke();
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Courier New';
+        ctx.fillText(wp.name, wp.x - 10, wp.y - 15);
+    });
+
+    world.bullets.forEach(b => b.draw());
+    world.zombies.forEach(z => z.draw());
+    
+    world.drops.forEach(d => {
+        const bob = Math.sin(wt * 4 + d.x) * 2;
+        ctx.strokeStyle = 'rgba(255,230,120,' + (0.4 + 0.3 * Math.sin(wt * 5 + d.y)) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(d.x, d.y, 14, 0, Math.PI * 2); ctx.stroke(); ctx.lineWidth = 1;
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.beginPath(); ctx.arc(d.x, d.y + bob, 10, 0, Math.PI*2); ctx.fill();
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(ICONS[d.name] || '📦', d.x, d.y);
+    });
+
+    if (player.health > 0) player.draw();
+    
+    world.houses.forEach(h => {
+        if (!player.inHouse) {
+            ctx.fillStyle = '#5c2e0b'; ctx.fillRect(h.x - 10, h.y - 10, h.w + 20, h.h + 20);
+            ctx.fillStyle = '#8B4513'; ctx.strokeStyle = '#4a2509';
+            for(let cx = 0; cx < h.w + 20; cx+= 20) for(let cy = 0; cy < h.h + 20; cy+= 25) { ctx.fillRect(h.x - 10 + cx, h.y - 10 + cy, 18, 23); ctx.strokeRect(h.x - 10 + cx, h.y - 10 + cy, 18, 23); }
+        }
+    });
+
+    ctx.restore();
+
+    let darkness = 0;
+    if (timeOfDay > 0.45 && timeOfDay <= 0.55) darkness = (timeOfDay - 0.45) * 8.5; 
+    else if (timeOfDay > 0.55 && timeOfDay <= 0.9) darkness = 0.85; 
+    else if (timeOfDay > 0.9 && timeOfDay <= 1.0) darkness = 0.85 - ((timeOfDay - 0.9) * 8.5); 
+    
+    if (darkness > 0) {
+        if (!window._night || _night.width !== canvas.width || _night.height !== canvas.height) { window._night = document.createElement('canvas'); _night.width = canvas.width; _night.height = canvas.height; }
+        const n = _night.getContext('2d');
+        n.globalCompositeOperation = 'source-over'; n.clearRect(0, 0, _night.width, _night.height);
+        n.fillStyle = `rgba(4, 6, 22, ${darkness})`; n.fillRect(0, 0, _night.width, _night.height);
+        const px = player.x - camera.x, py = player.y - camera.y, ang = Math.atan2(mouse.y - py, mouse.x - px);
+        n.globalCompositeOperation = 'destination-out';
+        let g = n.createRadialGradient(px, py, 20, px, py, 190); g.addColorStop(0, 'rgba(0,0,0,0.95)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+        n.fillStyle = g; n.beginPath(); n.arc(px, py, 190, 0, Math.PI * 2); n.fill();
+        g = n.createRadialGradient(px, py, 30, px, py, 520); g.addColorStop(0, 'rgba(0,0,0,0.9)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+        n.fillStyle = g; n.beginPath(); n.moveTo(px, py); n.arc(px, py, 520, ang - 0.42, ang + 0.42); n.closePath(); n.fill();
+        ctx.drawImage(_night, 0, 0);
+        ctx.globalCompositeOperation = 'lighter';
+        const lg = ctx.createRadialGradient(px, py, 10, px, py, 260); lg.addColorStop(0, `rgba(255,220,150,${0.10 * darkness})`); lg.addColorStop(1, 'rgba(255,220,150,0)');
+        ctx.fillStyle = lg; ctx.beginPath(); ctx.arc(px, py, 260, 0, Math.PI * 2); ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+    }
+
+    if (player.health <= 0) { ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = 'red'; ctx.font = '50px Courier'; ctx.fillText('YOU DIED', canvas.width/2 - 120, canvas.height/2); }
+    
+    requestAnimationFrame(loop);
+}
+
+window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+loop();
+</script>
+</body>
+</html>
