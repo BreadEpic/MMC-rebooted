@@ -246,7 +246,9 @@
     fire: ["...X....", "...XX...", "..XXX.X.", ".XXXXXX.", ".XXX.XXX", "XXX...XX", "XXX...XX", ".XXXXXX."],
     trophy: ["XXXXXXXX", "X.XXXX.X", ".XXXXXX.", "..XXXX..", "...XX...", "...XX...", "..XXXX..", ".XXXXXX."],
     back: ["...X....", "..XX....", ".XXXXXXX", "XXXXXXXX", ".XXXXXXX", "..XX....", "...X....", "........"],
-    star: ["...XX...", "...XX...", "XXXXXXXX", ".XXXXXX.", "..XXXX..", ".XXXXXX.", ".XX..XX.", "X......X"]
+    star: ["...XX...", "...XX...", "XXXXXXXX", ".XXXXXX.", "..XXXX..", ".XXXXXX.", ".XX..XX.", "X......X"],
+    vector: ["...XX...", "..XXXX..", ".XX..XX.", "XX.XX.XX", "XX.XX.XX", ".XX..XX.", "..XXXX..", "...XX..."],
+    app: ["XXXXXXXX", "X.X.X..X", "XXXXXXXX", "X..XX..X", "X..XX..X", "X.XXXX.X", "X..XX..X", "XXXXXXXX"]
   };
 
   function icon(name, cls) {

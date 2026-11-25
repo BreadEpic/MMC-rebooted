@@ -172,5 +172,28 @@
     return game;
   }
 
+  // Vectors 2.0: the original AI-made games, rebuilt with a whole new look (vectors/).
+  var VECTORS = [
+    ["v-cosmic", "Cosmic Survivor", "cosmicsurvivor", "Shooter", "Twin-stick space shooter. 20 sectors, a mothership every 5."],
+    ["v-neonrogue", "Neon Rogue", "neonrogue", "Roguelike", "Arena roguelike with upgrades, floors and bosses."],
+    ["v-brotato", "Bro-Tato", "brotato", "Arena", "One potato, six guns. Survive the alien waves."],
+    ["v-rounds", "Rounds", "rounds", "2 Player", "1v1 platform duels. Pick upgrade cards between rounds."],
+    ["v-zombie", "Zombie Survival", "zombiesurvival", "Survival", "Open world: scavenge, craft, build and last the night."],
+    ["v-defense", "Defense Protocol", "defenseprotocol", "Strategy", "Tower defence with line of sight and a map maker."],
+    ["v-realm", "Realm Defender", "realmdefender", "Defence", "Hold the castle wall against goblin waves."],
+    ["v-boxlogic", "Box Logic", "boxlogic", "Puzzle", "Puzzle platformer with 3 levels and a level maker."],
+    ["v-arcade", "Neon Arcade", "arcade", "Arcade", "Ghost Lab, Neon Pong and Stacker in one cabinet."],
+    ["v-railway", "Railway Rush", "railwayrush", "Runner", "3D endless runner on the train tracks."],
+    ["v-weetabix", "Weetabix Runner", "weetabix", "Runner", "3D cereal runner. Whatever you do, do not get soggy."],
+    ["v-summit", "Summit Slide", "summitslide", "Sports", "Downhill skiing, 9 mountains, up to 4 players."],
+    ["v-prophunt", "Prop Hunt", "prophunt", "2 Player", "Hide as anything. Two hunters share one screen."],
+    ["v-marmalade", "Marmalade Tycoon", "marmalade", "Idle", "Squeeze, sell and grow a marmalade empire."],
+    ["v-studio", "Vector Studio", "editor", "Tool", "HTML, CSS and JS editor with a live preview."]
+  ];
+  VECTORS.forEach(function (v) {
+    var g = add({ id: v[0], name: v[1], section: "Vectors 2.0", src: "vectors/" + v[2] + ".html", thumb: "vectors/covers/" + v[2] + ".jpg", isNew: true });
+    if (g) { g.vector = true; g.tag = v[3]; g.desc = v[4]; }
+  });
+
   window.MMC_GAMES = { list: list, byId: byId, sections: sections, add: add };
 })();

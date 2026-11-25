@@ -26,5 +26,11 @@ MMC_TIPS([
   "Games marked Online need internet, everything else works with no wifi.",
   "Settings > Credits lists the packs you have installed.",
   "The Minecraft tab has More Versions: 1.20.6, 1.16.5, 1.12.2, Beta, Alpha, Indev and Paper Minecraft.",
-  "You can add your own tips to tips.js, right next to Run Me.html."
+  "You can add your own tips to tips.js, right next to Run Me.html.",
+  "The Vectors 2.0 tab has the original AI-made games, rebuilt with a whole new look.",
+  "In a Vectors 2.0 game, the small FX button turns glow, scanlines and sound effects on or off.",
+  "Settings > Desktop App puts MMC on your desktop in its own window, with no tabs or address bar.",
+  "Love one game? Open it and press the app button in the game bar to make it its own desktop app.",
+  "Box Logic has a level maker. Press Save to get a code you can share with friends.",
+  "Neon Arcade has three games in one: Ghost Lab, Neon Pong and Stacker."
 ]);

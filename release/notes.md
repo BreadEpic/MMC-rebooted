@@ -7,10 +7,11 @@ MMC:Rebooted, fully offline. No wifi needed.
 2. Want more games? Also download any packs below. They are optional.
 3. Extract every zip **into the same folder**. If Windows asks to replace or merge folders, say yes.
 4. Open **Run Me.html**. Installed packs show up by themselves in the Games tab.
+5. Want it on your desktop? Say yes when MMC offers, or use Settings > Desktop App.
 
 | Zip | What's in it |
 |---|---|
-| Reboot-2.3 | The dashboard, 79 games, all 18 Minecraft clients |
+| Reboot-2.3 | The dashboard, 79 games, 15 Vectors 2.0 games, all 18 Minecraft clients |
 | Bonus-Pack | Cheese Rolling, Stickman and Guns, Subway Surfers Barcelona, ULTRAKILL, Uno |
 | Extra-Games-1, 2, 3 | 261 more offline games (Papa's games, FNAF, Moto X3M, Retro Bowl, Undertale and more) |
 | FNF-Pack | Friday Night Funkin' |
@@ -19,6 +20,8 @@ MMC:Rebooted, fully offline. No wifi needed.
 GitHub limits each download to 2GB, which is why the big collections come as separate packs.
 
 ### New in Reboot 2.3
+- **Vectors 2.0**: a new tab with the og ai games with a whole new look (note, vectors are 100% ai generated.) All 15 were rebuilt with glow, particles, sound, new menus and cover art, and every one runs offline: Cosmic Survivor, Neon Rogue, Bro-Tato, Rounds, Zombie Survival, Defense Protocol, Realm Defender, Box Logic, Neon Arcade, Railway Rush, Weetabix Runner, Summit Slide, Prop Hunt, Marmalade Tycoon and Vector Studio
+- **Desktop app**: the first time you open MMC it offers to put itself on your desktop. It opens in its own window, with no tabs or address bar. You can also make any single game its own app with the app button in the game bar (or Settings > Desktop App)
 - **Games** is its own tab now, with genres like Racing, Sports, Horror, Puzzle and Papa's
 - Smoother tab switching, and the Minecraft launcher loads in the background so it opens instantly
 - A **Tips** box on Home with a new-tip button (edit **tips.js** to add your own)

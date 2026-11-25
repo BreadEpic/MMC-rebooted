@@ -9,6 +9,7 @@
   var TABS = [
     { id: "home", label: "Home", icon: "home" },
     { id: "games", label: "Games", icon: "pad" },
+    { id: "vectors", label: "Vectors 2.0", icon: "vector" },
     { id: "minecraft", label: "Minecraft", icon: "pick" },
     { id: "settings", label: "Settings", icon: "gear" }
   ];
@@ -98,6 +99,7 @@
       mf.classList.remove("mc-enter"); void mf.offsetWidth; mf.classList.add("mc-enter");
     }
     if (id === "home") renderHome();
+    if (id === "vectors") renderVectors();
     if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
     measureHeader();
     hideTip();
@@ -206,8 +208,8 @@
   var frame = $("playerFrame");
   var clockTimer;
 
-  ["pPin", "pReload", "pFull", "pOut", "pClose"].forEach(function (id) {
-    var map = { pPin: "pin", pReload: "reload", pFull: "full", pOut: "out", pClose: "close" };
+  ["pPin", "pReload", "pFull", "pApp", "pOut", "pClose"].forEach(function (id) {
+    var map = { pPin: "pin", pReload: "reload", pFull: "full", pApp: "app", pOut: "out", pClose: "close" };
     $(id).innerHTML = icon(map[id]);
   });
 
@@ -285,6 +287,9 @@
     closePlayer();
     launch(g.id, "tab");
   });
+  $("pApp").addEventListener("click", function () {
+    if (current && window.MMCApp) MMCApp.open(current.game.id);
+  });
   $("pPin").addEventListener("click", function () {
     if (!current) return;
     pinToggle(current.game.id);
@@ -314,7 +319,7 @@
 
   function syncPinState(id) {
     var on = MMC.isPinned(id);
-    var tiles = document.querySelectorAll('.tile[data-id="' + id + '"]');
+    var tiles = document.querySelectorAll('.tile[data-id="' + id + '"], .vec-card[data-id="' + id + '"]');
     for (var i = 0; i < tiles.length; i++) {
       tiles[i].classList.toggle("pinned", on);
       var b = tiles[i].querySelector(".tile-pin");
@@ -355,6 +360,40 @@
       t.appendChild(w);
     }
     return t;
+  }
+
+  // Vectors 2.0 showcase cards
+  function renderVectors() {
+    var grid = $("vecGrid");
+    var vs = G.list.filter(function (g) { return g.vector; });
+    $("vecCount").textContent = vs.length + " games";
+    grid.innerHTML = "";
+    vs.forEach(function (g, i) {
+      var pinned = MMC.isPinned(g.id);
+      var c = el("div", "vec-card" + (pinned ? " pinned" : ""));
+      c.setAttribute("data-id", g.id);
+      c.style.setProperty("--i", i);
+      var play = el("button", "vec-play");
+      play.setAttribute("data-play", g.id);
+      play.setAttribute("aria-label", "Play " + g.name);
+      var img = el("img", "vec-img"); img.src = g.img; img.alt = ""; img.loading = "lazy"; img.decoding = "async";
+      var body = el("span", "vec-body");
+      var nm = el("span", "vec-name"); nm.textContent = g.name;
+      var tg = el("span", "vec-tag"); tg.textContent = g.tag || "";
+      var ds = el("span", "vec-desc"); ds.textContent = g.desc || "";
+      body.appendChild(nm); body.appendChild(tg); body.appendChild(ds);
+      play.appendChild(img); play.appendChild(body);
+      var pin = el("button", "tile-pin", icon("pin"));
+      pin.setAttribute("data-pin", g.id);
+      pin.setAttribute("aria-label", "Pin " + g.name);
+      pin.setAttribute("aria-pressed", pinned ? "true" : "false");
+      pin.title = pinned ? "Unpin" : "Pin";
+      var app = el("button", "vec-app", icon("app"));
+      app.setAttribute("data-app", g.id);
+      app.title = "Save " + g.name + " as an app";
+      c.appendChild(play); c.appendChild(pin); c.appendChild(app);
+      grid.appendChild(c);
+    });
   }
 
   document.addEventListener("click", function (e) {

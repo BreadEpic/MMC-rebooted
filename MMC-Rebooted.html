@@ -28,6 +28,7 @@
   <nav class="tabs" role="tablist" aria-label="Sections">
     <button class="tab" role="tab" id="tabbtn-home" data-tab="home" aria-controls="tab-home"></button>
     <button class="tab" role="tab" id="tabbtn-games" data-tab="games" aria-controls="tab-games"></button>
+    <button class="tab" role="tab" id="tabbtn-vectors" data-tab="vectors" aria-controls="tab-vectors"></button>
     <button class="tab" role="tab" id="tabbtn-minecraft" data-tab="minecraft" aria-controls="tab-minecraft"></button>
     <button class="tab" role="tab" id="tabbtn-settings" data-tab="settings" aria-controls="tab-settings"></button>
   </nav>
@@ -86,6 +87,18 @@
     </div>
   </section>
 
+  <!-- ================= VECTORS 2.0 ================= -->
+  <section class="view" id="tab-vectors" role="tabpanel" aria-labelledby="tabbtn-vectors" hidden>
+    <div class="panel vec-hero">
+      <div class="vec-hero-text">
+        <h2 class="vec-title">Vectors 2.0</h2>
+        <p class="vec-line">the og ai games with a whole new look (note, vectors are 100% ai generated.)</p>
+      </div>
+      <div class="vec-meta"><span id="vecCount"></span><span class="vec-hint">Every game runs offline. Look for the FX button in a game to change glow and sound.</span></div>
+    </div>
+    <div class="vec-grid" id="vecGrid"></div>
+  </section>
+
   <!-- ================= MINECRAFT ================= -->
   <section class="view" id="tab-minecraft" role="tabpanel" aria-labelledby="tabbtn-minecraft" hidden>
     <div class="mc-frame">
@@ -128,6 +141,15 @@
           </select>
         </div>
         <p class="hint">Popout bar shows in new tab and about:blank modes.</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Desktop App</h2><span class="panel-meta" id="appState"></span></div>
+        <div class="set-row">
+          <span class="set-label">MMC on your desktop</span>
+          <button class="btn" id="appSetBtn">Add to Desktop</button>
+        </div>
+        <p class="hint">Opens MMC in its own window with no tabs or address bar. To make one game an app, open it and press the app button in the game bar.</p>
       </div>
 
       <div class="panel">
@@ -194,6 +216,7 @@
       <button class="icon-btn" id="pPin" title="Pin"></button>
       <button class="icon-btn" id="pReload" title="Reload"></button>
       <button class="icon-btn" id="pFull" title="Fullscreen"></button>
+      <button class="icon-btn" id="pApp" title="Save this game as an app"></button>
       <button class="icon-btn" id="pOut" title="Open in new tab"></button>
       <button class="icon-btn close" id="pClose" title="Close"></button>
     </div>
@@ -211,5 +234,6 @@
 <script src="mmc/presets.js"></script>
 <script src="mmc/fx.js"></script>
 <script src="mmc/app.js"></script>
+<script src="mmc/webapp.js"></script>
 </body>
 </html>
