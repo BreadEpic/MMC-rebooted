@@ -783,6 +783,44 @@
   });
 
   /* =====================================================
+     Tips: tips.js sits next to Run Me.html in the release zip
+     (release/tips.js in the repo). A random one shows each time.
+     ===================================================== */
+  var tips = [];
+  window.MMC_TIPS = function (list) {
+    if (!Array.isArray(list)) return;
+    tips = list.map(function (t) { return String(t).trim(); }).filter(Boolean);
+    showTip_(true);
+  };
+
+  function showTip_(first) {
+    if (!tips.length) return;
+    var last = -1;
+    try { last = +sessionStorage.getItem("mmc-last-tip"); } catch (e) {}
+    var i = Math.floor(Math.random() * tips.length);
+    if (tips.length > 1 && i === last) i = (i + 1 + Math.floor(Math.random() * (tips.length - 1))) % tips.length;
+    try { sessionStorage.setItem("mmc-last-tip", String(i)); } catch (e) {}
+    var text = $("tipText");
+    text.textContent = tips[i];
+    text.classList.remove("swap");
+    if (!first) { void text.offsetWidth; text.classList.add("swap"); }
+    $("tip").hidden = false;
+    measureHeader();
+  }
+
+  $("tipLabel").innerHTML = icon("star") + "Tip";
+  $("tipNext").innerHTML = icon("reload");
+  $("tipNext").addEventListener("click", function () { showTip_(false); });
+
+  (function loadTips(paths) {
+    if (!paths.length) return;
+    var s = document.createElement("script");
+    s.src = paths[0];
+    s.onerror = function () { s.remove(); loadTips(paths.slice(1)); };
+    document.body.appendChild(s);
+  })(["../tips.js", "release/tips.js"]);
+
+  /* =====================================================
      Boot
      ===================================================== */
   MMC.applyDisguise();

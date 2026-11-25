@@ -7,6 +7,10 @@ The whole of MMC:Rebooted in one zip. No wifi needed.
 2. Extract it.
 3. Open **Run Me.html**. Keep it next to the **files** folder, that's where every game lives.
 
+### New in Reboot 2.1
+- A random tip every time MMC:Rebooted opens, with a refresh button for another
+- **tips.js** next to Run Me.html: open it in any text editor to add your own tips
+
 ### New in Reboot 2
 - **Brotato**, **Crazy Cattle 3D** and **Jelly Mario**, all running offline (look for the NEW badge)
 - A new **Godot** section in the library

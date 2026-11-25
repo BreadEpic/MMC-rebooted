@@ -153,6 +153,24 @@ html[data-fx="off"] .tagline::after { animation: none; }
 }
 .tab[aria-selected="true"] .px-icon { color: var(--on-accent); }
 
+/* tip bar: a random tip each time MMC:Rebooted opens */
+.tip {
+  --bd: var(--a2);
+  display: flex; align-items: center; gap: 10px; max-width: min(640px, 100%); margin: var(--bw);
+  padding: 5px 6px 5px 10px; background: var(--panel); text-align: left;
+  box-shadow: calc(var(--bw) * -1) 0 0 0 var(--bd), var(--bw) 0 0 0 var(--bd), 0 calc(var(--bw) * -1) 0 0 var(--bd), 0 var(--bw) 0 0 var(--bd);
+  animation: tip-in .45s var(--ease) both;
+}
+.tip-label { display: inline-flex; align-items: center; gap: 6px; flex: none; font-family: var(--f-pixel); font-size: 8px; text-transform: uppercase; color: var(--a2); }
+.tip-label .px-icon { font-size: 11px; }
+.tip-text { flex: 1; min-width: 0; font-size: 17px; color: var(--ink-2); }
+.tip-text.swap { animation: tip-swap .35s var(--ease); }
+.tip-btn { flex: none; width: 26px; height: 26px; display: grid; place-items: center; font-size: 12px; color: var(--ink-2); background: var(--panel-2); transition: color .15s, transform .3s var(--ease); }
+.tip-btn:hover { color: var(--a1); transform: rotate(180deg); }
+@keyframes tip-in { from { opacity: 0; transform: translateY(-6px); } }
+@keyframes tip-swap { from { opacity: 0; transform: translateX(8px); } }
+body[data-tab="minecraft"] .tip { display: none; }
+
 /* compact header on the Minecraft tab so the launcher gets the room */
 body[data-tab="minecraft"] .top { flex-direction: row; justify-content: space-between; padding: 10px 18px; gap: 14px; text-align: left; }
 body[data-tab="minecraft"] .brand { align-items: flex-start; gap: 4px; }

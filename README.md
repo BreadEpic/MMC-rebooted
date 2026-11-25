@@ -8,7 +8,7 @@ It runs straight from the files on your computer (`file://`), so it works on a C
 ## How to use
 
 **Easiest:** grab the newest **Reboot zip** from [Releases](../../releases), extract it, and open **`Run Me.html`**.
-All the game files live in the `files` folder next to it.
+All the game files live in the `files` folder next to it, and `tips.js` holds the tips shown on Home (add your own).
 
 Or from this repo: download it as a zip (green **Code** button, then **Download ZIP**), extract it, and open **`MMC-Rebooted.html`**.
 Keep the folders next to the HTML file, the dashboard loads games from them.
